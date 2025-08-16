@@ -256,7 +256,7 @@ export default function TestStep2() {
         <RightSection>
           <Nav>
             <div onClick={() => navigate("/Home")}>主頁</div>
-            <div onClick={() => navigate("/about")}>機器人介紹</div>
+            <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
             <div onClick={() => navigate("/mood")}>聊天</div>
             <div onClick={() => navigate("/about-us")}>關於我們</div>
           </Nav>

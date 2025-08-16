@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -125,7 +125,7 @@ const Title = styled.h1`
   font-size: 100px;
   color: #3a4872;
   font-weight: 700;
-  font-family: "Noto Sans TC", "PingFang TC", sans-serif;
+  font-family: "GenSenRounded", sans-serif;
   position: relative;
   z-index: 1;
   text-shadow: 0 4px 20px rgba(58, 72, 114, 0.2);
@@ -941,6 +941,7 @@ const FooterLinks = styled.div`
 // ===== 主組件 =====
 export default function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const scrollRef = useRef(null);
   
   const botCards = [
@@ -1003,6 +1004,19 @@ export default function Home() {
     AOS.init({ duration: 800, once: true });
   }, []);
 
+  useEffect(() => {
+    const shouldScroll =
+      location.hash === "#robots" || location.state?.scrollTo === "robots";
+    if (shouldScroll) {
+      // 等畫面渲染完成再捲
+      setTimeout(() => {
+        document
+          .getElementById("robot-section")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 0);
+    }
+  }, [location]);
+
   // 滾動到下一個或上一個卡片
   const scrollToCard = (direction) => {
     const ref = scrollRef.current;
@@ -1026,7 +1040,14 @@ export default function Home() {
         <RightSection>
           <Nav>
             <div onClick={() => navigate("/Home")}>主頁</div>
-            <div onClick={() => navigate("/about")}>機器人介紹</div>
+            <div onClick={() => {
+              const section = document.getElementById("robot-section");
+              if (section) {
+                section.scrollIntoView({ behavior: "smooth" });
+              }
+            }}>
+              機器人介紹
+            </div>
             <div onClick={() => navigate("/mood")}>聊天</div>
             <div onClick={() => navigate("/about-us")}>關於我們</div>
           </Nav>
@@ -1050,7 +1071,7 @@ export default function Home() {
         </HeroContent>
       </HeroSection>
 
-      <CardSection>
+      <CardSection id="robot-section">
         <SectionTitle data-aos="fade-up">為每一種情緒，找到最好的陪伴</SectionTitle>
         <SectionSubtitle data-aos="fade-up" data-aos-delay="100">
           每個AI夥伴都有獨特的陪伴風格，讓我們為你找到最適合的那一個

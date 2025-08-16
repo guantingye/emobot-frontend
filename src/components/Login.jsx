@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import loginBackground from "../assets/Login_background.png";
 import userIcon from "../assets/profile.png";
 import { FaFacebook, FaInstagram, FaChrome } from "react-icons/fa";
-import { SlUserUnfollow } from "react-icons/sl";
 import guestIcon from "../assets/guesticon.png";
 import logoIcon from "../assets/logofig.png";
 
@@ -225,7 +224,7 @@ export default function Login() {
         <RightSection>
           <Nav>
             <div onClick={() => navigate("/Home")}>主頁</div>
-            <div onClick={() => navigate("/about")}>機器人介紹</div>
+            <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
             <div onClick={() => navigate("/mood")}>聊天</div>
             <div onClick={() => navigate("/about-us")}>關於我們</div>
           </Nav>
