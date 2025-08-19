@@ -4,6 +4,7 @@ import styled, { keyframes } from "styled-components";
 import userIcon from "../assets/profile.png";
 import StepIndicator from "./StepIndicator";
 import logoIcon from "../assets/logofig.png";
+import { saveAssessment } from "../api/client";
 
 const fadeInUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -230,13 +231,13 @@ export default function TestStep4() {
     setAnswers(newAnswers);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const isComplete = answers.every((a) => a !== null);
-    if (!isComplete) {
-      alert("世界會不斷給你重複的課題，直到你給出新的回應！");
-      return;
-    }
+    if (!isComplete) { alert("世界會不斷給你重複的課題，直到你給出新的回應！"); return; }
     localStorage.setItem("step4Answers", JSON.stringify(answers));
+    try {
+      await saveAssessment({ step4Answers: answers, submittedAt: new Date().toISOString() });
+    } catch (e) { console.warn("save step4 failed:", e.message); }
     navigate("/test/step5");
   };
 
@@ -252,7 +253,9 @@ export default function TestStep4() {
             <div onClick={() => navigate("/Home")}>主頁</div>
             <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
             <div onClick={() => navigate("/mood")}>聊天</div>
-            <div onClick={() => navigate("/about-us")}>關於我們</div>
+            <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>
+              關於我們
+            </div>
           </Nav>
           <AvatarImg src={userIcon} alt="user avatar" onClick={() => navigate("/profile")} />
         </RightSection>

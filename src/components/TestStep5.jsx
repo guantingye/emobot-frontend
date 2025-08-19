@@ -1,14 +1,12 @@
 // src/components/TestStep5.jsx
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import userIcon from "../assets/profile.png";
 import StepIndicator from "./StepIndicator";
-import axios from "axios";
 import logoIcon from "../assets/logofig.png";
 
-// 動畫 & 樣式
+// 動畫 & 樣式（保持原樣）
 const fadeInUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -45,10 +43,7 @@ const Logo = styled.div`
   align-items: center;
   cursor: pointer;
   transition: transform 0.3s ease;
-
-  &:hover {
-    transform: scale(1.05);
-  }
+  &:hover { transform: scale(1.05); }
 `;
 
 const Nav = styled.nav`
@@ -57,47 +52,26 @@ const Nav = styled.nav`
   font-size: 26px;
   font-weight: bold;
   color: black;
-
   div {
     cursor: pointer;
     transition: color 0.3s ease, transform 0.2s ease;
-
-    &:hover {
-      color: #2b3993;
-      transform: translateY(-2px);
-    }
-
-    &:active {
-      transform: translateY(1px);
-    }
+    &:hover { color: #2b3993; transform: translateY(-2px); }
+    &:active { transform: translateY(1px); }
   }
 `;
 
 const AvatarImg = styled.img`
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-  cursor: pointer;
+  width: 50px; height: 50px; border-radius: 50%;
+  object-fit: cover; cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-
-  &:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
+  &:hover { transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 `;
 
 const RightSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  margin-left: auto;
-  margin-right: 40px;
+  display: flex; align-items: center; gap: 30px; margin-left: auto; margin-right: 40px;
 `;
 
-const StepIndicatorWrapper = styled.div`
-  margin-top: 120px;
-`;
+const StepIndicatorWrapper = styled.div` margin-top: 120px; `;
 
 const Main = styled.div`
   max-width: 960px; margin: 40px auto; padding: 60px;
@@ -105,18 +79,13 @@ const Main = styled.div`
   animation: ${fadeInUp} 0.8s ease-out;
 `;
 
-const BigTitle = styled.h2`
-  font-size: 32px; font-weight: bold; margin-bottom: 40px;
-`;
+const BigTitle = styled.h2` font-size: 32px; font-weight: bold; margin-bottom: 40px; `;
 
 const Paragraph = styled.p`
-  font-size: 20px; line-height: 1.8; color: #333; margin-bottom: 48px;
-  white-space: pre-line;
+  font-size: 20px; line-height: 1.8; color: #333; margin-bottom: 48px; white-space: pre-line;
 `;
 
-const ButtonGroup = styled.div`
-  display: flex; justify-content: center; gap: 40px; margin-bottom: 24px;
-`;
+const ButtonGroup = styled.div` display: flex; justify-content: center; gap: 40px; margin-bottom: 24px; `;
 
 const Button = styled.button`
   font-size: 20px; padding: 14px 36px;
@@ -128,7 +97,7 @@ const Button = styled.button`
 `;
 
 const DebugButton = styled(Button)`
-  display: none; // 暫時先把主動匯出CSV資料關起來
+  display: none;
   background-color: #999; border-color: #777;
 `;
 
@@ -137,7 +106,7 @@ export default function TestStep5() {
   const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
-    // 1. 讀取 MBTI，fallback 處理舊格式
+    // 這段保留（你原本有需要的話）
     const rawMBTI = localStorage.getItem("step1MBTI") || "";
     let mbtiArr;
     try {
@@ -149,79 +118,20 @@ export default function TestStep5() {
         .split("")
         .map(c => (c==="E"||c==="N"||c==="T"||c==="P" ? 1 : 0));
     }
-    // 2. 讀取其他三個量表
     const aas  = JSON.parse(localStorage.getItem("step2Answers") || "[]");
     const ders = JSON.parse(localStorage.getItem("step3Answers") || "[]");
     const bpns = JSON.parse(localStorage.getItem("step4Answers") || "[]");
     setUserProfile({ mbti: mbtiArr, aas, ders, bpns });
   }, []);
 
-  // 呼叫後端演算法
-  const handleMatch = async () => {
-    if (!userProfile) {
-      alert("資料尚未準備完成！");
-      return;
-    }
-    try {
-      // 添加 API URL 配置
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      console.log('API URL:', API_URL); // 除錯用
-      console.log('User Profile:', userProfile); // 除錯用
-      
-      const { data } = await axios.post(`${API_URL}/api/recommend`, userProfile);
-      
-      // 處理後端回傳的資料格式
-      console.log('API Response:', data); // 除錯用
-      
-      // 存儲推薦結果
-      localStorage.setItem("recommendResult", JSON.stringify(data));
-      
-      // 根據後端回傳的推薦結果設定選中的機器人
-      if (data.best) {
-        // 映射 AI 名稱到 ID
-        const aiNameToId = {
-          "EmpathicAI": 1,           // 同理型 AI
-          "InsightfulAI": 2,         // 洞察型 AI
-          "Solution-FocusedAI": 3,   // 解決型 AI
-          "CognitiveAI": 4           // 認知型 AI
-        };
-        
-        const botNames = {
-          1: "同理型 AI",
-          2: "洞察型 AI", 
-          3: "解決型 AI",
-          4: "認知型 AI"
-        };
-        
-        const botImages = {
-          1: "bot1.png",
-          2: "bot2.png",
-          3: "bot6.png", 
-          4: "bot4.png"
-        };
-        
-        const recommendedBotId = aiNameToId[data.best] || 3; // 預設解決型
-        
-        localStorage.setItem("selectedBotId", recommendedBotId.toString());
-        localStorage.setItem("selectedBotName", botNames[recommendedBotId]);
-        localStorage.setItem("selectedBotImage", botImages[recommendedBotId]);
-        
-        console.log('Recommended Bot ID:', recommendedBotId); // 除錯用
-      }
-      
-      navigate("/match/result");
-    } catch (err) {
-      console.error("媒合失敗：", err);
-      alert(`媒合失敗：${err.response?.data?.message || err.message || '請檢查網路連線'}`);
-    }
+  // Step5 的「開始媒合」→ 只負責導到 Loading 頁
+  const goMatch = () => {
+    // 若你想在這裡做最後的檢查可以加，但不打 API
+    navigate("/matching");
   };
 
-  // 保留 CSV 匯出
   const exportToCSV = () => {
-    if (!userProfile) {
-      alert("資料尚未載入完成！");
-      return;
-    }
+    if (!userProfile) return;
     const { mbti, aas, ders, bpns } = userProfile;
     const headers = ["MBTI"], vals = [mbti.join("")];
     (aas||[]).forEach((v,i)=>{ headers.push(`AAS_Q${i+1}`); vals.push(v); });
@@ -236,16 +146,16 @@ export default function TestStep5() {
   return (
     <Container>
       <Header>
-          <Logo onClick={() => navigate("Home/")}>
-            <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
-            Emobot+
-          </Logo>
+        <Logo onClick={() => navigate("Home/")}>
+          <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
+          Emobot+
+        </Logo>
         <RightSection>
           <Nav>
             <div onClick={()=>navigate("/Home")}>主頁</div>
             <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
             <div onClick={()=>navigate("/mood")}>聊天</div>
-            <div onClick={()=>navigate("/about-us")}>關於我們</div>
+            <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>關於我們</div>
           </Nav>
           <AvatarImg src={userIcon} alt="avatar" onClick={()=>navigate("/profile")} />
         </RightSection>
@@ -265,12 +175,10 @@ export default function TestStep5() {
 
         <ButtonGroup>
           <Button onClick={() => navigate("/test/step4")}>返回上一步</Button>
-          <Button onClick={handleMatch}>開始媒合！</Button>
+          <Button onClick={goMatch}>開始媒合！</Button>
         </ButtonGroup>
 
-        <DebugButton onClick={exportToCSV}>
-          匯出填答資料 CSV（Debug）
-        </DebugButton>
+        <DebugButton onClick={exportToCSV}>匯出填答資料 CSV（Debug）</DebugButton>
       </Main>
     </Container>
   );

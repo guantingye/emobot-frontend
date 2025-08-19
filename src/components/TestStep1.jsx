@@ -4,6 +4,8 @@ import styled, { keyframes } from "styled-components";
 import userIcon from "../assets/profile.png";
 import StepIndicator from "./StepIndicator";
 import logoIcon from "../assets/logofig.png";
+import { saveAssessment } from "../api/client";
+
 
 // ========== 動畫 ==========
 const fadeIn = keyframes`
@@ -166,21 +168,24 @@ export default function MBTIStep1() {
   const navigate = useNavigate();
   const [mbtiStr, setMbtiStr] = useState("");
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const s = mbtiStr.trim().toUpperCase();
     if (!/^[EI][NS][TF][PJ]$/.test(s)) {
       alert("請輸入正確的 MBTI 4 字母（如 ENTP、ISFJ）");
       return;
     }
-    // E=1 I=0, N=1 S=0, T=1 F=0, P=1 J=0
     const mbtiArr = [
       s[0] === "E" ? 1 : 0,
       s[1] === "N" ? 1 : 0,
       s[2] === "T" ? 1 : 0,
       s[3] === "P" ? 1 : 0,
     ];
-    // 存成 JSON 字串
-    localStorage.setItem("step1MBTI", JSON.stringify([1,1,1,0]));
+    localStorage.setItem("step1MBTI", JSON.stringify(mbtiArr));
+    try {
+      await saveAssessment({ mbti: { raw: s, encoded: mbtiArr } });
+    } catch (e) {
+      console.warn("save step1 failed:", e.message);
+    }
     navigate("/test/step2");
   };
 
@@ -196,7 +201,9 @@ export default function MBTIStep1() {
             <div onClick={() => navigate("/Home")}>主頁</div>
             <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
             <div onClick={() => navigate("/mood")}>聊天</div>
-            <div onClick={() => navigate("/about-us")}>關於我們</div>
+            <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>
+              關於我們
+            </div>
           </Nav>
           <AvatarImg
             src={userIcon}

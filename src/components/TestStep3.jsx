@@ -4,6 +4,7 @@ import styled, { keyframes } from "styled-components";
 import userIcon from "../assets/profile.png";
 import StepIndicator from "./StepIndicator";
 import logoIcon from "../assets/logofig.png";
+import { saveAssessment } from "../api/client";
 
 // === 動畫效果 ===
 const fadeInUp = keyframes`
@@ -234,13 +235,11 @@ export default function TestStep3() {
     setAnswers(newAnswers);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const isComplete = answers.every((a) => a !== null);
-    if (!isComplete) {
-      alert("世界會不斷給你重複的課題，直到你給出新的回應！");
-      return;
-    }
+    if (!isComplete) { alert("世界會不斷給你重複的課題，直到你給出新的回應！"); return; }
     localStorage.setItem("step3Answers", JSON.stringify(answers));
+    try { await saveAssessment({ step3Answers: answers }); } catch (e) { console.warn("save step3 failed:", e.message); }
     navigate("/test/step4");
   };
 
@@ -256,7 +255,9 @@ export default function TestStep3() {
             <div onClick={() => navigate("/Home")}>主頁</div>
             <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
             <div onClick={() => navigate("/mood")}>聊天</div>
-            <div onClick={() => navigate("/about-us")}>關於我們</div>
+            <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>
+              關於我們
+            </div>
           </Nav>
           <AvatarImg src={userIcon} alt="user avatar" onClick={() => navigate("/profile")} />
         </RightSection>

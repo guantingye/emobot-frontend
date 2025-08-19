@@ -3,9 +3,8 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import loginBackground from "../assets/Login_background.png";
 import userIcon from "../assets/profile.png";
-import { FaFacebook, FaInstagram, FaChrome } from "react-icons/fa";
-import guestIcon from "../assets/guesticon.png";
 import logoIcon from "../assets/logofig.png";
+import { apiJoin } from "../api/client";
 
 const Container = styled.div`
   width: 100vw;
@@ -89,130 +88,214 @@ const Title = styled.h2`
   font-size: 42px;
   font-family: "Gilroy-Bold";
   color: #333;
+  margin-bottom: 30px;
+  text-align: left;
+`;
+
+const FormGroup = styled.div`
   margin-bottom: 24px;
 `;
 
 const Label = styled.label`
-  font-size: 14px;
+  font-size: 16px;
   color: #333;
   font-family: "Gilroy-Medium";
+  display: block;
+  margin-bottom: 8px;
 `;
 
 const Input = styled.input`
-  width: 90%;
-  padding: 14px 16px;
-  margin-top: 6px;
-  margin-bottom: 20px;
-  border: none;
-  border-radius: 8px;
-  background: white;
-  font-size: 14px;
+  width: 100%;
+  padding: 16px;
+  border: 2px solid ${props => props.hasError ? '#e74c3c' : 'rgba(255, 255, 255, 0.8)'};
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
   font-family: "Poppins";
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: #2b3993;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(43, 57, 147, 0.1);
+  }
+
+  &::placeholder {
+    color: #999;
+  }
+`;
+
+const HelperText = styled.div`
+  font-size: 14px;
+  color: #666;
+  margin-top: 6px;
+  font-family: "Gilroy-Medium";
+`;
+
+const ErrorText = styled.div`
+  font-size: 14px;
+  color: #e74c3c;
+  margin-top: 6px;
+  font-family: "Gilroy-Medium";
 `;
 
 const SignInButton = styled.button`
   width: 100%;
-  padding: 14px;
-  background-color: #435f94;
+  padding: 18px;
+  background: linear-gradient(135deg, #435f94, #2b3993);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-family: "Gilroy-Bold";
-  font-size: 16px;
+  font-size: 18px;
   cursor: pointer;
-  margin-top: 8px;
-  transition: background 0.3s ease;
+  margin-top: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(43, 57, 147, 0.3);
 
   &:hover {
-    background-color: #2b3993;
+    background: linear-gradient(135deg, #2b3993, #1e2a6b);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(43, 57, 147, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  &.success {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+  }
+
+  &.error {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
   }
 `;
 
-const ForgotPassword = styled.div`
-  text-align: right;
-  font-size: 14px;
-  color: #333;
-  margin-bottom: 20px;
-  cursor: pointer;
-`;
-
-const Divider = styled.div`
+const StatusMessage = styled.div`
   text-align: center;
-  margin: 20px 0 10px;
+  margin-top: 12px;
   font-size: 14px;
-  color: #333;
-`;
+  font-family: "Gilroy-Medium";
+  min-height: 20px;
+  transition: all 0.3s ease;
 
-const ThirdPartyRow = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 20px;
-`;
-
-const IconButton = styled.button`
-  width: 44px;
-  height: 44px;
-  background: white;
-  border-radius: 50%;
-  border: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 20px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-
-  &:hover {
-    transform: scale(1.1);
-  }
-`;
-
-const BottomRow = styled.div`
-  margin-top: 10px;
-  font-size: 14px;
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-`;
-
-const LinkSpan = styled.span`
-  color: #ae4700;
-  font-family: "Gilroy-ExtraBold";
-  cursor: pointer;
-`;
-
-const GuestMode = styled.div`
-  position: absolute;
-  bottom: 20px;
-  right: 35px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 14px;
-  color: #6a6175;
-  cursor: pointer;
-
-  img {
-    width: 38px;
-    height: 38px;
-    margin-bottom: 6px;
-    transition: transform 0.3s ease;
+  &.success {
+    color: #27ae60;
   }
 
-  &:hover {
-    color: #2b3993;
-
-    img {
-      transform: scale(1.1);
-    }
+  &.error {
+    color: #e74c3c;
   }
 `;
-
 
 export default function Login() {
   const navigate = useNavigate();
+  const [nickname, setNickname] = React.useState("");
+  const [pid, setPid] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [errors, setErrors] = React.useState({});
+  const [status, setStatus] = React.useState({ type: "", message: "" });
+
+  // 即時驗證函數
+  const validatePid = (value) => {
+    const trimmedValue = value.trim().toUpperCase();
+    if (!trimmedValue) return "";
+    if (!/^\d{2}[A-Z]{2}$/.test(trimmedValue)) {
+      return "受試者ID 格式需為兩碼數字＋兩碼英文（例：12AB）";
+    }
+    return "";
+  };
+
+  const validateNickname = (value) => {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) return "請輸入暱稱";
+    if (trimmedValue.length < 2) return "暱稱至少需要2個字元";
+    if (trimmedValue.length > 20) return "暱稱不能超過20個字元";
+    return "";
+  };
+
+  // 處理輸入變化
+  const handleNicknameChange = (e) => {
+    const value = e.target.value;
+    setNickname(value);
+    setStatus({ type: "", message: "" }); // 清除狀態訊息
+    
+    // 清除對應的錯誤訊息
+    if (errors.nickname) {
+      setErrors(prev => ({ ...prev, nickname: validateNickname(value) }));
+    }
+  };
+
+  const handlePidChange = (e) => {
+    const value = e.target.value.toUpperCase();
+    setPid(value);
+    setStatus({ type: "", message: "" }); // 清除狀態訊息
+    
+    // 清除對應的錯誤訊息
+    if (errors.pid) {
+      setErrors(prev => ({ ...prev, pid: validatePid(value) }));
+    }
+  };
+
+  const handleSignIn = async () => {
+    // 驗證表單
+    const nicknameError = validateNickname(nickname);
+    const pidError = validatePid(pid);
+    
+    const newErrors = {
+      nickname: nicknameError,
+      pid: pidError
+    };
+    
+    setErrors(newErrors);
+    
+    // 如果有錯誤，停止執行
+    if (nicknameError || pidError) {
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const code = pid.trim().toUpperCase();
+      const { token, user } = await apiJoin(code, nickname.trim());
+      
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      
+      // 顯示成功狀態
+      setStatus({ type: "success", message: "登入成功！正在跳轉..." });
+      
+      // 延遲跳轉讓用戶看到成功提示
+      setTimeout(() => {
+        navigate("/test");
+      }, 1000);
+    } catch (e) {
+      console.error("Login error:", e);
+      setStatus({ type: "error", message: e.message || "登入失敗，請稍後再試" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Enter 鍵提交
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !loading) {
+      handleSignIn();
+    }
+  };
 
   return (
     <Container>
@@ -226,7 +309,9 @@ export default function Login() {
             <div onClick={() => navigate("/Home")}>主頁</div>
             <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
             <div onClick={() => navigate("/mood")}>聊天</div>
-            <div onClick={() => navigate("/about-us")}>關於我們</div>
+            <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>
+              關於我們
+            </div>
           </Nav>
           <AvatarImg src={userIcon} alt="user" />
         </RightSection>
@@ -234,31 +319,58 @@ export default function Login() {
 
       <LoginCard>
         <Title>Login</Title>
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" type="email" placeholder="username@gmail.com" />
-        <Label htmlFor="password">Password</Label>
-        <Input id="password" type="password" placeholder="Password" />
-        <ForgotPassword>Forgot Password?</ForgotPassword>
-        <SignInButton>Sign in</SignInButton>
 
-        <Divider>Or Continue With</Divider>
-        <ThirdPartyRow>
-          <IconButton><FaFacebook /></IconButton>
-          <IconButton><FaInstagram /></IconButton>
-          <IconButton><FaChrome /></IconButton>
-        </ThirdPartyRow>
+        <FormGroup>
+          <Label htmlFor="nickname">暱稱</Label>
+          <Input
+            id="nickname"
+            type="text"
+            placeholder="請輸入暱稱"
+            value={nickname}
+            onChange={handleNicknameChange}
+            onKeyPress={handleKeyPress}
+            hasError={!!errors.nickname}
+            maxLength={20}
+          />
+          {errors.nickname ? (
+            <ErrorText>{errors.nickname}</ErrorText>
+          ) : (
+            <HelperText>請輸入2-20個字元的暱稱</HelperText>
+          )}
+        </FormGroup>
 
-        <BottomRow>
-          <span>Don’t have an account yet?</span>
-          <LinkSpan onClick={() => navigate("/register")}>Register for free</LinkSpan>
-        </BottomRow>
+        <FormGroup>
+          <Label htmlFor="pid">受試者ID</Label>
+          <Input
+            id="pid"
+            type="text"
+            placeholder="例如 12AB"
+            maxLength={4}
+            value={pid}
+            onChange={handlePidChange}
+            onKeyPress={handleKeyPress}
+            hasError={!!errors.pid}
+          />
+          {errors.pid ? (
+            <ErrorText>{errors.pid}</ErrorText>
+          ) : (
+            <HelperText>格式：兩碼數字＋兩碼英文（例：12AB）</HelperText>
+          )}
+        </FormGroup>
+
+        <SignInButton 
+          onClick={handleSignIn} 
+          disabled={loading}
+          className={status.type}
+        >
+          {loading ? "登入中..." : status.type === "success" ? "登入成功 ✓" : "Sign in"}
+        </SignInButton>
+
+        <StatusMessage className={status.type}>
+          {status.message}
+        </StatusMessage>
+
       </LoginCard>
-
-      <GuestMode onClick={() => navigate("/mood")}>
-        <img src={guestIcon} alt="guest icon" />
-        <div>Guest Mode</div>
-      </GuestMode>
     </Container>
   );
 }
-

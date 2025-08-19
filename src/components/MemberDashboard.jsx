@@ -8,6 +8,27 @@ import avatar from "../assets/avatar.png";
 import userIcon from "../assets/profile.png";
 import logoIcon from "../assets/logofig.png";
 
+// ====== API 小工具 ======
+const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000";
+function authHeader() {
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+async function apiMeAssessment() {
+  const r = await fetch(`${API_BASE}/api/assessments/me`, { headers: { ...authHeader() } });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || "me assessment failed");
+  return data; // { data: { mbti:{raw,...}, ... } }
+}
+async function apiMatchMe() {
+  const r = await fetch(`${API_BASE}/api/match/me`, { headers: { ...authHeader() } });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || "match me failed");
+  return data; // { choice: { botType, chosenAt } | null }
+}
+
+// ====== 原有樣式（保持不變） ======
+
 // 外層容器
 const Container = styled.div`
   width: 100vw;
@@ -46,7 +67,6 @@ const Logo = styled.div`
     transform: scale(1.05);
   }
 `;
-
 
 const RightSection = styled.div`
   display: flex;
@@ -398,23 +418,60 @@ const MemberDashboard = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
 
+  // 動態資料
+  const [nickname, setNickname] = useState("使用者");
+  const [pid, setPid] = useState("----");
+  const [mbtiRaw, setMbtiRaw] = useState("—");
+  const [chosenBotName, setChosenBotName] = useState("—");
+
+  const typeNameMap = {
+    empathy: "同理型AI",
+    insight: "洞察型AI",
+    solution: "解決型AI",
+    cognitive: "認知型AI",
+  };
+
   useEffect(() => {
-    // Initialize AOS
-    AOS.init({ 
-      duration: 800, 
-      once: true,
-      offset: 100
-    });
-  }, []);  
+    AOS.init({ duration: 800, once: true, offset: 100 });
 
-  const handleRetestClick = () => {
-    setShowModal(true);
-  };
+    // 從登入時存的 localStorage 取用戶基本資料
+    try {
+      const userJson = localStorage.getItem("user");
+      if (userJson) {
+        const u = JSON.parse(userJson);
+        if (u?.nickname) setNickname(u.nickname);
+        if (u?.pid) setPid(u.pid);
+      }
+    } catch (e) {
+      // ignore
+    }
 
-  const handleCancelModal = () => {
-    setShowModal(false);
-  };
+    // 從後端拉 MBTI 與選擇的機器人
+    (async () => {
+      try {
+        const me = await apiMeAssessment();
+        const raw = me?.data?.mbti?.raw;
+        if (raw) setMbtiRaw(raw);
+      } catch (e) {
+        console.warn("load assessment failed:", e.message);
+      }
+      try {
+        const picked = await apiMatchMe(); // { choice: { botType } | null }
+        const t = picked?.choice?.botType;
+        if (t && typeNameMap[t]) setChosenBotName(typeNameMap[t]);
+        else {
+          // 如果後端暫無紀錄，就用你原先 localStorage 的備援
+          const name = localStorage.getItem("selectedBotName");
+          if (name) setChosenBotName(name.replace(" AI","AI"));
+        }
+      } catch (e) {
+        console.warn("load match choice failed:", e.message);
+      }
+    })();
+  }, []);
 
+  const handleRetestClick = () => setShowModal(true);
+  const handleCancelModal = () => setShowModal(false);
   const handleConfirmRetest = () => {
     setShowModal(false);
     navigate("/test");
@@ -432,7 +489,9 @@ const MemberDashboard = () => {
             <div onClick={() => navigate("/Home")}>主頁</div>
             <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
             <div onClick={() => navigate("/mood")}>聊天</div>
-            <div onClick={() => navigate("/about-us")}>關於我們</div>
+            <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>
+              關於我們
+            </div>
           </Nav>
           <AvatarImg src={userIcon} alt="user avatar" onClick={() => navigate("/profile")} />
         </RightSection>
@@ -441,20 +500,22 @@ const MemberDashboard = () => {
       <MainContentWrapper>
         <ContentScaler>
           <UserInfo data-aos="fade-right">
-            <UserName>歡迎回來，<span>Amanda</span>✧</UserName>
-            <UserID>ID: 00001234</UserID>
+            <UserName>
+              歡迎回來，<span>{nickname}</span>✧
+            </UserName>
+            <UserID>ID: {pid}</UserID>
           </UserInfo>
 
           <CardContainer>
             <ProfileCard data-aos="fade-up" data-aos-delay="100">
               <ProfileImage src={avatar} alt="avatar" />
-              <ProfileName>Amanda</ProfileName>
-              <ProfileType>ENFP</ProfileType>
+              <ProfileName>{nickname}</ProfileName>
+              <ProfileType>{mbtiRaw}</ProfileType>
             </ProfileCard>
 
             <AICard data-aos="fade-up" data-aos-delay="200">
               <AIDescription>
-                你目前選擇的AI夥伴是：<span>解決型AI</span>
+                你目前選擇的AI夥伴是：<span>{chosenBotName}</span>
               </AIDescription>
               <RadarImage src={radarChart} alt="radar chart" />
               <ButtonGroup>
@@ -488,12 +549,8 @@ const MemberDashboard = () => {
             請確認你已準備好，重新踏上這段溫柔的探索旅程 💫
           </ModalWarning>
           <ModalButtonGroup>
-            <CancelButton onClick={handleCancelModal}>
-              取消
-            </CancelButton>
-            <ConfirmButton onClick={handleConfirmRetest}>
-              確定重新測驗
-            </ConfirmButton>
+            <CancelButton onClick={handleCancelModal}>取消</CancelButton>
+            <ConfirmButton onClick={handleConfirmRetest}>確定重新測驗</ConfirmButton>
           </ModalButtonGroup>
         </ModalContent>
       </ModalOverlay>

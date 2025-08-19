@@ -29,7 +29,7 @@ function App() {
         <Route path="/test/step5" element={<TestStep5 />} />
 
         {/* 媒合流程 */}
-        <Route path="/match/progress" element={<MatchingProgress />} />
+        <Route path="/matching" element={<MatchingProgress />} />
         <Route path="/match/result" element={<MatchResult />} />
 
         {/* 其他功能頁 */}

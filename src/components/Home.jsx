@@ -1005,16 +1005,21 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const shouldScroll =
+    const toRobots =
       location.hash === "#robots" || location.state?.scrollTo === "robots";
-    if (shouldScroll) {
-      // 等畫面渲染完成再捲
-      setTimeout(() => {
-        document
-          .getElementById("robot-section")
+    const toAbout =
+      location.hash === "#about" || location.state?.scrollTo === "about";
+  
+    const targetId = toRobots ? "robot-section" : toAbout ? "about-section" : null;
+    if (!targetId) return;
+  
+    // 等下一次/下下一次 paint，避免 AOS/圖片造成 reflow 抵銷捲動
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById(targetId)
           ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 0);
-    }
+      });
+    });
   }, [location]);
 
   // 滾動到下一個或上一個卡片
@@ -1049,7 +1054,9 @@ export default function Home() {
               機器人介紹
             </div>
             <div onClick={() => navigate("/mood")}>聊天</div>
-            <div onClick={() => navigate("/about-us")}>關於我們</div>
+            <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>
+              關於我們
+            </div>
           </Nav>
           <AvatarImg src={userIcon} alt="user" />
         </RightSection>
@@ -1143,7 +1150,7 @@ export default function Home() {
         </TimelineContainer>
       </ServiceIntroSection>
 
-      <AboutSection>
+      <AboutSection id="about-section">
         <AboutImage src={homeP1} alt="關於我們" data-aos="fade-right" />
         <AboutContent data-aos="fade-left">
           <AboutTitle>關於我們</AboutTitle>
