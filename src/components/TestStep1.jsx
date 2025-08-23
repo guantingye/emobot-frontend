@@ -200,7 +200,6 @@ export default function MBTIStep1() {
           <Nav>
             <div onClick={() => navigate("/Home")}>主頁</div>
             <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
-            <div onClick={() => navigate("/mood")}>聊天</div>
             <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>
               關於我們
             </div>
@@ -221,7 +220,7 @@ export default function MBTIStep1() {
         <Card>
           <Title>Step1 MBTI人格特質</Title>
           <Instruction>
-            1. 請填寫你熟悉或測驗過的 MBTI 四個字母（如：ENFP）
+            1. 請填寫你測驗過的 MBTI 四個字母（如：ENFP）
           </Instruction>
           <Input
             type="text"

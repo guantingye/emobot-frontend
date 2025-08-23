@@ -220,7 +220,7 @@ export default function Login() {
 
   const validateNickname = (value) => {
     const trimmedValue = value.trim();
-    if (!trimmedValue) return "請輸入暱稱";
+    if (!trimmedValue) return "請輸入英文暱稱";
     if (trimmedValue.length < 2) return "暱稱至少需要2個字元";
     if (trimmedValue.length > 20) return "暱稱不能超過20個字元";
     return "";
@@ -308,7 +308,6 @@ export default function Login() {
           <Nav>
             <div onClick={() => navigate("/Home")}>主頁</div>
             <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
-            <div onClick={() => navigate("/mood")}>聊天</div>
             <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>
               關於我們
             </div>
@@ -325,7 +324,7 @@ export default function Login() {
           <Input
             id="nickname"
             type="text"
-            placeholder="請輸入暱稱"
+            placeholder="請輸入英文暱稱"
             value={nickname}
             onChange={handleNicknameChange}
             onKeyPress={handleKeyPress}
@@ -335,7 +334,7 @@ export default function Login() {
           {errors.nickname ? (
             <ErrorText>{errors.nickname}</ErrorText>
           ) : (
-            <HelperText>請輸入2-20個字元的暱稱</HelperText>
+            <HelperText>請輸入1-10個字元的英文暱稱</HelperText>
           )}
         </FormGroup>
 
@@ -363,7 +362,7 @@ export default function Login() {
           disabled={loading}
           className={status.type}
         >
-          {loading ? "登入中..." : status.type === "success" ? "登入成功 ✓" : "Sign in"}
+          {loading ? "登入中..." : status.type === "success" ? "登入成功 ✓" : "Log in"}
         </SignInButton>
 
         <StatusMessage className={status.type}>

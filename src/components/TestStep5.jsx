@@ -154,7 +154,6 @@ export default function TestStep5() {
           <Nav>
             <div onClick={()=>navigate("/Home")}>主頁</div>
             <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
-            <div onClick={()=>navigate("/mood")}>聊天</div>
             <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>關於我們</div>
           </Nav>
           <AvatarImg src={userIcon} alt="avatar" onClick={()=>navigate("/profile")} />

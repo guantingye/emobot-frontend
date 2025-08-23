@@ -453,9 +453,23 @@ const CardImageContainer = styled.div`
   justify-content: center;
 `;
 
+const BotName = styled.div`
+  display: inline-block;
+  margin: -10px auto 12px; /* 貼近頭像、維持原版式 */
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #4455aa;
+  background: rgba(102, 126, 234, 0.10);
+  border: 1px solid rgba(102, 126, 234, 0.25);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+`;
+
 const CardImg = styled.img`
-  width: 120px;
-  height: 140px;
+  width: 140px;
+  height: 160px;
   object-fit: cover;
   border-radius: 20px;
   box-shadow: 
@@ -894,28 +908,7 @@ const AboutText = styled.p`
   
 `;
 
-const ActionRow = styled.div`
-  margin-top: 32px;
-  display: flex;
-  gap: 24px;
-`;
 
-const ActionButton = styled.button`
-  padding: 14px 28px;
-  font-size: 20px;
-  font-weight: 500;
-  border-radius: 12px;
-  background: linear-gradient(to right, #2b3993, #9bb5e3);
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 15px rgba(43, 57, 147, 0.3);
-    background: linear-gradient(to right, #233077, #8aa6d4);
-  }
-`;
 
 const Footer = styled.footer`
   background: #c2c2c2;
@@ -948,23 +941,27 @@ export default function Home() {
     {
       title: "同理型 AI",
       image: bot1,
+      name: "Lumi",
       features: "擅長建立溫暖、接納的氛圍，引導使用者覺察情緒並與之共處",
       suitable: "孤獨感、低自尊、情感失落、自我懷疑、親密關係議題"
     },
     {
       title: "洞察型 AI", 
       image: bot2,
+      name: "Solin",
       features: "長於探索潛意識與潛藏動機，引導使用者對過往經驗進行深層理解",
       suitable: "反覆的人際模式、創傷經驗、自我價值疑問、夢境探索、內在空虛感"
     },
     {
       title: "解決型 AI",
+      name: "Niko",
       image: bot6,
       features: "現實導向，強調目標設定與資源活用，能快速聚焦在問題解決上",
       suitable: "職場壓力、衝突處理、時間管理、短期決策困難、日常壓力應對"
     },
     {
       title: "認知型 AI",
+      name: "Clara",
       image: bot4,
       features: "結構明確、邏輯清晰，擅長分析非理性思考並提供認知重建步驟",
       suitable: "負面自我對話、焦慮、完美主義、拖延、情緒管理"
@@ -1053,7 +1050,6 @@ export default function Home() {
             }}>
               機器人介紹
             </div>
-            <div onClick={() => navigate("/mood")}>聊天</div>
             <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>
               關於我們
             </div>
@@ -1091,6 +1087,8 @@ export default function Home() {
                 <CardImageContainer>
                   <CardImg src={card.image} alt={card.title} />
                 </CardImageContainer>
+
+                {card.name && <BotName>{card.name}</BotName>}
                 
                 <CardTitle>{card.title}</CardTitle>
                 
@@ -1164,10 +1162,6 @@ export default function Home() {
             我們為你找到最適合的 AI 夥伴，
             在每個需要理解的時刻，與你同行。
           </AboutText>
-          <ActionRow>
-            <ActionButton onClick={() => navigate("/test")}>立即開始配對</ActionButton>
-            <ActionButton>FAQ</ActionButton>
-          </ActionRow>
         </AboutContent>
       </AboutSection>
 
