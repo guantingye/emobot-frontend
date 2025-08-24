@@ -5,7 +5,7 @@ import styled, { keyframes } from "styled-components";
 import userIcon from "../assets/profile.png";
 import StepIndicator from "./StepIndicator";
 import logoIcon from "../assets/logofig.png";
-import { saveAssessment } from "../api/client";
+import { saveAssessmentMBTI } from "../api/client";
 
 // ========= 動畫 =========
 const fadeIn = keyframes`
@@ -16,11 +16,11 @@ const fadeIn = keyframes`
 // ========= 版型（允許捲動）=========
 const Page = styled.div`
   width: 100vw;
-  min-height: 100vh;          /* ✅ 讓高度至少滿版，但可超過 */
+  min-height: 100vh;
   background: #e8e8e8;
   font-family: "Noto Sans TC", sans-serif;
-  overflow-x: hidden;          /* 橫向關掉，避免抖動 */
-  overflow-y: auto;            /* ✅ 允許直向捲動 */
+  overflow-x: hidden;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 `;
 
@@ -69,7 +69,6 @@ const Nav = styled.nav`
     &:hover { color: #2b3993; transform: translateY(-2px); }
     &:active { transform: translateY(1px); }
   }
-
   @media (max-width: 900px) {
     gap: 20px;
     font-size: 20px;
@@ -84,7 +83,6 @@ const AvatarImg = styled.img`
 `;
 
 const Content = styled.main`
-  /* ✅ 預留固定導覽列高度，避免被蓋住 */
   padding-top: 90px;
   padding-bottom: 40px;
   display: flex;
@@ -119,20 +117,14 @@ const Title = styled.h2`
   font-size: 32px;
   font-weight: 800;
   margin-bottom: 6px;
-
-  @media (max-width: 860px) {
-    font-size: 24px;
-  }
+  @media (max-width: 860px) { font-size: 24px; }
 `;
 
 const Subtitle = styled.p`
   font-size: 18px;
   color: #555;
   margin-bottom: 24px;
-
-  @media (max-width: 860px) {
-    font-size: 16px;
-  }
+  @media (max-width: 860px) { font-size: 16px; }
 `;
 
 const Grid = styled.div`
@@ -160,24 +152,13 @@ const Group = styled.div`
 `;
 
 const DimLabel = styled.div`
-  font-size: 16px;
-  color: #666;
-
-  @media (max-width: 640px) {
-    order: 2;
-  }
+  font-size: 16px; color: #666;
+  @media (max-width: 640px) { order: 2; }
 `;
 
 const DimTitle = styled.div`
-  font-size: 18px;
-  font-weight: 800;
-  color: #222;
-  text-align: center;
-
-  @media (max-width: 640px) {
-    order: 1;
-    margin-bottom: 6px;
-  }
+  font-size: 18px; font-weight: 800; color: #222; text-align: center;
+  @media (max-width: 640px) { order: 1; margin-bottom: 6px; }
 `;
 
 const Pill = styled.button`
@@ -185,73 +166,35 @@ const Pill = styled.button`
   border: 2px solid ${p => (p.$active ? "#2b3993" : "#d7d7d7")};
   background: ${p => (p.$active ? "#2b3993" : "white")};
   color: ${p => (p.$active ? "white" : "#222")};
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 18px; font-weight: 800;
   border-radius: 999px;
   padding: 10px 16px;
-  cursor: pointer;
-  transition: all .15s ease;
+  cursor: pointer; transition: all .15s ease;
   box-shadow: ${p => (p.$active ? "0 4px 10px rgba(43,57,147,.25)" : "none")};
-
   &:hover { transform: translateY(-1px); }
   &:active { transform: translateY(0); }
-
-  @media (max-width: 640px) {
-    width: 100%;
-  }
+  @media (max-width: 640px) { width: 100%; }
 `;
 
-const Center = styled.div`
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-`;
-
-const Hint = styled.p`
-  font-size: 16px;
-  color: #777;
-  margin-top: 8px;
-  margin-bottom: 24px;
-`;
-
-const ButtonRow = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  flex-wrap: wrap;
-`;
-
+const Center = styled.div` display: flex; align-items: center; justify-content: center; gap: 10px; `;
+const Hint = styled.p` font-size: 16px; color: #777; margin-top: 8px; margin-bottom: 24px; `;
+const ButtonRow = styled.div` display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; `;
 const Button = styled.button`
   background: rgba(30,31,19,0.9);
-  color: white;
-  font-size: 18px;
-  padding: 12px 26px;
-  border: 3px solid #f5fbf2;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: all .2s;
+  color: white; font-size: 18px; padding: 12px 26px;
+  border: 3px solid #f5fbf2; border-radius: 999px;
+  cursor: pointer; transition: all .2s;
   &:hover { transform: scale(1.03); }
   &:disabled { opacity: .55; cursor: not-allowed; }
 `;
 
-// 訊息區
 const ErrorMessage = styled.div`
-  background: #fee;
-  border: 1px solid #fcc;
-  border-radius: 8px;
-  color: #c33;
-  font-size: 16px;
-  margin: 10px 0;
-  padding: 12px;
-  text-align: center;
+  background: #fee; border: 1px solid #fcc; border-radius: 8px;
+  color: #c33; font-size: 16px; margin: 10px 0; padding: 12px; text-align: center;
 `;
 const SuccessMessage = styled.div`
-  background: #efe;
-  border: 1px solid #cfc;
-  border-radius: 8px;
-  color: #363;
-  font-size: 16px;
-  margin: 10px 0;
-  padding: 12px;
-  text-align: center;
+  background: #efe; border: 1px solid #cfc; border-radius: 8px;
+  color: #363; font-size: 16px; margin: 10px 0; padding: 12px; text-align: center;
 `;
 
 // ========= 子元件 =========
@@ -259,24 +202,14 @@ function PairSelector({ title, left, right, value, onChange }) {
   return (
     <Group role="group" aria-label={title}>
       <DimLabel>{left.desc}</DimLabel>
-      <Center>
-        <DimTitle>{title}</DimTitle>
-      </Center>
+      <Center><DimTitle>{title}</DimTitle></Center>
       <DimLabel style={{ textAlign: "right" }}>{right.desc}</DimLabel>
 
-      <Pill
-        aria-pressed={value === left.letter}
-        $active={value === left.letter}
-        onClick={() => onChange(left.letter)}
-      >
+      <Pill aria-pressed={value === left.letter} $active={value === left.letter} onClick={() => onChange(left.letter)}>
         {left.letter}
       </Pill>
       <div />
-      <Pill
-        aria-pressed={value === right.letter}
-        $active={value === right.letter}
-        onClick={() => onChange(right.letter)}
-      >
+      <Pill aria-pressed={value === right.letter} $active={value === right.letter} onClick={() => onChange(right.letter)}>
         {right.letter}
       </Pill>
     </Group>
@@ -297,7 +230,7 @@ export default function TestStep1() {
   const [success, setSuccess] = useState("");
 
   const allPicked = EorI && NorS && TorF && PorJ;
-  const mbti = `${EorI}${NorS}${TorF}${PorJ}`;
+  const mbti = `${EorI}${NorS}${TorF}${PorJ}`.toUpperCase();
   const encoded = [
     EorI === "E" ? 1 : 0,
     NorS === "N" ? 1 : 0,
@@ -315,25 +248,17 @@ export default function TestStep1() {
 
     setLoading(true);
     try {
-      // 存本地（保持你 Step5 一致）
       localStorage.setItem("step1MBTI", JSON.stringify(encoded));
 
-      // 先送字串，失敗再送物件 → 避免 422
-      try {
-        await saveAssessment({ mbti });
-      } catch (e1) {
-        await saveAssessment({ mbti: { raw: mbti, encoded } });
-      }
+      // ✅ 新的多形容錯儲存（字串 → 物件 → 扁平）
+      await saveAssessmentMBTI(mbti, encoded);
 
       setSuccess("MBTI 資料已成功儲存！");
       setTimeout(() => navigate("/test/step2"), 800);
     } catch (e) {
-      const msg = e?.message || "儲存失敗，請稍後再試";
-      setError(`儲存失敗：${msg}`);
-      // 若是網路 / 伺服器問題，允許繼續
-      if (msg.includes("Failed to fetch") || msg.includes("Network") || msg.includes("500")) {
-        setTimeout(() => navigate("/test/step2"), 1500);
-      }
+      // e.message 已是可讀的 FastAPI detail
+      setError(`儲存失敗：${e.message}`);
+      console.warn("RAW server error:", e.raw); // 需要時可展開
     } finally {
       setLoading(false);
     }
