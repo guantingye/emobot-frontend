@@ -56,7 +56,7 @@ async function request(path, options = {}) {
 
   const finalHeaders = {
     "Accept": "application/json",
-    ...(body ? { "Content-Type": "application/json" } : {}),
+    "Content-Type": "application/json",
     ...authHeader(),
     ...headers,
   };
@@ -68,10 +68,17 @@ async function request(path, options = {}) {
     const resp = await fetch(url, { 
       method: httpMethod, 
       headers: finalHeaders, 
-      body 
+      body,
+      mode: 'cors',  // 明確指定 CORS 模式
+      credentials: 'omit',  // 不傳送 credentials
     });
 
     console.log(`📥 Response: ${resp.status} ${resp.statusText}`);
+
+    // 檢查 CORS 相關錯誤
+    if (resp.status === 0) {
+      throw new Error('CORS 錯誤：無法連接到後端伺服器，請檢查 CORS 設定');
+    }
 
     // 解析回應
     let data;
@@ -99,9 +106,16 @@ async function request(path, options = {}) {
     return data;
 
   } catch (error) {
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      console.error("🌐 Network error:", error.message);
-      throw new Error("網路連線失敗，請檢查網路連線或稍後再試");
+    // 網路錯誤處理
+    if (error.name === 'TypeError') {
+      if (error.message.includes('Failed to fetch')) {
+        console.error("🌐 CORS/Network error:", error.message);
+        throw new Error("無法連接到後端伺服器。可能是 CORS 問題或伺服器離線，請聯繫管理員");
+      }
+      if (error.message.includes('NetworkError')) {
+        console.error("🌐 Network error:", error.message);
+        throw new Error("網路連線失敗，請檢查網路連線或稍後再試");
+      }
     }
     throw error;
   }
