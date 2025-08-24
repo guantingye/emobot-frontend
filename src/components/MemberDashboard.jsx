@@ -5,27 +5,10 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import radarChart from "../assets/radar.png";
 import avatar from "../assets/avatar.png";
+import avatarMen from "../assets/avatar_men.png";
 import userIcon from "../assets/profile.png";
 import logoIcon from "../assets/logofig.png";
-
-// ====== API 小工具 ======
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000";
-function authHeader() {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-async function apiMeAssessment() {
-  const r = await fetch(`${API_BASE}/api/assessments/me`, { headers: { ...authHeader() } });
-  const data = await r.json();
-  if (!r.ok) throw new Error(data.detail || "me assessment failed");
-  return data; // { data: { mbti:{raw,...}, ... } }
-}
-async function apiMatchMe() {
-  const r = await fetch(`${API_BASE}/api/match/me`, { headers: { ...authHeader() } });
-  const data = await r.json();
-  if (!r.ok) throw new Error(data.detail || "match me failed");
-  return data; // { choice: { botType, chosenAt } | null }
-}
+import { apiMe } from "../api/client";
 
 // ====== 原有樣式（保持不變） ======
 
@@ -225,6 +208,28 @@ const ProfileType = styled.div`
   }
 `;
 
+// 讓頭像支援翻轉（沿用既有樣式，僅覆寫 transform）
+const FlippableImage = styled(ProfileImage)`
+  backface-visibility: hidden;
+  transform: ${(p) => (p.$flip ? "rotateY(180deg)" : "rotateY(0deg)")};
+  transition: transform 0.6s ease, box-shadow 0.5s ease;
+`;
+
+// 小按鈕：置於頭像下方（不使用絕對定位，以免影響版面）
+const FlipButton = styled.button`
+  margin-top: 10px;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1px solid #d0d0d0;
+  background: #fff;
+  cursor: pointer;
+  transition: transform .2s ease, background .2s ease;
+  &:hover { transform: translateY(-1px); background: #f6f7ff; }
+  &:active { transform: translateY(0); }
+`;
+
 // AI卡片
 const AICard = styled.div`
   width: 591px;
@@ -414,9 +419,26 @@ const ConfirmButton = styled(ModalButton)`
   }
 `;
 
+// 載入狀態顯示
+const LoadingText = styled.div`
+  font-size: 18px;
+  color: #666;
+  text-align: center;
+  margin: 20px 0;
+`;
+
 const MemberDashboard = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [useAltAvatar, setUseAltAvatar] = useState(false);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const handleFlipAvatar = () => {
+    setIsFlipping(true);
+    setTimeout(() => setUseAltAvatar((v) => !v), 300);  // 翻到一半換圖
+    setTimeout(() => setIsFlipping(false), 650);        // 完成動畫
+  };
 
   // 動態資料
   const [nickname, setNickname] = useState("使用者");
@@ -434,53 +456,156 @@ const MemberDashboard = () => {
   useEffect(() => {
     AOS.init({ duration: 800, once: true, offset: 100 });
 
-    // 從登入時存的 localStorage 取用戶基本資料
-    try {
-      const userJson = localStorage.getItem("user");
-      if (userJson) {
-        const u = JSON.parse(userJson);
-        if (u?.nickname) setNickname(u.nickname);
-        if (u?.pid) setPid(u.pid);
-      }
-    } catch (e) {
-      // ignore
-    }
+    // 從後端載入用戶完整資料
+    const loadUserData = async () => {
+      try {
+        setLoading(true);
+        console.log("Loading user profile data...");
+        
+        const profileData = await apiMe();
+        console.log("Profile data received:", profileData);
 
-    // 從後端拉 MBTI 與選擇的機器人
-    (async () => {
-      try {
-        const me = await apiMeAssessment();
-        const raw = me?.data?.mbti?.raw;
-        if (raw) setMbtiRaw(raw);
-      } catch (e) {
-        console.warn("load assessment failed:", e.message);
-      }
-      try {
-        const picked = await apiMatchMe(); // { choice: { botType } | null }
-        const t = picked?.choice?.botType;
-        if (t && typeNameMap[t]) setChosenBotName(typeNameMap[t]);
-        else {
-          // 如果後端暫無紀錄，就用你原先 localStorage 的備援
-          const name = localStorage.getItem("selectedBotName");
-          if (name) setChosenBotName(name.replace(" AI","AI"));
+        // 更新基本用戶資料
+        if (profileData?.user) {
+          const user = profileData.user;
+          if (user.nickname) {
+            setNickname(user.nickname);
+          }
+          if (user.pid) {
+            setPid(user.pid);
+          }
         }
-      } catch (e) {
-        console.warn("load match choice failed:", e.message);
+
+        // 更新最新評估資料（MBTI）
+        if (profileData?.latest_assessment) {
+          // 如果後端有 MBTI 資料就從後端取，否則從 localStorage 取
+          const cachedMBTI = localStorage.getItem("step1MBTI");
+          if (cachedMBTI) {
+            try {
+              const mbtiArray = JSON.parse(cachedMBTI);
+              if (Array.isArray(mbtiArray) && mbtiArray.length === 4) {
+                const mbtiString = mbtiArray.map((v, i) => 
+                  v === 1 ? ["E", "N", "T", "P"][i] : ["I", "S", "F", "J"][i]
+                ).join("");
+                setMbtiRaw(mbtiString);
+              }
+            } catch (e) {
+              console.warn("Error parsing cached MBTI:", e);
+            }
+          }
+        }
+
+        // 更新選擇的機器人
+        if (profileData?.latest_recommendation?.selected_bot) {
+          const botType = profileData.latest_recommendation.selected_bot;
+          if (typeNameMap[botType]) {
+            setChosenBotName(typeNameMap[botType]);
+          }
+        } else {
+          // 如果後端沒有記錄，從 localStorage 取
+          const selectedBotName = localStorage.getItem("selectedBotName");
+          const selectedBotType = localStorage.getItem("selectedBotType");
+          
+          if (selectedBotType && typeNameMap[selectedBotType]) {
+            setChosenBotName(typeNameMap[selectedBotType]);
+          } else if (selectedBotName) {
+            setChosenBotName(selectedBotName.replace(" AI", "AI"));
+          }
+        }
+
+      } catch (error) {
+        console.error("Failed to load user data:", error);
+        
+        // 如果後端載入失敗，使用 localStorage 作為 fallback
+        try {
+          const userJson = localStorage.getItem("user");
+          if (userJson) {
+            const u = JSON.parse(userJson);
+            if (u?.nickname) setNickname(u.nickname);
+            if (u?.pid) setPid(u.pid);
+          }
+          
+          // 從 localStorage 載入 MBTI
+          const cachedMBTI = localStorage.getItem("step1MBTI");
+          if (cachedMBTI) {
+            const mbtiArray = JSON.parse(cachedMBTI);
+            if (Array.isArray(mbtiArray) && mbtiArray.length === 4) {
+              const mbtiString = mbtiArray.map((v, i) => 
+                v === 1 ? ["E", "N", "T", "P"][i] : ["I", "S", "F", "J"][i]
+              ).join("");
+              setMbtiRaw(mbtiString);
+            }
+          }
+
+          // 從 localStorage 載入選擇的機器人
+          const selectedBotName = localStorage.getItem("selectedBotName");
+          const selectedBotType = localStorage.getItem("selectedBotType");
+          
+          if (selectedBotType && typeNameMap[selectedBotType]) {
+            setChosenBotName(typeNameMap[selectedBotType]);
+          } else if (selectedBotName) {
+            setChosenBotName(selectedBotName.replace(" AI", "AI"));
+          }
+        } catch (e) {
+          console.warn("Failed to load from localStorage:", e);
+        }
+      } finally {
+        setLoading(false);
       }
-    })();
+    };
+
+    loadUserData();
   }, []);
 
   const handleRetestClick = () => setShowModal(true);
   const handleCancelModal = () => setShowModal(false);
+  
   const handleConfirmRetest = () => {
     setShowModal(false);
-    navigate("/test");
+    // 清除相關的 localStorage 資料
+    localStorage.removeItem("step1MBTI");
+    localStorage.removeItem("step2Answers");
+    localStorage.removeItem("step3Answers");
+    localStorage.removeItem("step4Answers");
+    localStorage.removeItem("match.recommend");
+    localStorage.removeItem("selectedBotId");
+    localStorage.removeItem("selectedBotImage");
+    localStorage.removeItem("selectedBotName");
+    localStorage.removeItem("selectedBotType");
+    
+    navigate("/test/step1");
   };
+
+  if (loading) {
+    return (
+      <Container>
+        <Header>
+          <Logo onClick={() => navigate("/Home")}>
+            <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
+            Emobot+
+          </Logo>
+          <RightSection>
+            <Nav>
+              <div onClick={() => navigate("/Home")}>主頁</div>
+              <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
+              <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>
+                關於我們
+              </div>
+            </Nav>
+            <AvatarImg src={userIcon} alt="user avatar" onClick={() => navigate("/profile")} />
+          </RightSection>
+        </Header>
+        <MainContentWrapper>
+          <LoadingText>正在載入用戶資料...</LoadingText>
+        </MainContentWrapper>
+      </Container>
+    );
+  }
 
   return (
     <Container>
       <Header>
-        <Logo onClick={() => navigate("Home/")}>
+        <Logo onClick={() => navigate("/Home")}>
           <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
           Emobot+
         </Logo>
@@ -507,7 +632,12 @@ const MemberDashboard = () => {
 
           <CardContainer>
             <ProfileCard data-aos="fade-up" data-aos-delay="100">
-              <ProfileImage src={avatar} alt="avatar" />
+              <FlippableImage
+                src={useAltAvatar ? avatarMen : avatar}
+                alt="avatar"
+                $flip={isFlipping}
+              />
+              <FlipButton onClick={handleFlipAvatar}>切換性別</FlipButton>
               <ProfileName>{nickname}</ProfileName>
               <ProfileType>{mbtiRaw}</ProfileType>
             </ProfileCard>

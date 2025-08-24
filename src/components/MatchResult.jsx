@@ -8,32 +8,7 @@ import bot2 from "../assets/bot2.png";
 import bot6 from "../assets/bot6.png";
 import bot4 from "../assets/bot4.png";
 import logoIcon from "../assets/logofig.png";
-
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000";
-const authHeader = () => {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-async function apiRecommend() {
-  const r = await fetch(`${API_BASE}/api/match/recommend`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeader() },
-    body: JSON.stringify({}),
-  });
-  const data = await r.json();
-  if (!r.ok) throw new Error(data.detail || "recommend failed");
-  return data;
-}
-async function apiChoose(botType) {
-  const r = await fetch(`${API_BASE}/api/match/choose`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeader() },
-    body: JSON.stringify({ botType }),
-  });
-  const data = await r.json();
-  if (!r.ok) throw new Error(data.detail || "choose failed");
-  return data;
-}
+import { runMatching, commitChoice } from "../api/client";
 
 // 樣式（沿用原本）
 const fadeInUp = keyframes`
@@ -41,7 +16,7 @@ const fadeInUp = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 const Container = styled.div` width: 100vw; min-height: 100vh; background: #e8e8e8; font-family: "Noto Sans TC", sans-serif; `;
-const Header = styled.header` width: 100%; height: 70px; background: white; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; position: sticky; top: 0; z-index: 10; `;
+const Header = styled.header` width: 100%; height: 70px; background: white; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); `;
 const Logo = styled.div` font-size: 35px; font-weight: bold; color: #2b3993; display: flex; align-items: center; cursor: pointer; transition: transform 0.3s ease; &:hover { transform: scale(1.05); } `;
 const Nav = styled.nav`
   display: flex; gap: 40px; font-size: 26px; font-weight: bold; color: black;
@@ -71,6 +46,7 @@ export default function MatchResult() {
   const navigate = useNavigate();
   const [selectedBot, setSelectedBot] = useState(null);
   const [rates, setRates] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const bots = [
     { id: 1, name: "同理型 AI", img: bot1, type: "empathy" },
@@ -85,35 +61,75 @@ export default function MatchResult() {
 
   const handleSubmit = async () => {
     if (!selectedBot) return alert("請先選擇一位 AI 夥伴！");
+    
+    setLoading(true);
     try {
       const botType = botIdToType[selectedBot];
-      await apiChoose(botType);
+      console.log("Submitting choice:", botType);
+      
+      const result = await commitChoice(botType);
+      console.log("Choice result:", result);
+      
       const selectedBotData = bots.find((b) => b.id === selectedBot);
       localStorage.setItem("selectedBotId", String(selectedBot));
       localStorage.setItem("selectedBotImage", selectedBotData.img);
       localStorage.setItem("selectedBotName", selectedBotData.name);
       localStorage.setItem("selectedBotType", botType);
+      
       navigate("/dashboard");
     } catch (err) {
-      console.error(err);
-      alert("送出失敗，請稍後再試");
+      console.error("Submit failed:", err);
+      alert(`選擇失敗：${err.message || "請稍後再試"}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // 優先吃 Loading 頁的快取；沒有就打 API
+    // 優先從 Loading 頁的快取；沒有就打 API
     const cached = localStorage.getItem("match.recommend");
     const loadData = async () => {
       try {
-        const data = cached ? JSON.parse(cached) : await apiRecommend();
+        let data;
+        if (cached) {
+          console.log("Using cached recommendation data");
+          data = JSON.parse(cached);
+        } else {
+          console.log("Fetching new recommendation data");
+          data = await runMatching();
+          localStorage.setItem("match.recommend", JSON.stringify(data));
+        }
+        
+        console.log("Recommendation data:", data);
+        
+        // 解析分數
         const r = {};
-        (data.ranked || []).forEach((item) => {
-          const id = typeToBotId[item.type];
-          if (id) r[id] = item.score;
-        });
+        if (data.scores) {
+          // 直接使用 scores 物件
+          Object.keys(data.scores).forEach(type => {
+            const id = typeToBotId[type];
+            if (id) r[id] = data.scores[type];
+          });
+        } else if (data.ranked) {
+          // 使用 ranked 陣列
+          data.ranked.forEach((item) => {
+            const id = typeToBotId[item.type];
+            if (id) r[id] = item.score;
+          });
+        }
+        
+        console.log("Parsed rates:", r);
         setRates(r);
+        
+        // 自動選擇推薦度最高的機器人
+        if (Object.keys(r).length > 0) {
+          const bestBotId = Object.keys(r).reduce((a, b) => r[a] > r[b] ? a : b);
+          setSelectedBot(parseInt(bestBotId));
+        }
       } catch (e) {
-        console.warn("recommend failed:", e.message);
+        console.warn("Load recommendation failed:", e.message);
+        // 如果載入失敗，可以提供預設值或重新導向
+        navigate("/test/step5");
       }
     };
     loadData();
@@ -123,17 +139,17 @@ export default function MatchResult() {
   return (
     <Container>
       <Header>
-        <Logo onClick={() => navigate("Home/")}>
+        <Logo onClick={() => navigate("/Home")}>
           <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
           Emobot+
         </Logo>
         <RightSection>
           <Nav>
-            <div onClick={() => navigate("/")}>主頁</div>
+            <div onClick={() => navigate("/Home")}>主頁</div>
             <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
             <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>關於我們</div>
           </Nav>
-          <AvatarImg src={userIcon} alt="user avatar" />
+          <AvatarImg src={userIcon} alt="user avatar" onClick={() => navigate("/profile")} />
         </RightSection>
       </Header>
 
@@ -153,7 +169,9 @@ export default function MatchResult() {
           ))}
         </Cards>
 
-        <ConfirmButton onClick={handleSubmit}>選擇完畢</ConfirmButton>
+        <ConfirmButton onClick={handleSubmit} disabled={loading}>
+          {loading ? "處理中..." : "選擇完畢"}
+        </ConfirmButton>
       </Main>
     </Container>
   );

@@ -5,6 +5,7 @@ import styled, { keyframes } from "styled-components";
 import userIcon from "../assets/profile.png";
 import loadingGif from "../assets/matching_progress_bar.gif";
 import logoIcon from "../assets/logofig.png";
+import { runMatching } from "../api/client";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -20,6 +21,7 @@ const Header = styled.header`
   width: 100%; height: 70px; background: white;
   display: flex; justify-content: space-between; align-items: center;
   padding: 0 30px; position: sticky; top: 0; z-index: 10;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 `;
 
 const Logo = styled.div`
@@ -53,31 +55,6 @@ const Content = styled.div`
 const Title = styled.h2` font-size: 30px; font-weight: bold; color: #444; margin-bottom: 20px; `;
 const LoadingGifStyled = styled.img` width: 400px; margin-top: 0; `;
 
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000";
-const authHeader = () => {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-async function apiRecommend() {
-  const r = await fetch(`${API_BASE}/api/match/recommend`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeader() },
-    body: JSON.stringify({}),
-  });
-  const data = await r.json();
-  if (!r.ok) throw new Error(data.detail || "recommend failed");
-  return data;
-}
-
-async function apiLogRecommend(payload) {
-  await fetch(`${API_BASE}/api/match/log`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeader() },
-    body: JSON.stringify(payload),
-  }).catch(() => {});
-}
-
 export default function MatchingProgress() {
   const navigate = useNavigate();
 
@@ -85,16 +62,21 @@ export default function MatchingProgress() {
     let timer;
     (async () => {
       try {
-        const data = await apiRecommend();
+        console.log("Starting matching process...");
+        
+        // 呼叫推薦API
+        const data = await runMatching();
+        console.log("Matching result:", data);
+        
         // 存到前端，以便結果頁不用再打一次
         localStorage.setItem("match.recommend", JSON.stringify(data));
-        // 同步存到後端（DB + CSV）
-        await apiLogRecommend(data);
+        
         // 等個 2 秒讓動畫跑完再進結果頁
         timer = setTimeout(() => navigate("/match/result"), 2000);
       } catch (e) {
+        console.error("Matching failed:", e);
         alert(`媒合失敗：${e.message || "請稍後重試"}`);
-        navigate("/match/result"); // 仍導去結果頁（會自行 fallback）
+        navigate("/test/step5"); // 回到測驗完成頁
       }
     })();
     return () => timer && clearTimeout(timer);
@@ -103,7 +85,7 @@ export default function MatchingProgress() {
   return (
     <Container>
       <Header>
-        <Logo onClick={() => navigate("Home/")}>
+        <Logo onClick={() => navigate("/Home")}>
           <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
           Emobot+
         </Logo>
@@ -111,9 +93,11 @@ export default function MatchingProgress() {
           <Nav>
             <div onClick={() => navigate("/Home")}>主頁</div>
             <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
-            <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>關於我們</div>
+            <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>
+              關於我們
+            </div>
           </Nav>
-          <AvatarImg src={userIcon} alt="user avatar" />
+          <AvatarImg src={userIcon} alt="user avatar" onClick={() => navigate("/profile")} />
         </RightSection>
       </Header>
 

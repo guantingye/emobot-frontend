@@ -5,6 +5,7 @@ import styled, { keyframes } from "styled-components";
 import userIcon from "../assets/profile.png";
 import StepIndicator from "./StepIndicator";
 import logoIcon from "../assets/logofig.png";
+import { saveAssessment } from "../api/client";
 
 // 動畫 & 樣式（保持原樣）
 const fadeInUp = keyframes`
@@ -94,6 +95,7 @@ const Button = styled.button`
   cursor: pointer; transition: all 0.3s ease;
   &:hover { transform: scale(1.05); }
   &:active { transform: scale(0.95); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 `;
 
 const DebugButton = styled(Button)`
@@ -104,9 +106,10 @@ const DebugButton = styled(Button)`
 export default function TestStep5() {
   const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // 這段保留（你原本有需要的話）
+    // 檢查並整理用戶填寫的資料
     const rawMBTI = localStorage.getItem("step1MBTI") || "";
     let mbtiArr;
     try {
@@ -121,13 +124,46 @@ export default function TestStep5() {
     const aas  = JSON.parse(localStorage.getItem("step2Answers") || "[]");
     const ders = JSON.parse(localStorage.getItem("step3Answers") || "[]");
     const bpns = JSON.parse(localStorage.getItem("step4Answers") || "[]");
+    
+    console.log("User profile data:", { mbti: mbtiArr, aas, ders, bpns });
     setUserProfile({ mbti: mbtiArr, aas, ders, bpns });
   }, []);
 
-  // Step5 的「開始媒合」→ 只負責導到 Loading 頁
-  const goMatch = () => {
-    // 若你想在這裡做最後的檢查可以加，但不打 API
-    navigate("/matching");
+  // Step5 的「開始媒合」→ 確保所有資料都已儲存到後端，然後導向 Loading 頁
+  const goMatch = async () => {
+    if (!userProfile) {
+      alert("測驗資料不完整，請重新填寫測驗");
+      navigate("/test/step1");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 最後確保所有資料都保存到後端
+      const finalData = {
+        mbti: {
+          raw: userProfile.mbti.map((v, i) => 
+            v === 1 ? ["E", "N", "T", "P"][i] : ["I", "S", "F", "J"][i]
+          ).join(""),
+          encoded: userProfile.mbti
+        },
+        step2Answers: userProfile.aas,
+        step3Answers: userProfile.ders,
+        step4Answers: userProfile.bpns,
+        submittedAt: new Date().toISOString()
+      };
+
+      console.log("Saving final assessment data:", finalData);
+      await saveAssessment(finalData);
+      
+      // 導向匹配頁面
+      navigate("/matching");
+    } catch (e) {
+      console.error("Save final assessment failed:", e);
+      alert(`保存測驗資料失敗：${e.message || "請稍後重試"}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const exportToCSV = () => {
@@ -146,7 +182,7 @@ export default function TestStep5() {
   return (
     <Container>
       <Header>
-        <Logo onClick={() => navigate("Home/")}>
+        <Logo onClick={() => navigate("/Home")}>
           <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
           Emobot+
         </Logo>
@@ -167,14 +203,16 @@ export default function TestStep5() {
       <Main>
         <BigTitle>謝謝你走過這段小小的探索旅程。</BigTitle>
         <Paragraph>
-          我們已收到你的回覆，這些資料將協助我們更了解你的心理特質與互動風格。
+          我們已收到你的回覆，這些資料將幫助我們更了解你的心理特質與互動風格。
           {"\n"}接下來，我們會根據你的回覆，提供你與四位AI夥伴的適合程度✨
           {"\n"}你可以從中挑選一位開始旅程，也可以自由切換其他夥伴，或選擇重新測驗再次媒合。
         </Paragraph>
 
         <ButtonGroup>
           <Button onClick={() => navigate("/test/step4")}>返回上一步</Button>
-          <Button onClick={goMatch}>開始媒合！</Button>
+          <Button onClick={goMatch} disabled={loading}>
+            {loading ? "處理中..." : "開始媒合！"}
+          </Button>
         </ButtonGroup>
 
         <DebugButton onClick={exportToCSV}>匯出填答資料 CSV（Debug）</DebugButton>

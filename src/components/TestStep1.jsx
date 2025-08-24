@@ -162,11 +162,17 @@ const Button = styled.button`
     background: rgba(30, 31, 19, 1);
     transform: scale(1.05);
   }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 export default function MBTIStep1() {
   const navigate = useNavigate();
   const [mbtiStr, setMbtiStr] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleNext = async () => {
     const s = mbtiStr.trim().toUpperCase();
@@ -174,25 +180,43 @@ export default function MBTIStep1() {
       alert("請輸入正確的 MBTI 4 字母（如 ENTP、ISFJ）");
       return;
     }
+    
     const mbtiArr = [
       s[0] === "E" ? 1 : 0,
       s[1] === "N" ? 1 : 0,
       s[2] === "T" ? 1 : 0,
       s[3] === "P" ? 1 : 0,
     ];
+    
+    setLoading(true);
+    
+    // 先存到 localStorage 作為備份
     localStorage.setItem("step1MBTI", JSON.stringify(mbtiArr));
+    
     try {
-      await saveAssessment({ mbti: { raw: s, encoded: mbtiArr } });
+      // 儲存到後端
+      await saveAssessment({ 
+        mbti: { 
+          raw: s, 
+          encoded: mbtiArr 
+        } 
+      });
+      console.log("Step1 MBTI saved successfully");
+      navigate("/test/step2");
     } catch (e) {
       console.warn("save step1 failed:", e.message);
+      // 即使後端儲存失敗，也允許繼續，因為 localStorage 有備份
+      alert("儲存時發生問題，但資料已在本地保存，可以繼續測驗");
+      navigate("/test/step2");
+    } finally {
+      setLoading(false);
     }
-    navigate("/test/step2");
   };
 
   return (
     <Container>
       <Header>
-        <Logo onClick={() => navigate("Home/")}>
+        <Logo onClick={() => navigate("/Home")}>
           <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
           Emobot+
         </Logo>
@@ -227,6 +251,7 @@ export default function MBTIStep1() {
             placeholder="在此輸入你的MBTI"
             value={mbtiStr}
             onChange={(e) => setMbtiStr(e.target.value)}
+            disabled={loading}
           />
           <Hint>*若尚未測驗，可於本頁連結前往免費測驗。</Hint>
           <ButtonGroup>
@@ -234,10 +259,13 @@ export default function MBTIStep1() {
               onClick={() =>
                 window.open("https://www.16personalities.com/tw", "_blank")
               }
+              disabled={loading}
             >
               前往MBTI測驗
             </Button>
-            <Button onClick={handleNext}>填完，下一步！</Button>
+            <Button onClick={handleNext} disabled={loading}>
+              {loading ? "處理中..." : "填完，下一步！"}
+            </Button>
           </ButtonGroup>
         </Card>
       </Main>
