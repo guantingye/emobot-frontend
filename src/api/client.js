@@ -165,45 +165,23 @@ export async function saveAssessment(data) {
   }
 }
 
-// 專門用於 MBTI 的儲存函數 - 支援多種格式
+// 專門用於 MBTI 的儲存函數 - 使用最簡單直接的格式
 export async function saveAssessmentMBTI(mbti, encoded) {
   console.log("💾 Saving MBTI:", { mbti, encoded });
   
-  // 嘗試不同的資料格式，直到成功為止
-  const formats = [
-    // 格式 1: 物件形式
-    {
-      mbti: {
-        raw: String(mbti).toUpperCase(),
-        encoded: encoded
-      }
-    },
-    // 格式 2: 分離欄位
-    {
+  try {
+    // 直接使用分離的欄位格式，最簡單最穩定
+    const result = await saveAssessment({
       mbti_raw: String(mbti).toUpperCase(),
       mbti_encoded: encoded
-    },
-    // 格式 3: 字串形式
-    {
-      mbti: String(mbti).toUpperCase()
-    }
-  ];
-
-  let lastError = null;
-  
-  for (const [index, format] of formats.entries()) {
-    try {
-      console.log(`🔄 Trying format ${index + 1}:`, format);
-      return await saveAssessment(format);
-    } catch (error) {
-      console.warn(`❌ Format ${index + 1} failed:`, error.message);
-      lastError = error;
-      continue;
-    }
+    });
+    
+    console.log("✅ MBTI saved successfully:", result);
+    return result;
+  } catch (error) {
+    console.error("❌ MBTI save failed:", error.message);
+    throw error;
   }
-  
-  // 如果所有格式都失敗，拋出最後一個錯誤
-  throw lastError || new Error("所有 MBTI 儲存格式都失敗了");
 }
 
 export async function runMatching() {
