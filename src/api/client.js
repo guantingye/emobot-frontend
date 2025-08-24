@@ -165,16 +165,17 @@ export async function saveAssessment(data) {
   }
 }
 
-// 專門用於 MBTI 的儲存函數 - 使用專用 API
+// 專門用於 MBTI 的儲存函數 - 直接使用現有的 upsert API
 export async function saveAssessmentMBTI(mbti, encoded) {
   console.log("💾 Saving MBTI:", { mbti, encoded });
   
   try {
-    const result = await request("/api/assessments/mbti", {
+    const result = await request("/api/assessments/upsert", {
       method: "POST",
       body: {
         mbti_raw: String(mbti).toUpperCase(),
-        mbti_encoded: encoded
+        mbti_encoded: encoded,
+        submittedAt: new Date().toISOString()
       },
     });
     
