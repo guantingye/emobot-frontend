@@ -10,7 +10,7 @@ import userIcon from "../assets/profile.png";
 import logoIcon from "../assets/logofig.png";
 import { apiMe } from "../api/client";
 
-// ====== 原有樣式（保持不變） ======
+// ====== 原有樣式（保持不變）======
 
 // 外層容器
 const Container = styled.div`
@@ -420,11 +420,27 @@ const ConfirmButton = styled(ModalButton)`
 `;
 
 // 載入狀態顯示
+const LoadingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+`;
+
 const LoadingText = styled.div`
   font-size: 18px;
   color: #666;
   text-align: center;
   margin: 20px 0;
+`;
+
+// 錯誤狀態顯示
+const ErrorText = styled.div`
+  font-size: 16px;
+  color: #cc4141;
+  text-align: center;
+  margin: 10px 0;
 `;
 
 const MemberDashboard = () => {
@@ -433,6 +449,7 @@ const MemberDashboard = () => {
   const [useAltAvatar, setUseAltAvatar] = useState(false);
   const [isFlipping, setIsFlipping] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const handleFlipAvatar = () => {
     setIsFlipping(true);
@@ -460,13 +477,18 @@ const MemberDashboard = () => {
     const loadUserData = async () => {
       try {
         setLoading(true);
+        setError(null);
         console.log("Loading user profile data...");
         
         const profileData = await apiMe();
         console.log("Profile data received:", profileData);
 
+        if (!profileData.ok) {
+          throw new Error(profileData.message || "Failed to load profile");
+        }
+
         // 更新基本用戶資料
-        if (profileData?.user) {
+        if (profileData.user) {
           const user = profileData.user;
           if (user.nickname) {
             setNickname(user.nickname);
@@ -476,48 +498,74 @@ const MemberDashboard = () => {
           }
         }
 
-        // 更新最新評估資料（MBTI）
-        if (profileData?.latest_assessment) {
-          // 如果後端有 MBTI 資料就從後端取，否則從 localStorage 取
-          const cachedMBTI = localStorage.getItem("step1MBTI");
-          if (cachedMBTI) {
-            try {
+        // 更新 MBTI 資料（從最新評估）
+        if (profileData.latest_assessment?.mbti?.raw) {
+          setMbtiRaw(profileData.latest_assessment.mbti.raw);
+          console.log("Set MBTI from backend:", profileData.latest_assessment.mbti.raw);
+        } else {
+          // 如果後端沒有 MBTI，嘗試從 localStorage 讀取
+          try {
+            const cachedMBTI = localStorage.getItem("step1MBTI");
+            if (cachedMBTI) {
               const mbtiArray = JSON.parse(cachedMBTI);
               if (Array.isArray(mbtiArray) && mbtiArray.length === 4) {
                 const mbtiString = mbtiArray.map((v, i) => 
                   v === 1 ? ["E", "N", "T", "P"][i] : ["I", "S", "F", "J"][i]
                 ).join("");
                 setMbtiRaw(mbtiString);
+                console.log("Set MBTI from localStorage:", mbtiString);
               }
-            } catch (e) {
-              console.warn("Error parsing cached MBTI:", e);
             }
+          } catch (e) {
+            console.warn("Error parsing cached MBTI:", e);
           }
         }
 
-        // 更新選擇的機器人
-        if (profileData?.latest_recommendation?.selected_bot) {
+        // 更新選擇的機器人（從最新推薦或用戶設定）
+        let botTypeFound = false;
+        
+        // 首先檢查最新推薦中的選擇
+        if (profileData.latest_recommendation?.selected_bot) {
           const botType = profileData.latest_recommendation.selected_bot;
           if (typeNameMap[botType]) {
             setChosenBotName(typeNameMap[botType]);
+            console.log("Set bot from recommendation:", typeNameMap[botType]);
+            botTypeFound = true;
           }
-        } else {
-          // 如果後端沒有記錄，從 localStorage 取
-          const selectedBotName = localStorage.getItem("selectedBotName");
+        }
+        
+        // 如果推薦中沒有，檢查用戶直接設定的選擇
+        if (!botTypeFound && profileData.user?.selected_bot) {
+          const botType = profileData.user.selected_bot;
+          if (typeNameMap[botType]) {
+            setChosenBotName(typeNameMap[botType]);
+            console.log("Set bot from user setting:", typeNameMap[botType]);
+            botTypeFound = true;
+          }
+        }
+        
+        // 如果後端都沒有，從 localStorage 讀取
+        if (!botTypeFound) {
           const selectedBotType = localStorage.getItem("selectedBotType");
+          const selectedBotName = localStorage.getItem("selectedBotName");
           
           if (selectedBotType && typeNameMap[selectedBotType]) {
             setChosenBotName(typeNameMap[selectedBotType]);
+            console.log("Set bot from localStorage type:", typeNameMap[selectedBotType]);
           } else if (selectedBotName) {
             setChosenBotName(selectedBotName.replace(" AI", "AI"));
+            console.log("Set bot from localStorage name:", selectedBotName);
           }
         }
 
       } catch (error) {
         console.error("Failed to load user data:", error);
+        setError(`載入用戶資料失敗: ${error.message}`);
         
         // 如果後端載入失敗，使用 localStorage 作為 fallback
         try {
+          console.log("Using localStorage fallback...");
+          
           const userJson = localStorage.getItem("user");
           if (userJson) {
             const u = JSON.parse(userJson);
@@ -538,16 +586,20 @@ const MemberDashboard = () => {
           }
 
           // 從 localStorage 載入選擇的機器人
-          const selectedBotName = localStorage.getItem("selectedBotName");
           const selectedBotType = localStorage.getItem("selectedBotType");
+          const selectedBotName = localStorage.getItem("selectedBotName");
           
           if (selectedBotType && typeNameMap[selectedBotType]) {
             setChosenBotName(typeNameMap[selectedBotType]);
           } else if (selectedBotName) {
             setChosenBotName(selectedBotName.replace(" AI", "AI"));
           }
+          
+          // 清除錯誤狀態，因為 fallback 成功
+          setError(null);
         } catch (e) {
           console.warn("Failed to load from localStorage:", e);
+          setError("無法載入用戶資料，請嘗試重新登入");
         }
       } finally {
         setLoading(false);
@@ -596,7 +648,9 @@ const MemberDashboard = () => {
           </RightSection>
         </Header>
         <MainContentWrapper>
-          <LoadingText>正在載入用戶資料...</LoadingText>
+          <LoadingWrapper>
+            <LoadingText>正在載入用戶資料...</LoadingText>
+          </LoadingWrapper>
         </MainContentWrapper>
       </Container>
     );
@@ -628,6 +682,7 @@ const MemberDashboard = () => {
               歡迎回來，<span>{nickname}</span>✧
             </UserName>
             <UserID>ID: {pid}</UserID>
+            {error && <ErrorText>{error}</ErrorText>}
           </UserInfo>
 
           <CardContainer>

@@ -1,3 +1,4 @@
+// src/components/TestStep1.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
@@ -6,20 +7,21 @@ import StepIndicator from "./StepIndicator";
 import logoIcon from "../assets/logofig.png";
 import { saveAssessment } from "../api/client";
 
-
-// ========== 動畫 ==========
+// ========= 動畫 =========
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 `;
 
-// ========== 樣式 ==========
-const Container = styled.div`
+// ========= 版型（允許捲動）=========
+const Page = styled.div`
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;          /* ✅ 讓高度至少滿版，但可超過 */
   background: #e8e8e8;
   font-family: "Noto Sans TC", sans-serif;
-  overflow: hidden;
+  overflow-x: hidden;          /* 橫向關掉，避免抖動 */
+  overflow-y: auto;            /* ✅ 允許直向捲動 */
+  -webkit-overflow-scrolling: touch;
 `;
 
 const Header = styled.header`
@@ -31,9 +33,8 @@ const Header = styled.header`
   align-items: center;
   padding: 0 30px;
   position: fixed;
-  top: 0;
-  left: 0;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  top: 0; left: 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   z-index: 10;
 `;
 
@@ -44,11 +45,8 @@ const Logo = styled.div`
   display: flex;
   align-items: center;
   cursor: pointer;
-  transition: transform 0.3s ease;
-
-  &:hover {
-    transform: scale(1.05);
-  }
+  transition: transform .3s ease;
+  &:hover { transform: scale(1.05); }
 `;
 
 const RightSection = styled.div`
@@ -65,210 +63,359 @@ const Nav = styled.nav`
   font-size: 26px;
   font-weight: bold;
   color: black;
-
   div {
     cursor: pointer;
-    transition: color 0.3s ease, transform 0.2s ease;
+    transition: color .3s ease, transform .2s ease;
+    &:hover { color: #2b3993; transform: translateY(-2px); }
+    &:active { transform: translateY(1px); }
+  }
 
-    &:hover {
-      color: #2b3993;
-      transform: translateY(-2px);
-    }
-
-    &:active {
-      transform: translateY(1px);
-    }
+  @media (max-width: 900px) {
+    gap: 20px;
+    font-size: 20px;
   }
 `;
 
 const AvatarImg = styled.img`
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-  cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-
-  &:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
+  width: 50px; height: 50px; border-radius: 50%;
+  object-fit: cover; cursor: pointer;
+  transition: transform .3s ease, box-shadow .3s ease;
+  &:hover { transform: scale(1.08); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 `;
 
-const StepIndicatorWrapper = styled.div`
-  margin-top: 120px;
-`;
-
-const Main = styled.div`
-  margin-top: 60px;
+const Content = styled.main`
+  /* ✅ 預留固定導覽列高度，避免被蓋住 */
+  padding-top: 90px;
+  padding-bottom: 40px;
   display: flex;
   justify-content: center;
 `;
 
+const Inner = styled.div`
+  width: 100%;
+  max-width: 960px;
+  padding: 0 16px;
+`;
+
+const StepIndicatorBox = styled.div`
+  margin-bottom: 20px;
+`;
+
 const Card = styled.div`
-  width: 800px;
   background: white;
   border: 2px solid #d0d0d0;
   border-radius: 20px;
-  padding: 40px;
+  padding: 36px;
   text-align: center;
-  animation: ${fadeIn} 0.8s ease;
+  animation: ${fadeIn} .8s ease;
+
+  @media (max-width: 860px) {
+    padding: 22px 16px;
+    border-radius: 16px;
+  }
 `;
 
 const Title = styled.h2`
   font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 30px;
+  font-weight: 800;
+  margin-bottom: 6px;
+
+  @media (max-width: 860px) {
+    font-size: 24px;
+  }
 `;
 
-const Instruction = styled.p`
-  font-size: 20px;
-  margin-bottom: 20px;
+const Subtitle = styled.p`
+  font-size: 18px;
+  color: #555;
+  margin-bottom: 24px;
+
+  @media (max-width: 860px) {
+    font-size: 16px;
+  }
 `;
 
-const Input = styled.input`
-  width: 70%;
-  height: 55px;
-  font-size: 24px;
-  border: 1.5px solid #b4b4b4;
-  border-radius: 8px;
-  padding-left: 20px;
-  margin-bottom: 15px;
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  max-width: 720px;
+  margin: 0 auto 12px;
+`;
+
+const Group = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 160px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1.5px solid #e5e5e5;
+  border-radius: 14px;
+  background: #fafafa;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+`;
+
+const DimLabel = styled.div`
+  font-size: 16px;
+  color: #666;
+
+  @media (max-width: 640px) {
+    order: 2;
+  }
+`;
+
+const DimTitle = styled.div`
+  font-size: 18px;
+  font-weight: 800;
+  color: #222;
+  text-align: center;
+
+  @media (max-width: 640px) {
+    order: 1;
+    margin-bottom: 6px;
+  }
+`;
+
+const Pill = styled.button`
+  appearance: none;
+  border: 2px solid ${p => (p.$active ? "#2b3993" : "#d7d7d7")};
+  background: ${p => (p.$active ? "#2b3993" : "white")};
+  color: ${p => (p.$active ? "white" : "#222")};
+  font-size: 18px;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all .15s ease;
+  box-shadow: ${p => (p.$active ? "0 4px 10px rgba(43,57,147,.25)" : "none")};
+
+  &:hover { transform: translateY(-1px); }
+  &:active { transform: translateY(0); }
+
+  @media (max-width: 640px) {
+    width: 100%;
+  }
+`;
+
+const Center = styled.div`
+  display: flex; align-items: center; justify-content: center; gap: 10px;
 `;
 
 const Hint = styled.p`
-  font-size: 18px;
-  color: #555;
-  margin-bottom: 30px;
+  font-size: 16px;
+  color: #777;
+  margin-top: 8px;
+  margin-bottom: 24px;
 `;
 
-const ButtonGroup = styled.div`
+const ButtonRow = styled.div`
   display: flex;
   justify-content: center;
-  gap: 40px;
+  gap: 20px;
+  flex-wrap: wrap;
 `;
 
 const Button = styled.button`
-  background: rgba(30, 31, 19, 0.8);
+  background: rgba(30,31,19,0.9);
   color: white;
-  font-size: 24px;
-  padding: 14px 30px;
+  font-size: 18px;
+  padding: 12px 26px;
   border: 3px solid #f5fbf2;
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: rgba(30, 31, 19, 1);
-    transform: scale(1.05);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
+  transition: all .2s;
+  &:hover { transform: scale(1.03); }
+  &:disabled { opacity: .55; cursor: not-allowed; }
 `;
 
-export default function MBTIStep1() {
+// 訊息區
+const ErrorMessage = styled.div`
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  color: #c33;
+  font-size: 16px;
+  margin: 10px 0;
+  padding: 12px;
+  text-align: center;
+`;
+const SuccessMessage = styled.div`
+  background: #efe;
+  border: 1px solid #cfc;
+  border-radius: 8px;
+  color: #363;
+  font-size: 16px;
+  margin: 10px 0;
+  padding: 12px;
+  text-align: center;
+`;
+
+// ========= 子元件 =========
+function PairSelector({ title, left, right, value, onChange }) {
+  return (
+    <Group role="group" aria-label={title}>
+      <DimLabel>{left.desc}</DimLabel>
+      <Center>
+        <DimTitle>{title}</DimTitle>
+      </Center>
+      <DimLabel style={{ textAlign: "right" }}>{right.desc}</DimLabel>
+
+      <Pill
+        aria-pressed={value === left.letter}
+        $active={value === left.letter}
+        onClick={() => onChange(left.letter)}
+      >
+        {left.letter}
+      </Pill>
+      <div />
+      <Pill
+        aria-pressed={value === right.letter}
+        $active={value === right.letter}
+        onClick={() => onChange(right.letter)}
+      >
+        {right.letter}
+      </Pill>
+    </Group>
+  );
+}
+
+// ========= 主元件 =========
+export default function TestStep1() {
   const navigate = useNavigate();
-  const [mbtiStr, setMbtiStr] = useState("");
+
+  const [EorI, setEorI] = useState("");
+  const [NorS, setNorS] = useState("");
+  const [TorF, setTorF] = useState("");
+  const [PorJ, setPorJ] = useState("");
+
   const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState("");
+  const [success, setSuccess] = useState("");
+
+  const allPicked = EorI && NorS && TorF && PorJ;
+  const mbti = `${EorI}${NorS}${TorF}${PorJ}`;
+  const encoded = [
+    EorI === "E" ? 1 : 0,
+    NorS === "N" ? 1 : 0,
+    TorF === "T" ? 1 : 0,
+    PorJ === "P" ? 1 : 0,
+  ];
 
   const handleNext = async () => {
-    const s = mbtiStr.trim().toUpperCase();
-    if (!/^[EI][NS][TF][PJ]$/.test(s)) {
-      alert("請輸入正確的 MBTI 4 字母（如 ENTP、ISFJ）");
+    setError(""); setSuccess("");
+
+    if (!allPicked) {
+      setError("請完成四個維度的選擇（外向/內向、直覺/實感、思考/情感、知覺/判斷）。");
       return;
     }
-    
-    const mbtiArr = [
-      s[0] === "E" ? 1 : 0,
-      s[1] === "N" ? 1 : 0,
-      s[2] === "T" ? 1 : 0,
-      s[3] === "P" ? 1 : 0,
-    ];
-    
+
     setLoading(true);
-    
-    // 先存到 localStorage 作為備份
-    localStorage.setItem("step1MBTI", JSON.stringify(mbtiArr));
-    
     try {
-      // 儲存到後端
-      await saveAssessment({ 
-        mbti: { 
-          raw: s, 
-          encoded: mbtiArr 
-        } 
-      });
-      console.log("Step1 MBTI saved successfully");
-      navigate("/test/step2");
+      // 存本地（保持你 Step5 一致）
+      localStorage.setItem("step1MBTI", JSON.stringify(encoded));
+
+      // 先送字串，失敗再送物件 → 避免 422
+      try {
+        await saveAssessment({ mbti });
+      } catch (e1) {
+        await saveAssessment({ mbti: { raw: mbti, encoded } });
+      }
+
+      setSuccess("MBTI 資料已成功儲存！");
+      setTimeout(() => navigate("/test/step2"), 800);
     } catch (e) {
-      console.warn("save step1 failed:", e.message);
-      // 即使後端儲存失敗，也允許繼續，因為 localStorage 有備份
-      alert("儲存時發生問題，但資料已在本地保存，可以繼續測驗");
-      navigate("/test/step2");
+      const msg = e?.message || "儲存失敗，請稍後再試";
+      setError(`儲存失敗：${msg}`);
+      // 若是網路 / 伺服器問題，允許繼續
+      if (msg.includes("Failed to fetch") || msg.includes("Network") || msg.includes("500")) {
+        setTimeout(() => navigate("/test/step2"), 1500);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container>
+    <Page>
       <Header>
         <Logo onClick={() => navigate("/Home")}>
-          <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
+          <img src={logoIcon} alt="logo" style={{ height: 68, marginRight: 8 }} />
           Emobot+
         </Logo>
         <RightSection>
           <Nav>
             <div onClick={() => navigate("/Home")}>主頁</div>
             <div onClick={() => navigate("/Home#robots")}>機器人介紹</div>
-            <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>
-              關於我們
-            </div>
+            <div onClick={() => navigate("/Home", { state: { scrollTo: "about" } })}>關於我們</div>
           </Nav>
-          <AvatarImg
-            src={userIcon}
-            alt="user avatar"
-            onClick={() => navigate("/profile")}
-          />
+          <AvatarImg src={userIcon} alt="user avatar" onClick={() => navigate("/profile")} />
         </RightSection>
       </Header>
 
-      <StepIndicatorWrapper>
-        <StepIndicator currentStep={1} />
-      </StepIndicatorWrapper>
+      <Content>
+        <Inner>
+          <StepIndicatorBox>
+            <StepIndicator currentStep={1} />
+          </StepIndicatorBox>
 
-      <Main>
-        <Card>
-          <Title>Step1 MBTI人格特質</Title>
-          <Instruction>
-            1. 請填寫你測驗過的 MBTI 四個字母（如：ENFP）
-          </Instruction>
-          <Input
-            type="text"
-            placeholder="在此輸入你的MBTI"
-            value={mbtiStr}
-            onChange={(e) => setMbtiStr(e.target.value)}
-            disabled={loading}
-          />
-          <Hint>*若尚未測驗，可於本頁連結前往免費測驗。</Hint>
-          <ButtonGroup>
-            <Button
-              onClick={() =>
-                window.open("https://www.16personalities.com/tw", "_blank")
-              }
-              disabled={loading}
-            >
-              前往MBTI測驗
-            </Button>
-            <Button onClick={handleNext} disabled={loading}>
-              {loading ? "處理中..." : "填完，下一步！"}
-            </Button>
-          </ButtonGroup>
-        </Card>
-      </Main>
-    </Container>
+          <Card>
+            <Title>Step1 MBTI 人格特質</Title>
+            <Subtitle>請在每個維度中選擇最符合自己的傾向</Subtitle>
+
+            <Grid>
+              <PairSelector
+                title="外向 vs 內向"
+                left={{ letter: "E", desc: "外向 Extraversion" }}
+                right={{ letter: "I", desc: "內向 Introversion" }}
+                value={EorI}
+                onChange={setEorI}
+              />
+              <PairSelector
+                title="直覺 vs 實感"
+                left={{ letter: "N", desc: "直覺 iNtuition" }}
+                right={{ letter: "S", desc: "實感 Sensing" }}
+                value={NorS}
+                onChange={setNorS}
+              />
+              <PairSelector
+                title="思考 vs 情感"
+                left={{ letter: "T", desc: "思考 Thinking" }}
+                right={{ letter: "F", desc: "情感 Feeling" }}
+                value={TorF}
+                onChange={setTorF}
+              />
+              <PairSelector
+                title="知覺 vs 判斷"
+                left={{ letter: "P", desc: "知覺 Perceiving" }}
+                right={{ letter: "J", desc: "判斷 Judging" }}
+                value={PorJ}
+                onChange={setPorJ}
+              />
+            </Grid>
+
+            <Hint>目前選擇：<b>{allPicked ? mbti : "—"}</b></Hint>
+
+            {error && <ErrorMessage>{error}</ErrorMessage>}
+            {success && <SuccessMessage>{success}</SuccessMessage>}
+
+            <ButtonRow>
+              <Button
+                onClick={() => window.open("https://www.16personalities.com/tw", "_blank")}
+                disabled={loading}
+              >
+                前往 MBTI 測驗
+              </Button>
+              <Button onClick={handleNext} disabled={loading || !allPicked}>
+                {loading ? "處理中..." : "填完，下一步！"}
+              </Button>
+            </ButtonRow>
+          </Card>
+        </Inner>
+      </Content>
+    </Page>
   );
 }
