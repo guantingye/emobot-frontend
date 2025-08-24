@@ -7,13 +7,13 @@ import StepIndicator from "./StepIndicator";
 import logoIcon from "../assets/logofig.png";
 import { saveAssessmentMBTI } from "../api/client";
 
-// ========= 動畫 =========
+// 動畫
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 `;
 
-// ========= 版型（允許捲動）=========
+// 允許捲動的頁面容器（保留原框架視覺）
 const Page = styled.div`
   width: 100vw;
   min-height: 100vh;
@@ -69,10 +69,7 @@ const Nav = styled.nav`
     &:hover { color: #2b3993; transform: translateY(-2px); }
     &:active { transform: translateY(1px); }
   }
-  @media (max-width: 900px) {
-    gap: 20px;
-    font-size: 20px;
-  }
+  @media (max-width: 900px) { gap: 20px; font-size: 20px; }
 `;
 
 const AvatarImg = styled.img`
@@ -95,9 +92,7 @@ const Inner = styled.div`
   padding: 0 16px;
 `;
 
-const StepIndicatorBox = styled.div`
-  margin-bottom: 20px;
-`;
+const StepIndicatorBox = styled.div` margin-bottom: 20px; `;
 
 const Card = styled.div`
   background: white;
@@ -106,24 +101,15 @@ const Card = styled.div`
   padding: 36px;
   text-align: center;
   animation: ${fadeIn} .8s ease;
-
-  @media (max-width: 860px) {
-    padding: 22px 16px;
-    border-radius: 16px;
-  }
+  @media (max-width: 860px) { padding: 22px 16px; border-radius: 16px; }
 `;
 
 const Title = styled.h2`
-  font-size: 32px;
-  font-weight: 800;
-  margin-bottom: 6px;
+  font-size: 32px; font-weight: 800; margin-bottom: 6px;
   @media (max-width: 860px) { font-size: 24px; }
 `;
-
 const Subtitle = styled.p`
-  font-size: 18px;
-  color: #555;
-  margin-bottom: 24px;
+  font-size: 18px; color: #555; margin-bottom: 24px;
   @media (max-width: 860px) { font-size: 16px; }
 `;
 
@@ -138,28 +124,17 @@ const Grid = styled.div`
 const Group = styled.div`
   display: grid;
   grid-template-columns: 1fr 160px 1fr;
-  align-items: center;
-  gap: 12px;
+  align-items: center; gap: 12px;
   padding: 16px 18px;
   border: 1.5px solid #e5e5e5;
   border-radius: 14px;
   background: #fafafa;
-
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
+  @media (max-width: 640px) { grid-template-columns: 1fr; text-align: center; }
 `;
 
-const DimLabel = styled.div`
-  font-size: 16px; color: #666;
-  @media (max-width: 640px) { order: 2; }
-`;
-
-const DimTitle = styled.div`
-  font-size: 18px; font-weight: 800; color: #222; text-align: center;
-  @media (max-width: 640px) { order: 1; margin-bottom: 6px; }
-`;
+const DimLabel = styled.div` font-size: 16px; color: #666; @media (max-width: 640px) { order: 2; } `;
+const DimTitle = styled.div` font-size: 18px; font-weight: 800; color: #222; text-align: center; @media (max-width: 640px) { order: 1; margin-bottom: 6px; } `;
+const Center = styled.div` display: flex; align-items: center; justify-content: center; gap: 10px; `;
 
 const Pill = styled.button`
   appearance: none;
@@ -167,8 +142,7 @@ const Pill = styled.button`
   background: ${p => (p.$active ? "#2b3993" : "white")};
   color: ${p => (p.$active ? "white" : "#222")};
   font-size: 18px; font-weight: 800;
-  border-radius: 999px;
-  padding: 10px 16px;
+  border-radius: 999px; padding: 10px 16px;
   cursor: pointer; transition: all .15s ease;
   box-shadow: ${p => (p.$active ? "0 4px 10px rgba(43,57,147,.25)" : "none")};
   &:hover { transform: translateY(-1px); }
@@ -176,7 +150,6 @@ const Pill = styled.button`
   @media (max-width: 640px) { width: 100%; }
 `;
 
-const Center = styled.div` display: flex; align-items: center; justify-content: center; gap: 10px; `;
 const Hint = styled.p` font-size: 16px; color: #777; margin-top: 8px; margin-bottom: 24px; `;
 const ButtonRow = styled.div` display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; `;
 const Button = styled.button`
@@ -197,7 +170,7 @@ const SuccessMessage = styled.div`
   color: #363; font-size: 16px; margin: 10px 0; padding: 12px; text-align: center;
 `;
 
-// ========= 子元件 =========
+// 子元件：二擇一
 function PairSelector({ title, left, right, value, onChange }) {
   return (
     <Group role="group" aria-label={title}>
@@ -216,7 +189,7 @@ function PairSelector({ title, left, right, value, onChange }) {
   );
 }
 
-// ========= 主元件 =========
+// 主元件
 export default function TestStep1() {
   const navigate = useNavigate();
 
@@ -248,17 +221,17 @@ export default function TestStep1() {
 
     setLoading(true);
     try {
+      // 與你 Step5 保持一致：本地也存一份
       localStorage.setItem("step1MBTI", JSON.stringify(encoded));
 
-      // ✅ 新的多形容錯儲存（字串 → 物件 → 扁平）
+      // ✅ 多形容錯：字串 → 物件 → 扁平
       await saveAssessmentMBTI(mbti, encoded);
 
       setSuccess("MBTI 資料已成功儲存！");
       setTimeout(() => navigate("/test/step2"), 800);
     } catch (e) {
-      // e.message 已是可讀的 FastAPI detail
       setError(`儲存失敗：${e.message}`);
-      console.warn("RAW server error:", e.raw); // 需要時可展開
+      console.warn("RAW server error:", e.raw);
     } finally {
       setLoading(false);
     }
@@ -288,7 +261,7 @@ export default function TestStep1() {
           </StepIndicatorBox>
 
           <Card>
-            <Title>Step1 MBTI 人格特質</Title>
+            <Title>step1 mbti 人格特質</Title>
             <Subtitle>請在每個維度中選擇最符合自己的傾向</Subtitle>
 
             <Grid>
@@ -328,10 +301,7 @@ export default function TestStep1() {
             {success && <SuccessMessage>{success}</SuccessMessage>}
 
             <ButtonRow>
-              <Button
-                onClick={() => window.open("https://www.16personalities.com/tw", "_blank")}
-                disabled={loading}
-              >
+              <Button onClick={() => window.open("https://www.16personalities.com/tw", "_blank")} disabled={loading}>
                 前往 MBTI 測驗
               </Button>
               <Button onClick={handleNext} disabled={loading || !allPicked}>
