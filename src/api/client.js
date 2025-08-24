@@ -1,5 +1,5 @@
 // src/api/client.js
-// 強化：1) 強制 JSON.stringify body  2) 無 body 的 POST 也送 {}  3) 友善的422錯誤訊息  4) MBTI 多形容錯
+// 簡化版本 - 專注於核心功能和錯誤處理
 
 const API_BASE =
   (typeof import.meta !== "undefined" &&
@@ -13,33 +13,28 @@ console.log("API_BASE:", API_BASE);
 
 function authHeader() {
   const token = localStorage.getItem("token");
-  console.log("Token exists:", !!token);
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-function formatFastAPIError(data, status) {
+// 統一的錯誤處理
+function formatError(data, status) {
   if (!data) return `HTTP ${status}`;
-  try {
-    if (Array.isArray(data.detail)) {
-      const msg = data.detail
-        .map(d => {
-          const loc = d.loc ? (Array.isArray(d.loc) ? d.loc.join(".") : String(d.loc)) : "body";
-          const m = d.msg || d.message || "";
-          return `${loc}: ${m}`;
-        })
-        .join(" | ");
-      return `HTTP ${status} - ${msg}`;
-    }
-    if (typeof data.detail === "object" && data.detail) {
-      return `HTTP ${status} - ${JSON.stringify(data.detail)}`;
-    }
-    if (typeof data.detail === "string") return `HTTP ${status} - ${data.detail}`;
-    if (data.message) return `HTTP ${status} - ${data.message}`;
-    if (data.error) return `HTTP ${status} - ${data.error}`;
-    return `HTTP ${status} - ${JSON.stringify(data)}`;
-  } catch {
-    return `HTTP ${status} - ${JSON.stringify(data)}`;
+  
+  // FastAPI 驗證錯誤
+  if (Array.isArray(data.detail)) {
+    const messages = data.detail.map(err => {
+      const field = Array.isArray(err.loc) ? err.loc.join('.') : 'field';
+      return `${field}: ${err.msg}`;
+    });
+    return `驗證錯誤: ${messages.join(', ')}`;
   }
+  
+  // 一般錯誤
+  if (typeof data.detail === "string") return data.detail;
+  if (data.message) return data.message;
+  if (data.error) return data.error;
+  
+  return `HTTP ${status}`;
 }
 
 async function request(path, options = {}) {
@@ -48,113 +43,283 @@ async function request(path, options = {}) {
 
   let { method = "GET", headers = {}, body } = options;
 
-  // ✅ 強制 JSON：若有 body 且不是字串，轉成 JSON 字串
-  // ✅ 若是 POST/PUT/PATCH/DELETE 沒 body，送空物件 {}，避免 FastAPI 收到 null/空字串
-  const upper = String(method).toUpperCase();
-  if (body == null && !["GET", "HEAD"].includes(upper)) {
+  // 處理 body 格式
+  if (body != null && typeof body !== "string") {
+    body = JSON.stringify(body);
+  }
+
+  // 如果是 POST/PUT/PATCH 但沒有 body，傳送空物件
+  const httpMethod = method.toUpperCase();
+  if (!body && ["POST", "PUT", "PATCH"].includes(httpMethod)) {
     body = "{}";
-  } else if (body != null && typeof body !== "string") {
-    try {
-      body = JSON.stringify(body);
-    } catch (e) {
-      console.error("JSON.stringify body failed:", e);
-      throw e;
-    }
   }
 
   const finalHeaders = {
-    Accept: "application/json",
-    ...(body != null ? { "Content-Type": "application/json" } : {}),
+    "Accept": "application/json",
+    ...(body ? { "Content-Type": "application/json" } : {}),
     ...authHeader(),
     ...headers,
   };
 
-  console.log("Making request to:", url);
-  console.log("Request options:", { method: upper, headers: finalHeaders, bodyPreview: typeof body === "string" ? body.slice(0, 200) : null });
+  console.log(`🌐 ${httpMethod} ${url}`);
+  if (body) console.log("📤 Request body:", body.substring(0, 200) + (body.length > 200 ? "..." : ""));
 
-  let resp, data, contentType;
   try {
-    resp = await fetch(url, { method: upper, headers: finalHeaders, body });
-    console.log("Response status:", resp.status);
-    contentType = resp.headers.get("content-type") || "";
-    data = contentType.includes("application/json") ? await resp.json() : await resp.text();
-    console.log("Response data:", data);
-  } catch (e) {
-    console.error(`Network/Fetch error for ${path}:`, e);
-    throw e;
-  }
+    const resp = await fetch(url, { 
+      method: httpMethod, 
+      headers: finalHeaders, 
+      body 
+    });
 
-  if (!resp.ok) {
-    console.error("Response error detail:", data);
-    const err = new Error(formatFastAPIError(data, resp.status));
-    err.status = resp.status;
-    err.raw = data;
-    throw err;
-  }
+    console.log(`📥 Response: ${resp.status} ${resp.statusText}`);
 
-  return data;
+    // 解析回應
+    let data;
+    const contentType = resp.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      data = await resp.json();
+    } else {
+      data = await resp.text();
+    }
+
+    if (data && typeof data === 'object') {
+      console.log("📋 Response data:", data);
+    }
+
+    // 錯誤處理
+    if (!resp.ok) {
+      const errorMessage = formatError(data, resp.status);
+      console.error("❌ Request failed:", errorMessage);
+      const error = new Error(errorMessage);
+      error.status = resp.status;
+      error.data = data;
+      throw error;
+    }
+
+    return data;
+
+  } catch (error) {
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      console.error("🌐 Network error:", error.message);
+      throw new Error("網路連線失敗，請檢查網路連線或稍後再試");
+    }
+    throw error;
+  }
 }
 
-// ====== 既有 API ======
+// ====== 核心 API 函數 ======
+
 export async function apiJoin(pid, nickname) {
-  const result = await request("/api/auth/join", {
-    method: "POST",
-    body: { pid, nickname },
-  });
-  if (result?.token) localStorage.setItem("token", result.token);
-  if (result?.user) localStorage.setItem("user", JSON.stringify(result.user));
-  return result;
+  try {
+    const result = await request("/api/auth/join", {
+      method: "POST",
+      body: { pid, nickname },
+    });
+    
+    // 儲存認證資訊
+    if (result?.token) {
+      localStorage.setItem("token", result.token);
+      console.log("✅ Token saved");
+    }
+    if (result?.user) {
+      localStorage.setItem("user", JSON.stringify(result.user));
+      console.log("✅ User data saved");
+    }
+    
+    return result;
+  } catch (error) {
+    console.error("❌ Join failed:", error.message);
+    throw error;
+  }
 }
 
 export async function apiMe() {
-  return await request("/api/user/profile", {
-    method: "GET",
-  });
+  try {
+    return await request("/api/user/profile", {
+      method: "GET",
+    });
+  } catch (error) {
+    console.error("❌ Get profile failed:", error.message);
+    throw error;
+  }
 }
 
-export async function saveAssessment(partial) {
-  console.log("Saving assessment data:", partial);
-  const result = await request("/api/assessments/upsert", {
-    method: "POST",
-    body: partial,
-  });
-  console.log("Assessment saved successfully:", result);
-  return result;
+// 統一的評估儲存函數
+export async function saveAssessment(data) {
+  try {
+    console.log("💾 Saving assessment:", data);
+    
+    const result = await request("/api/assessments/upsert", {
+      method: "POST",
+      body: {
+        ...data,
+        submittedAt: data.submittedAt || new Date().toISOString()
+      },
+    });
+    
+    console.log("✅ Assessment saved:", result);
+    return result;
+  } catch (error) {
+    console.error("❌ Save assessment failed:", error.message);
+    throw error;
+  }
 }
 
-// ====== 新增：MBTI 多形容錯儲存 ======
+// 專門用於 MBTI 的儲存函數 - 支援多種格式
 export async function saveAssessmentMBTI(mbti, encoded) {
-  const submittedAt = new Date().toISOString();
-  const candidates = [
-    { mbti: String(mbti).toUpperCase(), submittedAt },
-    { mbti: { raw: String(mbti).toUpperCase(), encoded }, submittedAt },
-    { mbti_raw: String(mbti).toUpperCase(), mbti_encoded: encoded, submittedAt },
+  console.log("💾 Saving MBTI:", { mbti, encoded });
+  
+  // 嘗試不同的資料格式，直到成功為止
+  const formats = [
+    // 格式 1: 物件形式
+    {
+      mbti: {
+        raw: String(mbti).toUpperCase(),
+        encoded: encoded
+      }
+    },
+    // 格式 2: 分離欄位
+    {
+      mbti_raw: String(mbti).toUpperCase(),
+      mbti_encoded: encoded
+    },
+    // 格式 3: 字串形式
+    {
+      mbti: String(mbti).toUpperCase()
+    }
   ];
-  let lastErr = null;
-  for (const body of candidates) {
+
+  let lastError = null;
+  
+  for (const [index, format] of formats.entries()) {
     try {
-      console.log("💾 Trying payload:", body);
-      return await saveAssessment(body);
-    } catch (e) {
-      lastErr = e;
-      console.warn("Payload failed:", e.message);
+      console.log(`🔄 Trying format ${index + 1}:`, format);
+      return await saveAssessment(format);
+    } catch (error) {
+      console.warn(`❌ Format ${index + 1} failed:`, error.message);
+      lastError = error;
+      continue;
     }
   }
-  throw lastErr;
+  
+  // 如果所有格式都失敗，拋出最後一個錯誤
+  throw lastError || new Error("所有 MBTI 儲存格式都失敗了");
 }
 
 export async function runMatching() {
-  return await request("/api/match/recommend", { method: "POST", body: {} });
+  try {
+    console.log("🤖 Running matching algorithm...");
+    return await request("/api/match/recommend", {
+      method: "POST",
+    });
+  } catch (error) {
+    console.error("❌ Matching failed:", error.message);
+    throw error;
+  }
 }
 
 export async function commitChoice(botType) {
-  return await request("/api/match/choose", { method: "POST", body: { botType } });
+  try {
+    console.log("🎯 Committing bot choice:", botType);
+    return await request("/api/match/choose", {
+      method: "POST",
+      body: { botType },
+    });
+  } catch (error) {
+    console.error("❌ Commit choice failed:", error.message);
+    throw error;
+  }
 }
 
 export async function testConnection() {
-  return await request("/api/health", { method: "GET" });
+  try {
+    return await request("/api/health");
+  } catch (error) {
+    console.error("❌ Health check failed:", error.message);
+    throw error;
+  }
 }
 
+// 聊天相關 API
+export async function saveChatMessage(content, messageType = "user", botType = null, userMood = null, moodIntensity = null) {
+  try {
+    return await request("/api/chat/messages", {
+      method: "POST",
+      body: {
+        content,
+        message_type: messageType,
+        bot_type: botType,
+        user_mood: userMood,
+        mood_intensity: moodIntensity
+      },
+    });
+  } catch (error) {
+    console.error("❌ Save chat message failed:", error.message);
+    throw error;
+  }
+}
+
+export async function getChatHistory(limit = 50) {
+  try {
+    return await request(`/api/chat/messages?limit=${limit}`);
+  } catch (error) {
+    console.error("❌ Get chat history failed:", error.message);
+    throw error;
+  }
+}
+
+// 心情記錄 API
+export async function saveMoodRecord(mood, intensity, note = null) {
+  try {
+    return await request("/api/mood/records", {
+      method: "POST",
+      body: { mood, intensity, note },
+    });
+  } catch (error) {
+    console.error("❌ Save mood record failed:", error.message);
+    throw error;
+  }
+}
+
+export async function getMoodHistory(days = 30) {
+  try {
+    return await request(`/api/mood/records?days=${days}`);
+  } catch (error) {
+    console.error("❌ Get mood history failed:", error.message);
+    throw error;
+  }
+}
+
+// 向後相容的 API
+export async function getMyAssessment() {
+  try {
+    return await request("/api/assessments/me");
+  } catch (error) {
+    console.error("❌ Get my assessment failed:", error.message);
+    throw error;
+  }
+}
+
+export async function getMyMatchChoice() {
+  try {
+    return await request("/api/match/me");
+  } catch (error) {
+    console.error("❌ Get my match choice failed:", error.message);
+    throw error;
+  }
+}
+
+// 除錯 API
+export async function debugDbTest() {
+  try {
+    return await request("/api/debug/db-test");
+  } catch (error) {
+    console.error("❌ DB test failed:", error.message);
+    throw error;
+  }
+}
+
+// 預設匯出
 export default {
   apiJoin,
   apiMe,
@@ -163,4 +328,11 @@ export default {
   runMatching,
   commitChoice,
   testConnection,
+  saveChatMessage,
+  getChatHistory,
+  saveMoodRecord,
+  getMoodHistory,
+  getMyAssessment,
+  getMyMatchChoice,
+  debugDbTest,
 };
