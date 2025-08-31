@@ -148,14 +148,26 @@ const Circle = styled.div`
   border-radius: 50%;
   border: 2px solid
     ${(props) =>
-      props.selected
-        ? "#6A4C93"
-        : props.index < 2
-        ? "#3AA87A"
-        : props.index === 2
-        ? "#aaa"
-        : "#6A4C93"};
-  background: ${(props) => (props.selected ? "#6A4C93" : "transparent")};
+    props.selected
+      ? props.index < 2
+        ? "#6A4C93"   // 左邊兩個 → 紫色
+        : props.index > 2
+        ? "#3AA87A"   // 右邊兩個 → 綠色
+        : "#aaa"      // 中間一個 → 灰色
+      : props.index < 2
+      ? "#6A4C93"
+      : props.index > 2
+      ? "#3AA87A"
+      : "#aaa"};
+
+background: ${(props) =>
+  props.selected
+    ? props.index < 2
+      ? "#6A4C93"     // 左邊兩個 → 紫色實心
+      : props.index > 2
+      ? "#3AA87A"     // 右邊兩個 → 綠色實心
+      : "#aaa"        // 中間一個 → 灰色實心
+    : "transparent"};
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -172,7 +184,7 @@ const Circle = styled.div`
 
 const Label = styled.span`
   font-size: 18px;
-  color: ${(props) => (props.side === "left" ? "#3AA87A" : "#6A4C93")};
+  color: ${(props) => (props.side === "left" ? "#6A4C93" : "#3AA87A")};
   width: 60px;
   text-align: center;
 `;
@@ -302,7 +314,7 @@ export default function TestStep3() {
             <QuestionItem key={i}>
               {q}
               <ScaleWrapper>
-                <Label side="left">同意</Label>
+                <Label side="left">不同意</Label>
                 {[1, 2, 3, 4, 5].map((n, idx) => (
                   <Circle
                     key={n}
@@ -312,7 +324,7 @@ export default function TestStep3() {
                     onClick={() => handleSelect(i, n)}
                   />
                 ))}
-                <Label side="right">不同意</Label>
+                <Label side="right">同意</Label>
               </ScaleWrapper>
             </QuestionItem>
           ))}
