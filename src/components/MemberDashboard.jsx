@@ -14,13 +14,11 @@ import { apiMe } from "../api/client";
 
 // 外層容器
 const Container = styled.div`
-  width: 100vw;
+  width: 100%;
   min-height: 100dvh;
   background: #f1f1f1;
   font-family: "Noto Sans TC", sans-serif;
-  overflow-x: hidden;
-  overflow-y: auto;
-`;
+  overflow: hidden;
 
 // 固定 Header - 與主頁保持一致
 const Header = styled.header`
@@ -98,17 +96,18 @@ const AvatarImg = styled.img`
 
 // 主內容區塊
 const MainContentWrapper = styled.div`
-  margin-top: 80px;
-  min-height: calc(100dvh - 80px); 
-  overflow: auto;
+  margin-top: 70px;
+  height: calc(100dvh - 70px); 
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 20px 20px 96px;       
+  padding: 12px;      
 `;
 
 // 內容縮放容器
 const ContentScaler = styled.div`
+  transform-origin: top center;
   width: 100%;
   max-width: 1200px;
 `;
