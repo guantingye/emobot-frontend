@@ -15,10 +15,10 @@ import { apiMe } from "../api/client";
 // 外層容器
 const Container = styled.div`
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
   background: #f1f1f1;
   font-family: "Noto Sans TC", sans-serif;
-  overflow: hidden;
+  overflow: auto/visible;
 `;
 
 // 固定 Header - 與主頁保持一致
@@ -726,7 +726,7 @@ const MemberDashboard = () => {
         <ModalContent show={showModal} onClick={(e) => e.stopPropagation()}>
           <ModalTitle>想重新配對一位懂你的 AI 夥伴嗎？</ModalTitle>
           <ModalDescription>
-            點選後，我們會刪除目前的心理測驗資料與所有聊天記錄，<br/>
+            點選後，我們會刪除目前心理測驗資料與所有聊天記錄，<br/>
             重新為你媒合最適合的對話夥伴。
           </ModalDescription>
           <ModalWarning>
