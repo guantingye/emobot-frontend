@@ -353,7 +353,8 @@ export default function Login() {
           {errors.pid ? (
             <ErrorText>{errors.pid}</ErrorText>
           ) : (
-            <HelperText>格式：手機末三碼＋英文姓氏開頭一碼（例：123W）/⚠️請務必與前測問卷所填相同，以便資料比對。</HelperText>
+            <HelperText>格式：手機末三碼＋英文姓氏開頭一碼（例：123W）<br />
+            ⚠️請務必與前測問卷所填相同，以便資料比對。</HelperText>
           )}
         </FormGroup>
 
