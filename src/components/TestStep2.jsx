@@ -304,7 +304,7 @@ export default function TestStep2() {
             <QuestionItem key={i}>
               {q}
               <ScaleWrapper>
-                <Label side="left">同意</Label>
+                <Label side="left">不同意</Label>
                 {[1, 2, 3, 4, 5, 6, 7].map((n, idx) => (
                   <Circle
                     key={n}
@@ -314,7 +314,7 @@ export default function TestStep2() {
                     onClick={() => handleSelect(i, n)}
                   />
                 ))}
-                <Label side="right">不同意</Label>
+                <Label side="right">同意</Label>
               </ScaleWrapper>
             </QuestionItem>
           ))}

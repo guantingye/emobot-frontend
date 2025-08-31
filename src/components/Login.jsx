@@ -213,7 +213,7 @@ export default function Login() {
     const trimmedValue = value.trim().toUpperCase();
     if (!trimmedValue) return "";
     if (!/^\d{2}[A-Z]{2}$/.test(trimmedValue)) {
-      return "受試者ID 格式需為兩碼數字＋兩碼英文（例：12AB）";
+      return "受試者ID 格式需為手機末三碼＋英文姓氏開頭一碼";
     }
     return "";
   };
