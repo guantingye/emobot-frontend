@@ -149,13 +149,13 @@ const Circle = styled.div`
   border: 2px solid
     ${(props) =>
       props.selected
-        ? "#6A4C93"
-        : props.index < 3
         ? "#3AA87A"
+        : props.index < 3
+        ? "#6A4C93"
         : props.index === 3
         ? "#aaa"
         : "#6A4C93"};
-  background: ${(props) => (props.selected ? "#6A4C93" : "transparent")};
+  background: ${(props) => (props.selected ? "#3AA87A" : "transparent")};
   cursor: pointer;
   transition: all 0.2s ease;
 
