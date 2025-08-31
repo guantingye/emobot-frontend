@@ -139,7 +139,6 @@ const Subtitle = styled.p`
 
 
 
-
 const QuestionList = styled.ul`
   font-size: 22px;
   color: #333;
@@ -330,7 +329,6 @@ export default function TestStep2() {
       <Main>
         <Title>Step2 情感連結風格</Title>
         <Subtitle>請根據您的真實感受，選擇最符合的選項。<br />越靠左側表示越不同意，越靠右側表示越同意，中間則代表中立或一般程度。</Subtitle>
-        <QuestionList>
         <QuestionList>
           {questions.map((q, i) => (
             <QuestionItem key={i}>
