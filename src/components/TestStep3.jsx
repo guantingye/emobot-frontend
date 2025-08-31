@@ -122,6 +122,17 @@ const Title = styled.h2`
   text-align: center;
 `;
 
+
+
+const Subtitle = styled.p`
+  font-size: 16px;
+  margin-top: -50px;    
+  margin-bottom: 40px; 
+  text-align: center;
+`;
+
+
+
 const QuestionList = styled.ul`
   font-size: 22px;
   color: #333;
@@ -309,6 +320,7 @@ export default function TestStep3() {
 
       <Main>
         <Title>Step3 情緒調節策略</Title>
+        <Subtitle>請根據您的真實感受，選擇最符合的選項。<br />越靠左側表示越不同意，越靠右側表示越同意，中間則代表中立或一般程度。</Subtitle>
         <QuestionList>
           {questions.map((q, i) => (
             <QuestionItem key={i}>
