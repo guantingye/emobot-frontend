@@ -118,7 +118,7 @@ const Main = styled.div`
 const Title = styled.h2`
   font-size: 36px;
   font-weight: bold;
-  margin-bottom: 70px;
+  margin-bottom: 40px;
   text-align: center;
 `;
 
