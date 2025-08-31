@@ -15,10 +15,11 @@ import { apiMe } from "../api/client";
 // 外層容器
 const Container = styled.div`
   width: 100vw;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: #f1f1f1;
   font-family: "Noto Sans TC", sans-serif;
-  overflow: auto/visible;
+  overflow-x: hidden;
+  overflow-y: auto;
 `;
 
 // 固定 Header - 與主頁保持一致
@@ -98,18 +99,16 @@ const AvatarImg = styled.img`
 // 主內容區塊
 const MainContentWrapper = styled.div`
   margin-top: 80px;
-  height: calc(100vh - 80px);
-  overflow: hidden;
+  min-height: calc(100dvh - 80px); 
+  overflow: auto;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 20px;
+  padding: 20px 20px 96px;       
 `;
 
 // 內容縮放容器
 const ContentScaler = styled.div`
-  transform: scale(0.76);
-  transform-origin: top center;
   width: 100%;
   max-width: 1200px;
 `;
@@ -281,7 +280,7 @@ const AIDescription = styled.p`
 `;
 
 const RadarImage = styled.img`
-  width: 105%;
+  width: 100%;
   max-width: 490px;
   display: block;
   transition: transform 0.5s ease;
