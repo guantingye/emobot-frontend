@@ -118,9 +118,27 @@ const Main = styled.div`
 const Title = styled.h2`
   font-size: 36px;
   font-weight: bold;
-  margin-bottom: 70px;
+  margin-bottom: 30px;
   text-align: center;
 `;
+
+const Subtitle = styled.p`
+  font-size: 16px;
+  color: #444;
+  line-height: 1.7;
+  max-width: 720px;
+  margin: 0 auto 28px;
+  text-align: center;
+
+  background: #f9f9f9;      /* 背景色 */
+  padding: 12px 20px;       /* 內距 */
+  border-radius: 8px;       /* 圓角 */
+  border: 1px solid #eee;   /* 淡邊框 */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* 陰影 */
+`;
+
+
+
 
 const QuestionList = styled.ul`
   font-size: 22px;
@@ -311,6 +329,8 @@ export default function TestStep2() {
 
       <Main>
         <Title>Step2 情感連結風格</Title>
+        <Subtitle>請根據您的真實感受，選擇最符合的選項。<br />越靠左側表示越不同意，越靠右側表示越同意，中間則代表中立或一般程度。</Subtitle>
+        <QuestionList>
         <QuestionList>
           {questions.map((q, i) => (
             <QuestionItem key={i}>
