@@ -28,7 +28,7 @@ const Nav = styled.nav`
 const AvatarImg = styled.img` width: 50px; height: 50px; border-radius: 50%; object-fit: cover; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; &:hover{ transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); } `;
 const RightSection = styled.div` display: flex; align-items: center; gap: 30px; margin-right: 40px; `;
 const Main = styled.div` max-width: 1000px; margin: 60px auto; padding: 60px; background: white; border-radius: 24px; text-align: center; animation: ${fadeInUp} 0.8s ease-out; `;
-const Title = styled.h2` font-size: 32px; font-weight: bold; margin-bottom: 40px; color: #444; `;
+const Title = styled.h2` font-size: 22px; font-weight: bold; margin-bottom: 40px; color: #444; `;
 const Cards = styled.div` display: flex; justify-content: center; gap: 40px; margin-bottom: 48px; `;
 const BotCard = styled.div`
   position: relative; width: 220px; cursor: pointer; transition: transform 0.3s ease, opacity 0.3s ease, border 0.3s ease;
