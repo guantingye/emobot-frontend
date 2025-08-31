@@ -187,7 +187,7 @@ export default function MatchResult() {
             </BotCard>
           ))}
         </Cards>
-        <HintBox>提醒您🔔 系統目前處於測試階段，AI 夥伴僅能於首次選擇，若需更換，須重新進行心理測驗。
+        <HintBox>提醒您🔔 系統目前處於測試階段，AI 夥伴僅能於首次選擇，欲更換須重新進行心理測驗。
         </HintBox>
 
         <ConfirmButton onClick={handleSubmit} disabled={loading}>
