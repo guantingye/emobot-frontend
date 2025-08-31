@@ -172,7 +172,7 @@ const Circle = styled.div`
 
 const Label = styled.span`
   font-size: 18px;
-  color: ${(props) => (props.side === "left" ? "#3AA87A" : "#6A4C93")};
+  color: ${(props) => (props.side === "left" ? "#6A4C93" : "#3AA87A")};
   width: 60px;
   text-align: center;
 `;
