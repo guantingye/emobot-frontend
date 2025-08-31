@@ -147,15 +147,27 @@ const Circle = styled.div`
   height: ${(props) => props.size}px;
   border-radius: 50%;
   border: 2px solid
-    ${(props) =>
-      props.selected
-        ? "#3AA87A"
-        : props.index < 3
-        ? "#6A4C93"
+  ${(props) =>
+    props.selected
+      ? props.index < 3
+        ? "#6A4C93"   // 紫色 (不同意)
         : props.index === 3
-        ? "#aaa"
-        : "#6A4C93"};
-  background: ${(props) => (props.selected ? "#3AA87A" : "transparent")};
+        ? "#aaa"      // 灰色 (中立)
+        : "#3AA87A"   // 綠色 (同意)
+      : props.index < 3
+      ? "#6A4C93"
+      : props.index === 3
+      ? "#aaa"
+      : "#3AA87A"};
+
+background: ${(props) =>
+  props.selected
+    ? props.index < 3
+      ? "#6A4C93"     // 紫色實心
+      : props.index === 3
+      ? "#aaa"        // 灰色實心
+      : "#3AA87A"     // 綠色實心
+    : "transparent"};
   cursor: pointer;
   transition: all 0.2s ease;
 
