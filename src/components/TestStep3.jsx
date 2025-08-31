@@ -126,9 +126,17 @@ const Title = styled.h2`
 
 const Subtitle = styled.p`
   font-size: 16px;
-  margin-top: -50px;    
-  margin-bottom: 40px; 
+  color: #444;
+  line-height: 1.7;
+  max-width: 720px;
+  margin: 0 auto 28px;
   text-align: center;
+
+  background: #f9f9f9;      /* 背景色 */
+  padding: 12px 20px;       /* 內距 */
+  border-radius: 8px;       /* 圓角 */
+  border: 1px solid #eee;   /* 淡邊框 */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* 陰影 */
 `;
 
 
