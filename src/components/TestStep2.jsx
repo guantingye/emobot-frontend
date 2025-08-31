@@ -197,6 +197,11 @@ const Button = styled.button`
   &:hover {
     transform: scale(1.05);
   }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 export default function TestStep2() {
@@ -230,6 +235,7 @@ export default function TestStep2() {
   ];
 
   const [answers, setAnswers] = useState(Array(questions.length).fill(null));
+  const [loading, setLoading] = useState(false);
 
   const handleSelect = (questionIndex, score) => {
     const newAnswers = [...answers];
@@ -239,16 +245,39 @@ export default function TestStep2() {
 
   const handleNext = async () => {
     const isComplete = answers.every((a) => a !== null);
-    if (!isComplete) { alert("世界會不斷給你重複的課題，直到你給出新的回應！"); return; }
-    localStorage.setItem("step2Answers", JSON.stringify(answers));
-    try { await saveAssessment({ step2Answers: answers }); } catch (e) { console.warn("save step2 failed:", e.message); }
-    navigate("/test/step3");
+    
+    if (!isComplete) { 
+      alert("請完成所有題目的回答。"); 
+      return; 
+    }
+    
+    setLoading(true);
+    
+    try {
+      // 本地儲存（作為備份）
+      localStorage.setItem("step2Answers", JSON.stringify(answers));
+      
+      // 儲存到後端 - 修正：將 array 直接作為 step2Answers 傳送
+      console.log("Saving step2 answers:", answers);
+      await saveAssessment({ 
+        step2Answers: answers,
+        submittedAt: new Date().toISOString()
+      });
+      
+      navigate("/test/step3");
+    } catch (e) { 
+      console.error("Save step2 failed:", e);
+      alert(`儲存失敗：${e.message}，但可以繼續下一步`);
+      navigate("/test/step3");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Container>
       <Header>
-        <Logo onClick={() => navigate("Home/")}>
+        <Logo onClick={() => navigate("/Home")}>
           <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
           Emobot+
         </Logo>
@@ -292,8 +321,10 @@ export default function TestStep2() {
         </QuestionList>
 
         <ButtonGroup>
-          <Button onClick={() => navigate("/test/step1")}>返回上一步</Button>
-          <Button onClick={handleNext}>繼續作答</Button>
+          <Button onClick={() => navigate("/test/step1")} disabled={loading}>返回上一步</Button>
+          <Button onClick={handleNext} disabled={loading}>
+            {loading ? "處理中..." : "繼續作答"}
+          </Button>
         </ButtonGroup>
       </Main>
     </Container>

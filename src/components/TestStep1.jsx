@@ -13,7 +13,7 @@ const fadeIn = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 
-// 允許捲動的頁面容器（保留原框架視覺）
+// 全許滾動的頁面容器（保留原框架視覺）
 const Page = styled.div`
   width: 100vw;
   min-height: 100vh;
@@ -199,7 +199,7 @@ export default function TestStep1() {
   const [PorJ, setPorJ] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   const allPicked = EorI && NorS && TorF && PorJ;
@@ -212,7 +212,8 @@ export default function TestStep1() {
   ];
 
   const handleNext = async () => {
-    setError(""); setSuccess("");
+    setError(""); 
+    setSuccess("");
 
     if (!allPicked) {
       setError("請完成四個維度的選擇（外向/內向、直覺/實感、思考/情感、知覺/判斷）。");
@@ -221,17 +222,19 @@ export default function TestStep1() {
 
     setLoading(true);
     try {
-      // 與你 Step5 保持一致：本地也存一份
+      console.log("Saving MBTI data:", { mbti, encoded });
+      
+      // 本地也存一份（與 Step5 保持一致）
       localStorage.setItem("step1MBTI", JSON.stringify(encoded));
 
-      // ✅ 多形容錯：字串 → 物件 → 扁平
+      // 修正：直接傳送 MBTI 字串和編碼陣列
       await saveAssessmentMBTI(mbti, encoded);
 
       setSuccess("MBTI 資料已成功儲存！");
       setTimeout(() => navigate("/test/step2"), 800);
     } catch (e) {
+      console.error("MBTI save error:", e);
       setError(`儲存失敗：${e.message}`);
-      console.warn("RAW server error:", e.raw);
     } finally {
       setLoading(false);
     }

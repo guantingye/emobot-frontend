@@ -141,12 +141,10 @@ export default function TestStep5() {
     try {
       // 最後確保所有資料都保存到後端
       const finalData = {
-        mbti: {
-          raw: userProfile.mbti.map((v, i) => 
-            v === 1 ? ["E", "N", "T", "P"][i] : ["I", "S", "F", "J"][i]
-          ).join(""),
-          encoded: userProfile.mbti
-        },
+        mbti_raw: userProfile.mbti.map((v, i) => 
+          v === 1 ? ["E", "N", "T", "P"][i] : ["I", "S", "F", "J"][i]
+        ).join(""),
+        mbti_encoded: userProfile.mbti,
         step2Answers: userProfile.aas,
         step3Answers: userProfile.ders,
         step4Answers: userProfile.bpns,

@@ -150,9 +150,9 @@ const Circle = styled.div`
     ${(props) =>
       props.selected
         ? "#6A4C93"
-        : props.index < 3
+        : props.index < 2
         ? "#3AA87A"
-        : props.index === 3
+        : props.index === 2
         ? "#aaa"
         : "#6A4C93"};
   background: ${(props) => (props.selected ? "#6A4C93" : "transparent")};
@@ -197,6 +197,11 @@ const Button = styled.button`
   &:hover {
     transform: scale(1.05);
   }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 export default function TestStep3() {
@@ -223,11 +228,12 @@ export default function TestStep3() {
     "當我感到難過時，我會因為這種感受而感到內疚。",
     "當我感到難過時，我難以集中注意力。",
     "當我感到難過時，我難以控制自己的行為。",
-    "當我感到難過時，我認為沉溺於這種情緒是我唯一能做的事。",
+    "當我感到難過時，我認為沉浸於這種情緒是我唯一能做的事。",
     "當我感到難過時，我無法控制自己的行為。"
   ];
 
   const [answers, setAnswers] = useState(Array(questions.length).fill(null));
+  const [loading, setLoading] = useState(false);
 
   const handleSelect = (questionIndex, score) => {
     const newAnswers = [...answers];
@@ -237,16 +243,39 @@ export default function TestStep3() {
 
   const handleNext = async () => {
     const isComplete = answers.every((a) => a !== null);
-    if (!isComplete) { alert("世界會不斷給你重複的課題，直到你給出新的回應！"); return; }
-    localStorage.setItem("step3Answers", JSON.stringify(answers));
-    try { await saveAssessment({ step3Answers: answers }); } catch (e) { console.warn("save step3 failed:", e.message); }
-    navigate("/test/step4");
+    
+    if (!isComplete) { 
+      alert("請完成所有題目的回答。"); 
+      return; 
+    }
+    
+    setLoading(true);
+    
+    try {
+      // 本地儲存（作為備份）
+      localStorage.setItem("step3Answers", JSON.stringify(answers));
+      
+      // 儲存到後端
+      console.log("Saving step3 answers:", answers);
+      await saveAssessment({ 
+        step3Answers: answers,
+        submittedAt: new Date().toISOString()
+      });
+      
+      navigate("/test/step4");
+    } catch (e) { 
+      console.error("Save step3 failed:", e);
+      alert(`儲存失敗：${e.message}，但可以繼續下一步`);
+      navigate("/test/step4");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Container>
       <Header>
-        <Logo onClick={() => navigate("Home/")}>
+        <Logo onClick={() => navigate("/Home")}>
           <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
           Emobot+
         </Logo>
@@ -277,7 +306,7 @@ export default function TestStep3() {
                 {[1, 2, 3, 4, 5].map((n, idx) => (
                   <Circle
                     key={n}
-                    size={48 + Math.abs(4 - n) * 4}
+                    size={48 + Math.abs(2 - idx) * 6}
                     index={idx}
                     selected={answers[i] === n}
                     onClick={() => handleSelect(i, n)}
@@ -290,11 +319,12 @@ export default function TestStep3() {
         </QuestionList>
 
         <ButtonGroup>
-          <Button onClick={() => navigate("/test/step2")}>返回上一步</Button>
-          <Button onClick={handleNext}>繼續作答</Button>
+          <Button onClick={() => navigate("/test/step2")} disabled={loading}>返回上一步</Button>
+          <Button onClick={handleNext} disabled={loading}>
+            {loading ? "處理中..." : "繼續作答"}
+          </Button>
         </ButtonGroup>
       </Main>
     </Container>
   );
 }
-

@@ -1,5 +1,5 @@
 // src/api/client.js
-// 簡化版本 - 專注於核心功能和錯誤處理
+// 修復版本 - 解決 CORS 問題和資料格式問題
 
 const API_BASE =
   (typeof import.meta !== "undefined" &&
@@ -16,7 +16,7 @@ function authHeader() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-// 統一的錯誤處理
+// 增強的錯誤處理
 function formatError(data, status) {
   if (!data) return `HTTP ${status}`;
   
@@ -37,11 +37,12 @@ function formatError(data, status) {
   return `HTTP ${status}`;
 }
 
+// 增強的 request 函數，專門處理 CORS
 async function request(path, options = {}) {
   const base = API_BASE.replace(/\/+$/, "");
   const url = `${base}${path}`;
 
-  let { method = "GET", headers = {}, body } = options;
+  let { method = "GET", headers = {}, body, retries = 3 } = options;
 
   // 處理 body 格式
   if (body != null && typeof body !== "string") {
@@ -62,62 +63,92 @@ async function request(path, options = {}) {
   };
 
   console.log(`🌐 ${httpMethod} ${url}`);
-  if (body) console.log("📤 Request body:", body.substring(0, 200) + (body.length > 200 ? "..." : ""));
+  if (body && body !== "{}") {
+    console.log("📤 Request body:", body.substring(0, 200) + (body.length > 200 ? "..." : ""));
+  }
 
-  try {
-    const resp = await fetch(url, { 
-      method: httpMethod, 
-      headers: finalHeaders, 
-      body,
-      mode: 'cors',  // 明確指定 CORS 模式
-      credentials: 'omit',  // 不傳送 credentials
-    });
+  // 重試機制處理 CORS 問題
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const resp = await fetch(url, { 
+        method: httpMethod, 
+        headers: finalHeaders, 
+        body,
+        mode: 'cors',
+        credentials: 'omit',
+        // 添加超時處理
+        signal: AbortSignal.timeout(30000), // 30秒超時
+      });
 
-    console.log(`📥 Response: ${resp.status} ${resp.statusText}`);
+      console.log(`📥 Response (attempt ${attempt}): ${resp.status} ${resp.statusText}`);
 
-    // 檢查 CORS 相關錯誤
-    if (resp.status === 0) {
-      throw new Error('CORS 錯誤：無法連接到後端伺服器，請檢查 CORS 設定');
-    }
+      // 檢查 CORS 錯誤
+      if (resp.status === 0) {
+        throw new Error('CORS_ERROR');
+      }
 
-    // 解析回應
-    let data;
-    const contentType = resp.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-      data = await resp.json();
-    } else {
-      data = await resp.text();
-    }
+      // 解析回應
+      let data;
+      const contentType = resp.headers.get("content-type") || "";
+      
+      if (contentType.includes("application/json")) {
+        try {
+          data = await resp.json();
+        } catch (jsonError) {
+          console.warn("JSON parse error:", jsonError);
+          data = { error: "Invalid JSON response" };
+        }
+      } else {
+        data = await resp.text();
+      }
 
-    if (data && typeof data === 'object') {
-      console.log("📋 Response data:", data);
-    }
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        console.log("📋 Response data:", data);
+      }
 
-    // 錯誤處理
-    if (!resp.ok) {
-      const errorMessage = formatError(data, resp.status);
-      console.error("❌ Request failed:", errorMessage);
-      const error = new Error(errorMessage);
-      error.status = resp.status;
-      error.data = data;
+      // 錯誤處理
+      if (!resp.ok) {
+        const errorMessage = formatError(data, resp.status);
+        console.error("❌ Request failed:", errorMessage);
+        const error = new Error(errorMessage);
+        error.status = resp.status;
+        error.data = data;
+        throw error;
+      }
+
+      return data;
+
+    } catch (error) {
+      console.error(`Attempt ${attempt} failed:`, error.message);
+      
+      // CORS 或網路錯誤，且還有重試機會
+      if (attempt < retries && (
+        error.name === 'TypeError' || 
+        error.message.includes('CORS') ||
+        error.message.includes('Failed to fetch') ||
+        error.message.includes('NetworkError')
+      )) {
+        console.log(`Retrying in ${attempt * 1000}ms...`);
+        await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+        continue;
+      }
+
+      // 最終錯誤處理
+      if (error.name === 'TypeError') {
+        if (error.message.includes('Failed to fetch') || error.message === 'CORS_ERROR') {
+          throw new Error(`無法連接到後端伺服器 (${API_BASE})。可能原因：
+1. 伺服器離線或重啟中
+2. CORS 設定問題
+3. 網路連線問題
+請稍後再試或聯繫管理員。`);
+        }
+        if (error.message.includes('NetworkError')) {
+          throw new Error("網路連線失敗，請檢查網路連線或稍後再試");
+        }
+      }
+      
       throw error;
     }
-
-    return data;
-
-  } catch (error) {
-    // 網路錯誤處理
-    if (error.name === 'TypeError') {
-      if (error.message.includes('Failed to fetch')) {
-        console.error("🌐 CORS/Network error:", error.message);
-        throw new Error("無法連接到後端伺服器。可能是 CORS 問題或伺服器離線，請聯繫管理員");
-      }
-      if (error.message.includes('NetworkError')) {
-        console.error("🌐 Network error:", error.message);
-        throw new Error("網路連線失敗，請檢查網路連線或稍後再試");
-      }
-    }
-    throw error;
   }
 }
 
@@ -158,17 +189,27 @@ export async function apiMe() {
   }
 }
 
-// 統一的評估儲存函數
+// 統一的評估儲存函數 - 支援多種資料格式
 export async function saveAssessment(data) {
   try {
     console.log("💾 Saving assessment:", data);
     
+    // 確保資料格式正確
+    const processedData = {
+      ...data,
+      submittedAt: data.submittedAt || new Date().toISOString()
+    };
+    
+    // 處理 MBTI 資料格式
+    if (data.mbti && typeof data.mbti === 'object') {
+      processedData.mbti_raw = data.mbti.raw;
+      processedData.mbti_encoded = data.mbti.encoded;
+      delete processedData.mbti;
+    }
+    
     const result = await request("/api/assessments/upsert", {
       method: "POST",
-      body: {
-        ...data,
-        submittedAt: data.submittedAt || new Date().toISOString()
-      },
+      body: processedData,
     });
     
     console.log("✅ Assessment saved:", result);
@@ -179,16 +220,24 @@ export async function saveAssessment(data) {
   }
 }
 
-// 專門用於 MBTI 的儲存函數 - 直接使用現有的 upsert API
-export async function saveAssessmentMBTI(mbti, encoded) {
-  console.log("💾 Saving MBTI:", { mbti, encoded });
+// 專門用於 MBTI 的儲存函數 - 修復資料格式問題
+export async function saveAssessmentMBTI(mbtiString, encodedArray) {
+  console.log("💾 Saving MBTI:", { mbtiString, encodedArray });
   
   try {
+    // 確保資料格式正確
+    const mbti_raw = String(mbtiString).toUpperCase();
+    const mbti_encoded = Array.isArray(encodedArray) ? encodedArray : [];
+    
+    if (mbti_encoded.length !== 4) {
+      throw new Error("MBTI encoded array must have exactly 4 elements");
+    }
+    
     const result = await request("/api/assessments/upsert", {
       method: "POST",
       body: {
-        mbti_raw: String(mbti).toUpperCase(),
-        mbti_encoded: encoded,
+        mbti_raw,
+        mbti_encoded,
         submittedAt: new Date().toISOString()
       },
     });
