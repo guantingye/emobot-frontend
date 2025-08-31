@@ -353,7 +353,7 @@ export default function Login() {
           {errors.pid ? (
             <ErrorText>{errors.pid}</ErrorText>
           ) : (
-            <HelperText>格式：兩碼數字＋兩碼英文（例：12AB）</HelperText>
+            <HelperText>格式：手機末三碼＋英文姓氏開頭一碼（例：123W）</HelperText>
           )}
         </FormGroup>
 
