@@ -334,7 +334,7 @@ export default function Login() {
           {errors.nickname ? (
             <ErrorText>{errors.nickname}</ErrorText>
           ) : (
-            <HelperText>請輸入1-10個字元的英文暱稱</HelperText>
+            <HelperText>請輸入2-10個字元的英文暱稱</HelperText>
           )}
         </FormGroup>
 
@@ -343,7 +343,7 @@ export default function Login() {
           <Input
             id="pid"
             type="text"
-            placeholder="例如 12AB"
+            placeholder="例如 123W"
             maxLength={4}
             value={pid}
             onChange={handlePidChange}
@@ -353,7 +353,7 @@ export default function Login() {
           {errors.pid ? (
             <ErrorText>{errors.pid}</ErrorText>
           ) : (
-            <HelperText>格式：手機末三碼＋英文姓氏開頭一碼（例：123W）</HelperText>
+            <HelperText>格式：手機末三碼＋英文姓氏開頭一碼（例：123W）/⚠️請務必與前測問卷所填相同，以便資料比對。</HelperText>
           )}
         </FormGroup>
 
