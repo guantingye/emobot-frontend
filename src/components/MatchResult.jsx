@@ -42,6 +42,25 @@ const ConfirmButton = styled.button`
 `;
 const RateText = styled.span` display: block; margin-top: 6px; font-size: 16px; color: #666; `;
 
+const HintBox = styled.div`
+  max-width: 720px;
+  margin: 0 auto 24px;
+  padding: 14px 20px;
+  background: #fff8e1;        /* 淡黃色背景 */
+  border: 1px solid #ffecb3;  /* 淡黃邊框 */
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  font-size: 15px;
+  color: #5d4037;             /* 咖啡色文字 */
+  text-align: center;
+  line-height: 1.6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+`;
+
+
 export default function MatchResult() {
   const navigate = useNavigate();
   const [selectedBot, setSelectedBot] = useState(null);
@@ -168,6 +187,8 @@ export default function MatchResult() {
             </BotCard>
           ))}
         </Cards>
+        <HintBox>提醒您🔔 系統目前處於測試階段，AI 夥伴僅能於首次選擇，若需更換，須重新進行心理測驗。
+        </HintBox>
 
         <ConfirmButton onClick={handleSubmit} disabled={loading}>
           {loading ? "處理中..." : "選擇完畢"}
