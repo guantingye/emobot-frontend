@@ -468,7 +468,7 @@ const MemberDashboard = () => {
 
     const available = wrapper.clientHeight - 12 * 2; // 扣掉 padding
     const contentHeight = scaler.scrollHeight;
-    const bias = 0.96; // 再縮4%
+    const bias = 0.92; // 再縮4%
 
     if (contentHeight > available) {
       const next = Math.max(0.78, (available / contentHeight) * bias);
