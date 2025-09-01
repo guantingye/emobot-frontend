@@ -10,9 +10,10 @@ import userIcon from "../assets/profile.png";
 import logoIcon from "../assets/logofig.png";
 import { apiMe } from "../api/client";
 
-// ====== 原有樣式（保持不變）======
+/* =========================
+   原有樣式（保持不變或僅微調）
+   ========================= */
 
-// 外層容器
 const Container = styled.div`
   width: 100%;
   min-height: 100dvh;
@@ -21,7 +22,6 @@ const Container = styled.div`
   overflow: hidden;
 `;
 
-// 固定 Header - 與主頁保持一致
 const Header = styled.header`
   width: 100%;
   height: 70px;
@@ -95,7 +95,6 @@ const AvatarImg = styled.img`
   }
 `;
 
-// 主內容區塊
 const MainContentWrapper = styled.div`
   margin-top: 70px;
   height: calc(100dvh - 70px);
@@ -106,7 +105,6 @@ const MainContentWrapper = styled.div`
   padding: 12px;
 `;
 
-// 內容縮放容器（新增 $scale 與 transform）
 const ContentScaler = styled.div`
   transform-origin: top center;
   width: 100%;
@@ -114,7 +112,6 @@ const ContentScaler = styled.div`
   transform: ${({ $scale }) => `scale(${$scale})`};
 `;
 
-// 使用者資訊
 const UserInfo = styled.div`
   width: 80%;
   margin-bottom: 20px;
@@ -139,17 +136,15 @@ const UserID = styled.p`
   opacity: 0.8;
 `;
 
-// 卡片容器
 const CardContainer = styled.div`
   display: flex;
   justify-content: center;
   gap: 40px;
   flex-wrap: wrap;
   width: 100%;
-  margin-bottom: 40px;
+  margin-bottom: 16px;
 `;
 
-// 頭像卡片
 const ProfileCard = styled.div`
   width: 431px;
   height: 640px;
@@ -208,14 +203,12 @@ const ProfileType = styled.div`
   }
 `;
 
-// 讓頭像支援翻轉（沿用既有樣式，僅覆寫 transform）
 const FlippableImage = styled(ProfileImage)`
   backface-visibility: hidden;
   transform: ${(p) => (p.$flip ? "rotateY(180deg)" : "rotateY(0deg)")};
   transition: transform 0.6s ease, box-shadow 0.5s ease;
 `;
 
-// 小按鈕：置於頭像下方（不使用絕對定位，以免影響版面）
 const FlipButton = styled.button`
   margin-top: 10px;
   padding: 6px 12px;
@@ -235,7 +228,6 @@ const FlipButton = styled.button`
   }
 `;
 
-// AI卡片
 const AICard = styled.div`
   width: 591px;
   height: 572px;
@@ -266,22 +258,6 @@ const AIDescription = styled.p`
   span {
     color: #2b3993;
     position: relative;
-
-    &::after {
-      content: "";
-      position: absolute;
-      bottom: -5px;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background: #2b3993;
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
-    }
-  }
-
-  &:hover span::after {
-    transform: scaleX(1);
   }
 `;
 
@@ -296,16 +272,24 @@ const RadarImage = styled.img`
   }
 `;
 
-// 按鈕列
-const ButtonGroup = styled.div`
+/* 右側直欄：包含白色卡片 + 其正下方按鈕 */
+const RightColumn = styled.div`
+  width: 591px;           /* 與 AICard 同寬，讓按鈕正好對齊卡片 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+/* 卡片正下方的按鈕列（不在卡片裡） */
+const ButtonsUnderCard = styled.div`
+  width: 100%;
   display: flex;
   justify-content: center;
   gap: 36px;
   flex-wrap: wrap;
-  margin-top: 70px;
+  margin-top: 26px;
 `;
 
-// 按鈕樣式
 const ActionButton = styled.button`
   width: 249px;
   height: 65px;
@@ -331,7 +315,6 @@ const ActionButton = styled.button`
   }
 `;
 
-// 確認對話框樣式
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -424,7 +407,6 @@ const ConfirmButton = styled(ModalButton)`
   }
 `;
 
-// 載入狀態顯示
 const LoadingWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -440,13 +422,82 @@ const LoadingText = styled.div`
   margin: 20px 0;
 `;
 
-// 錯誤狀態顯示
 const ErrorText = styled.div`
   font-size: 16px;
   color: #cc4141;
   text-align: center;
   margin: 10px 0;
 `;
+
+/* =========================
+   純 SVG 雷達圖
+   ========================= */
+const RadarChartSVG = ({ scores }) => {
+  if (!scores) return null;
+
+  const size = 490;
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = size * 0.36;
+  const levels = 4;
+  const labelOffset = 58;
+
+  const val = (k) => {
+    const v = Number(scores?.[k] ?? 0);
+    if (Number.isNaN(v)) return 0;
+    return Math.max(0, Math.min(1, v));
+  };
+
+  const axes = [
+    { key: "insight", ang: -90, label: "洞察型AI" },
+    { key: "empathy", ang: 0, label: "同理型AI" },
+    { key: "solution", ang: 90, label: "解決型AI" },
+    { key: "cognitive", ang: 180, label: "認知型AI" },
+  ];
+
+  const toXY = (angDeg, radius) => {
+    const a = (angDeg * Math.PI) / 180;
+    return [cx + radius * Math.cos(a), cy + radius * Math.sin(a)];
+  };
+
+  const poly = axes
+    .map(({ key, ang }) => {
+      const [x, y] = toXY(ang, r * val(key));
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  return (
+    <svg width="100%" height="auto" viewBox={`0 0 ${size} ${size}`}>
+      {Array.from({ length: levels }).map((_, i) => {
+        const rr = r * ((i + 1) / levels);
+        const pts = axes
+          .map(({ ang }) => {
+            const [x, y] = toXY(ang, rr);
+            return `${x},${y}`;
+          })
+          .join(" ");
+        return <polygon key={i} points={pts} fill="none" stroke="#bbb" strokeDasharray="4 4" />;
+      })}
+
+      {axes.map(({ ang }, i) => {
+        const [x, y] = toXY(ang, r);
+        return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="#ccc" />;
+      })}
+
+      <polygon points={poly} fill="rgba(43,57,147,0.18)" stroke="#2b3993" strokeWidth="2" />
+
+      {axes.map(({ ang, label }, i) => {
+        const [x, y] = toXY(ang, r + labelOffset);
+        return (
+          <text key={i} x={x} y={y} fontSize="18" textAnchor="middle" dominantBaseline="middle" fill="#333">
+            {label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+};
 
 const MemberDashboard = () => {
   const navigate = useNavigate();
@@ -456,19 +507,18 @@ const MemberDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ===== 新增：微幅自動縮放邏輯（再小一點點） =====
   const wrapperRef = useRef(null);
   const scalerRef = useRef(null);
-  const [scale, setScale] = useState(0.96); // 預設就微縮
+  const [scale, setScale] = useState(0.96);
 
   const recomputeScale = () => {
     const wrapper = wrapperRef.current;
     const scaler = scalerRef.current;
     if (!wrapper || !scaler) return;
 
-    const available = wrapper.clientHeight - 12 * 2; // 扣掉 padding
+    const available = wrapper.clientHeight - 12 * 2;
     const contentHeight = scaler.scrollHeight;
-    const bias = 0.92; // 再縮4%
+    const bias = 0.92;
 
     if (contentHeight > available) {
       const next = Math.max(0.78, (available / contentHeight) * bias);
@@ -490,19 +540,18 @@ const MemberDashboard = () => {
       ro.disconnect();
     };
   }, []);
-  // ===== 自動縮放邏輯結束 =====
 
   const handleFlipAvatar = () => {
     setIsFlipping(true);
-    setTimeout(() => setUseAltAvatar((v) => !v), 300); // 翻到一半換圖
-    setTimeout(() => setIsFlipping(false), 650); // 完成動畫
+    setTimeout(() => setUseAltAvatar((v) => !v), 300);
+    setTimeout(() => setIsFlipping(false), 650);
   };
 
-  // 動態資料
   const [nickname, setNickname] = useState("使用者");
   const [pid, setPid] = useState("----");
   const [mbtiRaw, setMbtiRaw] = useState("—");
   const [chosenBotName, setChosenBotName] = useState("—");
+  const [scores, setScores] = useState(null);
 
   const typeNameMap = {
     empathy: "同理型AI",
@@ -514,16 +563,12 @@ const MemberDashboard = () => {
   useEffect(() => {
     AOS.init({ duration: 800, once: true, offset: 100 });
 
-    // 從後端載入用戶完整資料
     const loadUserData = async () => {
       try {
         setLoading(true);
         setError(null);
         const profileData = await apiMe();
-
-        if (!profileData.ok) {
-          throw new Error(profileData.message || "Failed to load profile");
-        }
+        if (!profileData.ok) throw new Error(profileData.message || "Failed to load profile");
 
         if (profileData.user) {
           const user = profileData.user;
@@ -572,6 +617,21 @@ const MemberDashboard = () => {
             setChosenBotName(selectedBotName.replace(" AI", "AI"));
           }
         }
+
+        if (profileData.latest_recommendation?.scores) {
+          setScores(profileData.latest_recommendation.scores);
+          try {
+            localStorage.setItem("match.recommend", JSON.stringify(profileData.latest_recommendation));
+          } catch {}
+        } else {
+          try {
+            const cached = localStorage.getItem("match.recommend");
+            if (cached) {
+              const obj = JSON.parse(cached);
+              if (obj && obj.scores) setScores(obj.scores);
+            }
+          } catch {}
+        }
       } catch (error) {
         setError(`載入用戶資料失敗: ${error.message}`);
         try {
@@ -598,11 +658,16 @@ const MemberDashboard = () => {
           } else if (selectedBotName) {
             setChosenBotName(selectedBotName.replace(" AI", "AI"));
           }
+          const cached = localStorage.getItem("match.recommend");
+          if (cached) {
+            const obj = JSON.parse(cached);
+            if (obj?.scores) setScores(obj.scores);
+          }
           setError(null);
         } catch {}
       } finally {
         setLoading(false);
-        setTimeout(() => recomputeScale(), 0); // 資料載入後再算一次
+        setTimeout(() => recomputeScale(), 0);
       }
     };
 
@@ -623,6 +688,7 @@ const MemberDashboard = () => {
     localStorage.removeItem("selectedBotImage");
     localStorage.removeItem("selectedBotName");
     localStorage.removeItem("selectedBotType");
+    setScores(null);
     navigate("/test/step1");
   };
 
@@ -687,12 +753,16 @@ const MemberDashboard = () => {
               <ProfileType>{mbtiRaw}</ProfileType>
             </ProfileCard>
 
-            <AICard data-aos="fade-up" data-aos-delay="200">
-              <AIDescription>
-                你目前選擇的AI夥伴是：<span>{chosenBotName}</span>
-              </AIDescription>
-              <RadarImage src={radarChart} alt="radar chart" />
-              <ButtonGroup>
+            {/* 右側直欄：白色卡片 + 正下方按鈕 */}
+            <RightColumn>
+              <AICard data-aos="fade-up" data-aos-delay="200">
+                <AIDescription>
+                  你目前選擇的AI夥伴是：<span>{chosenBotName}</span>
+                </AIDescription>
+                {scores ? <RadarChartSVG scores={scores} /> : <RadarImage src={radarChart} alt="radar chart" />}
+              </AICard>
+
+              <ButtonsUnderCard>
                 <ActionButton
                   bgColor="linear-gradient(to right, #1f1713, #3a2a25)"
                   onClick={handleRetestClick}
@@ -705,13 +775,12 @@ const MemberDashboard = () => {
                 >
                   開始聊天
                 </ActionButton>
-              </ButtonGroup>
-            </AICard>
+              </ButtonsUnderCard>
+            </RightColumn>
           </CardContainer>
         </ContentScaler>
       </MainContentWrapper>
 
-      {/* 確認對話框 */}
       <ModalOverlay show={showModal} onClick={handleCancelModal}>
         <ModalContent show={showModal} onClick={(e) => e.stopPropagation()}>
           <ModalTitle>想重新配對一位懂你的 AI 夥伴嗎？</ModalTitle>
