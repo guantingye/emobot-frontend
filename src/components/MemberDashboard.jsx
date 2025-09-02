@@ -430,74 +430,117 @@ const ErrorText = styled.div`
 `;
 
 /* =========================
-   純 SVG 雷達圖
+   純 SVG 雷達圖（升級版）
+   - 以 scores 的 0~1 值作圖
+   - 在四個象限顯示動態分數（0~100）
+   - 加上 25/50/75% 的環形參考線與簡單填色
    ========================= */
-const RadarChartSVG = ({ scores }) => {
-  if (!scores) return null;
-
-  const size = 490;
-  const cx = size / 2;
-  const cy = size / 2;
-  const r = size * 0.36;
-  const levels = 4;
-  const labelOffset = 58;
-
-  const val = (k) => {
-    const v = Number(scores?.[k] ?? 0);
-    if (Number.isNaN(v)) return 0;
-    return Math.max(0, Math.min(1, v));
-  };
-
-  const axes = [
-    { key: "insight", ang: -90, label: "洞察型AI" },
-    { key: "empathy", ang: 0, label: "同理型AI" },
-    { key: "solution", ang: 90, label: "解決型AI" },
-    { key: "cognitive", ang: 180, label: "認知型AI" },
-  ];
-
-  const toXY = (angDeg, radius) => {
-    const a = (angDeg * Math.PI) / 180;
-    return [cx + radius * Math.cos(a), cy + radius * Math.sin(a)];
-  };
-
-  const poly = axes
-    .map(({ key, ang }) => {
-      const [x, y] = toXY(ang, r * val(key));
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  return (
-    <svg width="100%" height="auto" viewBox={`0 0 ${size} ${size}`}>
-      {Array.from({ length: levels }).map((_, i) => {
-        const rr = r * ((i + 1) / levels);
-        const pts = axes
-          .map(({ ang }) => {
+   const RadarChartSVG = ({ scores }) => {
+    if (!scores) return null;
+  
+    const size = 490;
+    const cx = size / 2;
+    const cy = size / 2;
+    const r = size * 0.36;         // 半徑
+    const levels = [0.25, 0.5, 0.75];
+    const labelOffset = 58;
+  
+    const clamp01 = (v) => Math.max(0, Math.min(1, Number(v) || 0));
+  
+    // 軸：依你四型順序
+    const axes = [
+      { key: "insight",   ang: -90, label: "洞察型AI" },
+      { key: "empathy",   ang:   0, label: "同理型AI" },
+      { key: "solution",  ang:  90, label: "解決型AI" },
+      { key: "cognitive", ang: 180, label: "認知型AI" },
+    ];
+  
+    const toXY = (angDeg, radius) => {
+      const a = (angDeg * Math.PI) / 180;
+      return [cx + radius * Math.cos(a), cy + radius * Math.sin(a)];
+    };
+  
+    // 多邊形（scores 0~1）
+    const polyPoints = axes
+      .map(({ key, ang }) => {
+        const v = clamp01(scores[key]);
+        const [x, y] = toXY(ang, r * v);
+        return `${x},${y}`;
+      })
+      .join(" ");
+  
+    return (
+      <svg width="100%" height="auto" viewBox={`0 0 ${size} ${size}`} role="img" aria-label="個人化雷達圖">
+        {/* 輕微底色四象限（不喧賓奪主） */}
+        {axes.map(({ ang }, i) => {
+          const [x1, y1] = toXY(ang, 0);
+          const [x2, y2] = toXY(ang, r);
+          const next = axes[(i + 1) % axes.length].ang;
+          const [x3, y3] = toXY(next, r);
+          return (
+            <polygon
+              key={`quad-${i}`}
+              points={`${cx},${cy} ${x2},${y2} ${x3},${y3}`}
+              fill={i % 2 === 0 ? "rgba(43,57,147,0.05)" : "rgba(0,0,0,0.02)"}
+              stroke="none"
+            />
+          );
+        })}
+  
+        {/* 參考環（25/50/75%） */}
+        {levels.map((lv, i) => {
+          const rr = r * lv;
+          const pts = axes.map(({ ang }) => {
             const [x, y] = toXY(ang, rr);
             return `${x},${y}`;
-          })
-          .join(" ");
-        return <polygon key={i} points={pts} fill="none" stroke="#bbb" strokeDasharray="4 4" />;
-      })}
-
-      {axes.map(({ ang }, i) => {
-        const [x, y] = toXY(ang, r);
-        return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="#ccc" />;
-      })}
-
-      <polygon points={poly} fill="rgba(43,57,147,0.18)" stroke="#2b3993" strokeWidth="2" />
-
-      {axes.map(({ ang, label }, i) => {
-        const [x, y] = toXY(ang, r + labelOffset);
-        return (
-          <text key={i} x={x} y={y} fontSize="18" textAnchor="middle" dominantBaseline="middle" fill="#333">
-            {label}
-          </text>
-        );
-      })}
-    </svg>
-  );
-};
+          }).join(" ");
+          return (
+            <g key={`lvl-${i}`}>
+              <polygon points={pts} fill="none" stroke="#cfcfd6" strokeDasharray="6 6" />
+              {/* 只在右上角標一個數字避免雜亂 */}
+              {i === 1 && (
+                <text x={cx + rr + 10} y={cy - 6} fontSize="12" fill="#777">50%</text>
+              )}
+            </g>
+          );
+        })}
+  
+        {/* 軸線 */}
+        {axes.map(({ ang }, i) => {
+          const [x, y] = toXY(ang, r);
+          return <line key={`axis-${i}`} x1={cx} y1={cy} x2={x} y2={y} stroke="#bfbfd0" />;
+        })}
+  
+        {/* 填色區與邊界 */}
+        <polygon points={polyPoints} fill="rgba(43,57,147,0.20)" stroke="#2b3993" strokeWidth="2.2" />
+  
+        {/* 頂點小圓點 + 分數標籤（0~100） */}
+        {axes.map(({ key, ang }, i) => {
+          const v01 = clamp01(scores[key]);
+          const [vx, vy] = toXY(ang, r * v01);
+          const [lx, ly] = toXY(ang, r + labelOffset - 16);
+          const v100 = Math.round(v01 * 100);
+          return (
+            <g key={`pt-${i}`}>
+              <circle cx={vx} cy={vy} r="5" fill="#2b3993" />
+              {/* 軸標籤 */}
+              <text x={lx} y={ly} fontSize="16" textAnchor="middle" dominantBaseline="central" fill="#333">
+                {axes[i].label}
+              </text>
+              {/* 動態分數小膠囊 */}
+              <rect
+                x={lx - 24} y={ly + 12} rx="10" ry="10" width="48" height="22"
+                fill="white" stroke="#2b3993" strokeWidth="1"
+              />
+              <text x={lx} y={ly + 23} fontSize="13" textAnchor="middle" dominantBaseline="central" fill="#2b3993">
+                {v100}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    );
+  };
 
 const MemberDashboard = () => {
   const navigate = useNavigate();
