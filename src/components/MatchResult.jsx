@@ -10,56 +10,31 @@ import bot4 from "../assets/bot4.png";
 import logoIcon from "../assets/logofig.png";
 import { runMatching, commitChoice } from "../api/client";
 
-// 樣式（沿用原本）
-const fadeInUp = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
-const Container = styled.div` width: 100vw; min-height: 100vh; background: #e8e8e8; font-family: "Noto Sans TC", sans-serif; `;
-const Header = styled.header` width: 100%; height: 70px; background: white; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); `;
-const Logo = styled.div` font-size: 35px; font-weight: bold; color: #2b3993; display: flex; align-items: center; cursor: pointer; transition: transform 0.3s ease; &:hover { transform: scale(1.05); } `;
-const Nav = styled.nav`
-  display: flex; gap: 40px; font-size: 26px; font-weight: bold; color: black;
-  div{ cursor: pointer; transition: color 0.3s ease, transform 0.2s ease;
-    &:hover{ color:#2b3993; transform: translateY(-2px); }
-    &:active{ transform: translateY(1px); }
-  }
-`;
-const AvatarImg = styled.img` width: 50px; height: 50px; border-radius: 50%; object-fit: cover; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; &:hover{ transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); } `;
-const RightSection = styled.div` display: flex; align-items: center; gap: 30px; margin-right: 40px; `;
-const Main = styled.div` max-width: 1000px; margin: 60px auto; padding: 60px; background: white; border-radius: 24px; text-align: center; animation: ${fadeInUp} 0.8s ease-out; `;
-const Title = styled.h2` font-size: 22px; font-weight: bold; margin-bottom: 40px; color: #444; `;
-const Cards = styled.div` display: flex; justify-content: center; gap: 40px; margin-bottom: 48px; `;
+// 動畫 & 版面（沿用）
+const fadeInUp = keyframes`from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}`;
+const Container = styled.div`width:100vw;min-height:100vh;background:#e8e8e8;font-family:"Noto Sans TC",sans-serif;`;
+const Header = styled.header`width:100%;height:70px;background:white;display:flex;justify-content:space-between;align-items:center;padding:0 30px;position:sticky;top:0;z-index:10;box-shadow:0 2px 10px rgba(0,0,0,0.1);`;
+const Logo = styled.div`font-size:35px;font-weight:bold;color:#2b3993;display:flex;align-items:center;cursor:pointer;transition:.3s;&:hover{transform:scale(1.05)}}`;
+const Nav = styled.nav`display:flex;gap:40px;font-size:26px;font-weight:bold;color:black;div{cursor:pointer;transition:.2s;&:hover{color:#2b3993;transform:translateY(-2px)}&:active{transform:translateY(1px)}}}`;
+const AvatarImg = styled.img`width:50px;height:50px;border-radius:50%;object-fit:cover;cursor:pointer;transition:.3s;&:hover{transform:scale(1.1);box-shadow:0 4px 8px rgba(0,0,0,0.2)}}`;
+const RightSection = styled.div`display:flex;align-items:center;gap:30px;margin-right:40px;`;
+const Main = styled.div`max-width:1000px;margin:60px auto;padding:60px;background:white;border-radius:24px;text-align:center;animation:${fadeInUp} .8s ease-out;`;
+const Title = styled.h2`font-size:22px;font-weight:bold;margin-bottom:40px;color:#444;`;
+const Cards = styled.div`display:flex;justify-content:center;gap:40px;margin-bottom:48px;`;
 const BotCard = styled.div`
-  position: relative; width: 220px; cursor: pointer; transition: transform 0.3s ease, opacity 0.3s ease, border 0.3s ease;
-  img{ width: 100%; border-radius: 20px; border: ${({selected})=>selected?"5px solid #2b3993":"3px solid transparent"}; opacity:${({selected})=>selected?"1":"0.6"}; box-shadow:${({selected})=>selected?"0 0 12px rgba(43,57,147,0.6)":"none"}; transition: all 0.3s ease; }
-  span{ display: block; margin-top: 10px; font-size: 20px; font-weight: bold; color: #333; }
-  &:hover { transform: scale(1.05); img{ opacity:1; border-color:${({selected})=>selected?"#2b3993":"#bbb"}; } }
+  position:relative;width:220px;cursor:pointer;transition:.3s;
+  img{width:100%;border-radius:20px;border:${({selected})=>selected?"5px solid #2b3993":"3px solid transparent"};opacity:${({selected})=>selected?"1":"0.6"};box-shadow:${({selected})=>selected?"0 0 12px rgba(43,57,147,0.6)":"none"};transition:all .3s;}
+  span{display:block;margin-top:10px;font-size:20px;font-weight:bold;color:#333;}
+  &:hover{transform:scale(1.05);img{opacity:1;border-color:${({selected})=>selected?"#2b3993":"#bbb"}}}
 `;
 const ConfirmButton = styled.button`
-  font-size: 22px; font-weight: bold; padding: 14px 36px; border: 3px solid #3f3e66; border-radius: 999px; background-color: rgba(30, 31, 19, 0.8); color: white; cursor: pointer; transition: all 0.3s ease;
-  &:hover{ transform: scale(1.05); } &:active{ transform: scale(0.95); }
+  font-size:22px;font-weight:bold;padding:14px 36px;border:3px solid #3f3e66;border-radius:999px;background-color:rgba(30,31,19,.8);color:white;cursor:pointer;transition:.3s;&:hover{transform:scale(1.05)}&:active{transform:scale(.95)}
 `;
-const RateText = styled.span` display: block; margin-top: 6px; font-size: 16px; color: #666; `;
-
+const RateText = styled.span`display:block;margin-top:6px;font-size:16px;color:#666;`;
 const HintBox = styled.div`
-  max-width: 720px;
-  margin: 0 auto 24px;
-  padding: 14px 20px;
-  background: #fff8e1;        /* 淡黃色背景 */
-  border: 1px solid #ffecb3;  /* 淡黃邊框 */
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  font-size: 15px;
-  color: #5d4037;             /* 咖啡色文字 */
-  text-align: center;
-  line-height: 1.6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  max-width:720px;margin:0 auto 24px;padding:14px 20px;background:#fff8e1;border:1px solid #ffecb3;border-radius:8px;
+  box-shadow:0 2px 6px rgba(0,0,0,.05);font-size:15px;color:#5d4037;text-align:center;line-height:1.6;display:flex;align-items:center;justify-content:center;gap:8px;
 `;
-
 
 export default function MatchResult() {
   const navigate = useNavigate();
@@ -76,78 +51,69 @@ export default function MatchResult() {
   const typeToBotId = { empathy: 1, insight: 2, solution: 3, cognitive: 4 };
   const botIdToType = { 1: "empathy", 2: "insight", 3: "solution", 4: "cognitive" };
 
-  const handleSelect = (id) => setSelectedBot((prev) => (prev === id ? null : id));
+  const handleSelect = (id) => setSelectedBot(prev => (prev === id ? null : id));
 
   const handleSubmit = async () => {
     if (!selectedBot) return alert("請先選擇一位 AI 夥伴！");
-    
     setLoading(true);
     try {
       const botType = botIdToType[selectedBot];
-      console.log("Submitting choice:", botType);
-      
-      const result = await commitChoice(botType);
-      console.log("Choice result:", result);
-      
+      await commitChoice(botType);
+
       const selectedBotData = bots.find((b) => b.id === selectedBot);
       localStorage.setItem("selectedBotId", String(selectedBot));
       localStorage.setItem("selectedBotImage", selectedBotData.img);
       localStorage.setItem("selectedBotName", selectedBotData.name);
       localStorage.setItem("selectedBotType", botType);
-      
+
       navigate("/dashboard");
     } catch (err) {
       console.error("Submit failed:", err);
-      alert(`選擇失敗：${err.message || "請稍後再試"}`);
+      alert(`選擇失敗：${err?.message || "請稍後再試"}`);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // 優先從 Loading 頁的快取；沒有就打 API
     const cached = localStorage.getItem("match.recommend");
     const loadData = async () => {
       try {
         let data;
         if (cached) {
-          console.log("Using cached recommendation data");
           data = JSON.parse(cached);
         } else {
-          console.log("Fetching new recommendation data");
-          data = await runMatching();
+          data = await runMatching();               // 呼叫 /api/match/recommend
           localStorage.setItem("match.recommend", JSON.stringify(data));
         }
-        
-        console.log("Recommendation data:", data);
-        
-        // 解析分數
+
+        // 優先使用 ranked（0~100）；若只有 scores(0~1) 就轉為 0~100
         const r = {};
-        if (data.scores) {
-          // 直接使用 scores 物件
-          Object.keys(data.scores).forEach(type => {
+        if (Array.isArray(data?.ranked) && data.ranked.length) {
+          data.ranked.forEach(({ type, score }) => {
             const id = typeToBotId[type];
-            if (id) r[id] = data.scores[type];
+            if (id) r[id] = Number(score);
           });
-        } else if (data.ranked) {
-          // 使用 ranked 陣列
-          data.ranked.forEach((item) => {
-            const id = typeToBotId[item.type];
-            if (id) r[id] = item.score;
+        } else if (data?.scores) {
+          const s = data.scores;
+          const vals = Object.values(s);
+          const max = Math.max(...vals, 1e-9);
+          Object.keys(s).forEach((type) => {
+            const id = typeToBotId[type];
+            if (id) r[id] = Number((s[type] / max) * 100.0);
           });
         }
-        
-        console.log("Parsed rates:", r);
+
         setRates(r);
-        
-        // 自動選擇推薦度最高的機器人
-        if (Object.keys(r).length > 0) {
-          const bestBotId = Object.keys(r).reduce((a, b) => r[a] > r[b] ? a : b);
-          setSelectedBot(parseInt(bestBotId));
+
+        // 預設選最高分
+        const ids = Object.keys(r);
+        if (ids.length > 0) {
+          const bestId = ids.reduce((a, b) => (r[a] > r[b] ? a : b));
+          setSelectedBot(parseInt(bestId, 10));
         }
       } catch (e) {
-        console.warn("Load recommendation failed:", e.message);
-        // 如果載入失敗，可以提供預設值或重新導向
+        console.warn("Load recommendation failed:", e);
         navigate("/test/step5");
       }
     };
@@ -159,7 +125,7 @@ export default function MatchResult() {
     <Container>
       <Header>
         <Logo onClick={() => navigate("/Home")}>
-          <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
+          <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: 8 }} />
           Emobot+
         </Logo>
         <RightSection>
@@ -174,7 +140,7 @@ export default function MatchResult() {
 
       <Main>
         <Title>
-          我們根據心理測驗結果，提供你與每位AI夥伴的適合程度。<br/>
+          我們根據心理測驗結果，提供你與每位 AI 夥伴的適合程度。<br/>
           你可以自由選擇最想開始對話的一位。
         </Title>
 
@@ -187,8 +153,8 @@ export default function MatchResult() {
             </BotCard>
           ))}
         </Cards>
-        <HintBox>提醒您🔔 系統目前處於測試階段，AI 夥伴僅能於首次選擇，欲更換須重新進行心理測驗。
-        </HintBox>
+
+        <HintBox>提醒您 🔔 系統目前處於測試階段，AI 夥伴為首次選擇固定；欲更換需重新進行心理測驗。</HintBox>
 
         <ConfirmButton onClick={handleSubmit} disabled={loading}>
           {loading ? "處理中..." : "選擇完畢"}
