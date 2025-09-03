@@ -210,26 +210,43 @@ export default function MoodInput() {
 
   
   // ========== 小API：統一呼叫後端 ==========
-  const apiSend = async ({ botType, mode, message, history, demo=false }) => {
-    const userObj = JSON.parse(localStorage.getItem("user") || "{}");
-    const userId = userObj?.id ?? 0;
-    try {
-      const res = await fetch("/api/chat/send", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "X-User-Id": String(userId)   
-        },
-        credentials: "include",
-        body: JSON.stringify({ bot_type: botType, mode, message, history, demo })
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
-    } catch (e) {
-      console.warn("apiSend failed:", e);
-      return { ok: false };
+// 只貼 apiSend；把你的原本函式用這段覆蓋即可
+const API_BASE =
+  (import.meta?.env?.VITE_API_BASE) ||
+  (process.env.REACT_APP_API_BASE) ||
+  ""; // 若留空就走同網域相對路徑
+
+const apiSend = async ({ botType, mode, message, history, demo = false }) => {
+  const userObj = JSON.parse(localStorage.getItem("user") || "{}");
+  const userId = userObj?.id ?? 0;
+
+  const url = `${API_BASE}/api/chat/send`.replace(/\/{2,}/g, "/").replace(":/", "://"); // 防雙斜線
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-User-Id": String(userId),               // ✅ 正確放在 headers
+        ...(localStorage.getItem("token")
+          ? { Authorization: `Bearer ${localStorage.getItem("token")}` } // 若你有存 token，一起帶上
+          : {}),
+      },
+      credentials: "include",
+      body: JSON.stringify({ bot_type: botType, mode, message, history, demo }),
+    });
+
+    if (!res.ok) {
+      // 405 代表後端沒有 POST 路由或方法不符，現在換了 main.py 就會正常
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status} ${text.slice(0, 120)}`);
     }
-  };
+    return await res.json();
+  } catch (e) {
+    console.warn("apiSend failed:", e);
+    return { ok: false, error: String(e) };
+  }
+};
 
   // 進場動畫
   useEffect(() => {
