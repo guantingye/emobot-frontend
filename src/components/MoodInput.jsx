@@ -208,12 +208,18 @@ export default function MoodInput() {
   const selectedBotImage = localStorage.getItem("selectedBotImage") || botTemp;
   const nickname = (JSON.parse(localStorage.getItem("user")||"{}").nickname) || "你";
 
+  
   // ========== 小API：統一呼叫後端 ==========
   const apiSend = async ({ botType, mode, message, history, demo=false }) => {
+    const userObj = JSON.parse(localStorage.getItem("user") || "{}");
+    const userId = userObj?.id ?? 0;
     try {
       const res = await fetch("/api/chat/send", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-User-Id": String(userId)   
+        },
         credentials: "include",
         body: JSON.stringify({ bot_type: botType, mode, message, history, demo })
       });
@@ -300,7 +306,7 @@ export default function MoodInput() {
     }));
 
     // === 呼叫後端 ===
-    const demo = mode === "video"; // 影像模式先走 demo 流程（後端仍落庫）
+    const demo = false; // 影像模式先走 demo 流程（後端仍落庫）
     const api = await apiSend({
       botType: selectedBotType,
       mode,
