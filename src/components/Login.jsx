@@ -212,20 +212,20 @@ export default function Login() {
   const validatePid = (value) => {
     const trimmedValue = value.trim().toUpperCase();
     if (!trimmedValue) return "";
-    if (!/^\d{2}[A-Z]{2}$/.test(trimmedValue)) {
-      return "受試者ID 格式需為手機末三碼＋英文姓氏開頭一碼";
+    if (!/^\d{3}[A-Z]{1}$/.test(trimmedValue)) {
+      return "受試者ID 格式需為三位數字＋一位英文大寫字母（例：123A）";
     }
     return "";
   };
 
   const validateNickname = (value) => {
     const trimmedValue = value.trim();
-    if (!trimmedValue) return "請輸入英文暱稱";
+    if (!trimmedValue) return "請輸入暱稱";
     if (trimmedValue.length < 2) return "暱稱至少需要2個字元";
     if (trimmedValue.length > 20) return "暱稱不能超過20個字元";
     return "";
   };
-
+  
   // 處理輸入變化
   const handleNicknameChange = (e) => {
     const value = e.target.value;
@@ -261,26 +261,31 @@ export default function Login() {
     
     setErrors(newErrors);
     
-    // 如果有錯誤，停止執行
     if (nicknameError || pidError) {
       return;
     }
-
+  
     setLoading(true);
     
     try {
       const code = pid.trim().toUpperCase();
-      const { token, user } = await apiJoin(code, nickname.trim());
+      const result = await apiJoin(code, nickname.trim());
       
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      // 儲存登入資訊
+      localStorage.setItem("token", result.token);
+      localStorage.setItem("user", JSON.stringify(result.user));
       
-      // 顯示成功狀態
       setStatus({ type: "success", message: "登入成功！正在跳轉..." });
       
-      // 延遲跳轉讓用戶看到成功提示
       setTimeout(() => {
-        navigate("/test");
+        // 根據用戶狀態決定跳轉路徑
+        if (result.user.selected_bot) {
+          // 已選擇機器人 → 直接進入會員專區
+          navigate("/dashboard");
+        } else {
+          // 未選擇機器人 → 進入心理測驗
+          navigate("/test");
+        }
       }, 1000);
     } catch (e) {
       console.error("Login error:", e);
