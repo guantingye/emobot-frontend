@@ -7,7 +7,7 @@ const API_BASE =
     import.meta.env.VITE_API_BASE) ||
   process.env.REACT_APP_API_BASE ||
   (typeof window !== "undefined" && window.__API_BASE__) ||
-  "https://emobot-backend.onrender.com";
+  "https://emobot-backend.onrender.com"; // 更新你的實際後端 URL
 
 console.log("API_BASE:", API_BASE);
 
@@ -66,7 +66,7 @@ async function request(path, options = {}) {
         headers: finalHeaders, 
         body,
         mode: 'cors',
-        credentials: 'include', // ★ 修改1：原本是 'omit'，改為 'include' 以支援未來 cookie/session 情境
+        credentials: 'include',
         signal: AbortSignal.timeout(30000),
       });
 
@@ -220,7 +220,7 @@ export async function commitChoice(botType) {
     console.log("🎯 Committing bot choice:", botType);
     return await request("/api/match/choose", {
       method: "POST",
-      body: { bot_type: botType }, // ★ 修改2：後端慣用 snake_case，改為 bot_type
+      body: { bot_type: botType },
     });
   } catch (error) {
     console.error("❌ Commit choice failed:", error.message);
@@ -237,22 +237,53 @@ export async function testConnection() {
   }
 }
 
-// 聊天相關 API
+// 聊天相關 API - 使用新的 /api/chat/send 端點
 export async function saveChatMessage(content, role = "user", botType = null, userMood = null, moodIntensity = null) {
   try {
     return await request("/api/chat/messages", {
       method: "POST",
       body: {
         content,
-        role,                 // ★ 修改3：原本是 message_type，與後端 model 欄位不一致，改為 role
-        bot_type: botType,    // ★ 同步改 snake_case
-        mode: "text",         // ★ 明確帶上 mode（後端 model 有此欄位）
+        role,
+        bot_type: botType,
+        mode: "text",
         user_mood: userMood,
         mood_intensity: moodIntensity
       },
     });
   } catch (error) {
     console.error("❌ Save chat message failed:", error.message);
+    throw error;
+  }
+}
+
+// ★ 新增：使用新的聊天端點，支援 OpenAI
+export async function sendChatMessage(message, botType, mode = "text", history = []) {
+  try {
+    console.log("💬 Sending chat message:", { message, botType, mode });
+    
+    // 取得使用者資訊
+    const userObj = JSON.parse(localStorage.getItem("user") || "{}");
+    const userId = userObj?.id ?? 0;
+    
+    const result = await request("/api/chat/send", {
+      method: "POST",
+      headers: {
+        "X-User-Id": String(userId), // 新增使用者 ID 標頭
+      },
+      body: {
+        message,
+        bot_type: botType,
+        mode,
+        history,
+        demo: false
+      },
+    });
+    
+    console.log("✅ Chat message sent:", result);
+    return result;
+  } catch (error) {
+    console.error("❌ Send chat message failed:", error.message);
     throw error;
   }
 }
@@ -288,7 +319,7 @@ export async function getMoodHistory(days = 30) {
   }
 }
 
-// 向後相容的 API
+// 相容的 API
 export async function getMyAssessment() {
   try {
     return await request("/api/assessments/me");
@@ -326,6 +357,7 @@ export default {
   commitChoice,
   testConnection,
   saveChatMessage,
+  sendChatMessage, // ★ 新增
   getChatHistory,
   saveMoodRecord,
   getMoodHistory,
