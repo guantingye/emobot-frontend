@@ -1,5 +1,5 @@
 // src/api/client.js
-// 修復版本 - 解決 CORS 問題和資料格式問題
+// 修復版本 - 解決 CORS、欄位對不上與聊天參數命名
 
 const API_BASE =
   (typeof import.meta !== "undefined" &&
@@ -19,8 +19,6 @@ function authHeader() {
 // 增強的錯誤處理
 function formatError(data, status) {
   if (!data) return `HTTP ${status}`;
-  
-  // FastAPI 驗證錯誤
   if (Array.isArray(data.detail)) {
     const messages = data.detail.map(err => {
       const field = Array.isArray(err.loc) ? err.loc.join('.') : 'field';
@@ -28,28 +26,22 @@ function formatError(data, status) {
     });
     return `驗證錯誤: ${messages.join(', ')}`;
   }
-  
-  // 一般錯誤
   if (typeof data.detail === "string") return data.detail;
   if (data.message) return data.message;
   if (data.error) return data.error;
-  
   return `HTTP ${status}`;
 }
 
-// 增強的 request 函數，專門處理 CORS
+// ====== 核心 request（處理 CORS 與重試）======
 async function request(path, options = {}) {
   const base = API_BASE.replace(/\/+$/, "");
   const url = `${base}${path}`;
 
   let { method = "GET", headers = {}, body, retries = 3 } = options;
 
-  // 處理 body 格式
   if (body != null && typeof body !== "string") {
     body = JSON.stringify(body);
   }
-
-  // 如果是 POST/PUT/PATCH 但沒有 body，傳送空物件
   const httpMethod = method.toUpperCase();
   if (!body && ["POST", "PUT", "PATCH"].includes(httpMethod)) {
     body = "{}";
@@ -67,7 +59,6 @@ async function request(path, options = {}) {
     console.log("📤 Request body:", body.substring(0, 200) + (body.length > 200 ? "..." : ""));
   }
 
-  // 重試機制處理 CORS 問題
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const resp = await fetch(url, { 
@@ -75,22 +66,16 @@ async function request(path, options = {}) {
         headers: finalHeaders, 
         body,
         mode: 'cors',
-        credentials: 'omit',
-        // 添加超時處理
-        signal: AbortSignal.timeout(30000), // 30秒超時
+        credentials: 'include', // ★ 修改1：原本是 'omit'，改為 'include' 以支援未來 cookie/session 情境
+        signal: AbortSignal.timeout(30000),
       });
 
       console.log(`📥 Response (attempt ${attempt}): ${resp.status} ${resp.statusText}`);
 
-      // 檢查 CORS 錯誤
-      if (resp.status === 0) {
-        throw new Error('CORS_ERROR');
-      }
+      if (resp.status === 0) throw new Error('CORS_ERROR');
 
-      // 解析回應
       let data;
       const contentType = resp.headers.get("content-type") || "";
-      
       if (contentType.includes("application/json")) {
         try {
           data = await resp.json();
@@ -106,7 +91,6 @@ async function request(path, options = {}) {
         console.log("📋 Response data:", data);
       }
 
-      // 錯誤處理
       if (!resp.ok) {
         const errorMessage = formatError(data, resp.status);
         console.error("❌ Request failed:", errorMessage);
@@ -120,8 +104,6 @@ async function request(path, options = {}) {
 
     } catch (error) {
       console.error(`Attempt ${attempt} failed:`, error.message);
-      
-      // CORS 或網路錯誤，且還有重試機會
       if (attempt < retries && (
         error.name === 'TypeError' || 
         error.message.includes('CORS') ||
@@ -133,7 +115,6 @@ async function request(path, options = {}) {
         continue;
       }
 
-      // 最終錯誤處理
       if (error.name === 'TypeError') {
         if (error.message.includes('Failed to fetch') || error.message === 'CORS_ERROR') {
           throw new Error(`無法連接到後端伺服器 (${API_BASE})。可能原因：
@@ -146,31 +127,20 @@ async function request(path, options = {}) {
           throw new Error("網路連線失敗，請檢查網路連線或稍後再試");
         }
       }
-      
       throw error;
     }
   }
 }
 
-// ====== 核心 API 函數 ======
-
+// ====== API ======
 export async function apiJoin(pid, nickname) {
   try {
     const result = await request("/api/auth/join", {
       method: "POST",
       body: { pid, nickname },
     });
-    
-    // 儲存認證資訊
-    if (result?.token) {
-      localStorage.setItem("token", result.token);
-      console.log("✅ Token saved");
-    }
-    if (result?.user) {
-      localStorage.setItem("user", JSON.stringify(result.user));
-      console.log("✅ User data saved");
-    }
-    
+    if (result?.token) localStorage.setItem("token", result.token);
+    if (result?.user) localStorage.setItem("user", JSON.stringify(result.user));
     return result;
   } catch (error) {
     console.error("❌ Join failed:", error.message);
@@ -180,38 +150,29 @@ export async function apiJoin(pid, nickname) {
 
 export async function apiMe() {
   try {
-    return await request("/api/user/profile", {
-      method: "GET",
-    });
+    return await request("/api/user/profile", { method: "GET" });
   } catch (error) {
     console.error("❌ Get profile failed:", error.message);
     throw error;
   }
 }
 
-// 統一的評估儲存函數 - 支援多種資料格式
 export async function saveAssessment(data) {
   try {
     console.log("💾 Saving assessment:", data);
-    
-    // 確保資料格式正確
     const processedData = {
       ...data,
       submittedAt: data.submittedAt || new Date().toISOString()
     };
-    
-    // 處理 MBTI 資料格式
     if (data.mbti && typeof data.mbti === 'object') {
       processedData.mbti_raw = data.mbti.raw;
       processedData.mbti_encoded = data.mbti.encoded;
       delete processedData.mbti;
     }
-    
     const result = await request("/api/assessments/upsert", {
       method: "POST",
       body: processedData,
     });
-    
     console.log("✅ Assessment saved:", result);
     return result;
   } catch (error) {
@@ -220,19 +181,14 @@ export async function saveAssessment(data) {
   }
 }
 
-// 專門用於 MBTI 的儲存函數 - 修復資料格式問題
 export async function saveAssessmentMBTI(mbtiString, encodedArray) {
   console.log("💾 Saving MBTI:", { mbtiString, encodedArray });
-  
   try {
-    // 確保資料格式正確
     const mbti_raw = String(mbtiString).toUpperCase();
     const mbti_encoded = Array.isArray(encodedArray) ? encodedArray : [];
-    
     if (mbti_encoded.length !== 4) {
       throw new Error("MBTI encoded array must have exactly 4 elements");
     }
-    
     const result = await request("/api/assessments/upsert", {
       method: "POST",
       body: {
@@ -241,7 +197,6 @@ export async function saveAssessmentMBTI(mbtiString, encodedArray) {
         submittedAt: new Date().toISOString()
       },
     });
-    
     console.log("✅ MBTI saved successfully:", result);
     return result;
   } catch (error) {
@@ -253,9 +208,7 @@ export async function saveAssessmentMBTI(mbtiString, encodedArray) {
 export async function runMatching() {
   try {
     console.log("🤖 Running matching algorithm...");
-    return await request("/api/match/recommend", {
-      method: "POST",
-    });
+    return await request("/api/match/recommend", { method: "POST" });
   } catch (error) {
     console.error("❌ Matching failed:", error.message);
     throw error;
@@ -267,7 +220,7 @@ export async function commitChoice(botType) {
     console.log("🎯 Committing bot choice:", botType);
     return await request("/api/match/choose", {
       method: "POST",
-      body: { botType },
+      body: { bot_type: botType }, // ★ 修改2：後端慣用 snake_case，改為 bot_type
     });
   } catch (error) {
     console.error("❌ Commit choice failed:", error.message);
@@ -285,14 +238,15 @@ export async function testConnection() {
 }
 
 // 聊天相關 API
-export async function saveChatMessage(content, messageType = "user", botType = null, userMood = null, moodIntensity = null) {
+export async function saveChatMessage(content, role = "user", botType = null, userMood = null, moodIntensity = null) {
   try {
     return await request("/api/chat/messages", {
       method: "POST",
       body: {
         content,
-        message_type: messageType,
-        bot_type: botType,
+        role,                 // ★ 修改3：原本是 message_type，與後端 model 欄位不一致，改為 role
+        bot_type: botType,    // ★ 同步改 snake_case
+        mode: "text",         // ★ 明確帶上 mode（後端 model 有此欄位）
         user_mood: userMood,
         mood_intensity: moodIntensity
       },
@@ -363,7 +317,6 @@ export async function debugDbTest() {
   }
 }
 
-// 預設匯出
 export default {
   apiJoin,
   apiMe,
