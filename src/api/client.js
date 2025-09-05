@@ -319,6 +319,27 @@ export async function debugDbTest() {
   }
 }
 
+// ========== 聊天發送 API（與 MoodInput 相容） ==========
+export async function sendChatMessage(content, botType = null, mode = "text") {
+  try {
+    console.log("📤 Sending chat message:", { content, botType, mode });
+    return await request("/api/chat/send", {
+      method: "POST",
+      body: {
+        message: content,
+        bot_type: botType,
+        mode: mode
+      },
+    });
+  } catch (error) {
+    console.error("❌ Send chat message failed:", error.message);
+    throw error;
+  }
+}
+
+// 別名函式，向後相容
+export const apiSendChat = sendChatMessage;
+
 export default {
   apiJoin,
   apiMe,
@@ -328,6 +349,8 @@ export default {
   commitChoice,
   testConnection,
   saveChatMessage,
+  sendChatMessage,      // ★ 新增
+  apiSendChat,          // ★ 別名
   getChatHistory,
   saveMoodRecord,
   getMoodHistory,
