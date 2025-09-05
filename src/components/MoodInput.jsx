@@ -7,7 +7,6 @@ import { IoSend } from "react-icons/io5";
 import { FiChevronLeft, FiMic } from "react-icons/fi";
 import introVideo from "../assets/demo_video_2.mov";
 import secondVideo from "../assets/demo_video_3.mov";
-import { sendChatMessage } from "../api/client"; 
 
 /* ================= Commons & Styles (原樣保留，僅少量調參) ================ */
 const float = keyframes`0%{transform:translateY(0)}50%{transform:translateY(-4px)}100%{transform:translateY(0)}`;
@@ -163,16 +162,16 @@ const BOT_MAP = {
     name: "Solin",
     letter: "S",
     avatarBg: "linear-gradient(45deg,#7AC2DD,#5A8CF2)",
-    tagline: "Solin — 一起釐清、看見新的可能。",
+    tagline: "Solin — 一起重新、看見新的可能。",
     subtitle: "以溫柔的提問與重述，協助梳理線索、找出關鍵與洞見。",
-    system: "你是Solin，洞察型AI。以蘇格拉底式提問、澄清與重述，幫助使用者釐清想法，維持中性、尊重、結構化。",
+    system: "你是Solin，洞察型AI。以蘇格拉底式提問、澄清與重述，幫助使用者重新想法，維持中性、尊重、結構化。",
   },
   solution: {
     name: "Niko",
     letter: "N",
     avatarBg: "linear-gradient(45deg,#7AC2DD,#5A8CF2)",
     tagline: "Niko — 一起做點能改變的事。",
-    subtitle: "聚焦可行步驟與微目標，協助把感受轉成行動與支援。",
+    subtitle: "聚焦可行步驟與微目標，協助把感受轉成行動與支持。",
     system: "你是Niko，解決型AI。以務實、具體的建議與分步行動為主，給出小目標、工具與下一步，語氣鼓勵但不強迫。",
   },
   cognitive: {
@@ -210,11 +209,11 @@ export default function MoodInput() {
   const nickname = (JSON.parse(localStorage.getItem("user")||"{}").nickname) || "你";
 
   
-  // ========== 小API：統一呼叫後端 ==========
+  // ========== 對API：統一呼叫後端 ==========
 // 只貼 apiSend；把你的原本函式用這段覆蓋即可
 const API_BASE =
-  (import.meta?.env?.VITE_API_BASE) ||
-  (process.env.REACT_APP_API_BASE) ||
+  process.env.REACT_APP_API_BASE ||
+  (typeof window !== "undefined" && window.__ENV_API_BASE__) ||
   ""; // 若留空就走同網域相對路徑
 
 const apiSend = async ({ botType, mode, message, history, demo = false }) => {
@@ -238,7 +237,7 @@ const apiSend = async ({ botType, mode, message, history, demo = false }) => {
     });
 
     if (!res.ok) {
-      // 405 代表後端沒有 POST 路由或方法不符，現在換了 main.py 就會正常
+      // 405 代表後端沒有 POST 路由或方法不符，現在改了 main.py 就會正常
       const text = await res.text();
       throw new Error(`HTTP ${res.status} ${text.slice(0, 120)}`);
     }
@@ -260,7 +259,7 @@ const apiSend = async ({ botType, mode, message, history, demo = false }) => {
     return () => clearTimeout(welcomeTimer);
   }, []);
 
-  // 自動捲到最底
+  // 自動滾到最底
   useEffect(() => {
     if (chatBoxRef.current) chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
   }, [messages, isTyping]);
@@ -297,7 +296,7 @@ const apiSend = async ({ botType, mode, message, history, demo = false }) => {
     };
     window.addEventListener('keydown', handleSpace);
     return () => window.removeEventListener('keydown', handleSpace);
-  }, [chatStarted]); // eslint-disable-line
+  }, [chatStarted, nickname, bot.name, selectedBotType, mode]); // ★ 修正：添加依賴項
 
   const handleSend = async () => {
     // 空字串 or 正在錄音時避免送出
@@ -323,31 +322,33 @@ const apiSend = async ({ botType, mode, message, history, demo = false }) => {
       content: m.content
     }));
 
-    try {
-      // === 呼叫新的 chat API ===
-      const result = await sendChatMessage(userMsgText, selectedBotType, mode, history);
-      
-      if (result?.ok && result.reply) {
-        const replyTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-        setMessages(prev => [...prev, { sender: "ai", content: result.reply, timestamp: replyTime }]);
-        
-        if (mode === "video") {
-          setIsSecondVideo(true);
-          setPlayIntroVideo(true);
-        }
-      } else {
-        throw new Error(result?.error || "API 回傳格式錯誤");
+    // === 呼叫後端 ===
+    const demo = false; // 影像模式先走 demo 流程（後端仍落庫）
+    const api = await apiSend({
+      botType: selectedBotType,
+      mode,
+      message: userMsgText,
+      history,
+      demo
+    });
+
+    // === 後端成功 → 顯示回覆 ===
+    if (api?.ok && api.reply) {
+      const replyTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      setMessages(prev => [...prev, { sender: "ai", content: api.reply, timestamp: replyTime }]);
+      if (mode === "video") {
+        setIsSecondVideo(true);
+        setPlayIntroVideo(true);
       }
-    } catch (error) {
-      console.error("Chat API failed:", error);
-      // Fallback 回覆
+    } else {
+      // 後端失敗 → 本地 fallback（仍保留體驗）
       const replyTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
       const fallbackReply = mode === "video"
         ? "我在這裡，先一起做個小小的深呼吸。想和我說說剛剛最在意的一件事嗎？"
         : "收到，讓我們一步一步來。想先從今天最困擾你的情境開始聊聊嗎？";
       setMessages(prev => [...prev, { sender: "ai", content: fallbackReply, timestamp: replyTime }]);
     }
-  
+
     setIsTyping(false);
     setInputDisabled(false);
   };

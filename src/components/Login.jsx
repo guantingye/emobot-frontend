@@ -344,7 +344,7 @@ export default function Login() {
         </FormGroup>
 
         <FormGroup>
-          <Label htmlFor="pid">受試者ID</Label>
+          <Label htmlFor="pid">受試者PID</Label>
           <Input
             id="pid"
             type="text"
