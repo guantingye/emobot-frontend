@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import AOS from "aos";
@@ -8,7 +8,7 @@ import avatar from "../assets/avatar.png";
 import avatarMen from "../assets/avatar_men.png";
 import userIcon from "../assets/profile.png";
 import logoIcon from "../assets/logofig.png";
-import { apiMe, resetBotChoice } from "../api/client";
+import { apiMe } from "../api/client";
 
 /* =========================
    原有樣式（保持不變或僅微調）
@@ -313,13 +313,6 @@ const ActionButton = styled.button`
     transform: scale(0.96);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-    filter: none;
-  }
 `;
 
 const ModalOverlay = styled.div`
@@ -394,12 +387,6 @@ const ModalButton = styled.button`
   &:active {
     transform: scale(0.95);
   }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
 `;
 
 const CancelButton = styled(ModalButton)`
@@ -443,139 +430,140 @@ const ErrorText = styled.div`
 `;
 
 /* =========================
-   RadarChartSVG（專業版，上移）
+   RadarChartSVG（專業版／上移）
    - 使用 scores 的 0~1 值作圖
    - 動態顯示每軸 0~99 分數膠囊
    - 圖心上移＋半徑微縮，避免裁切
    ========================= */
-const RadarChartSVG = ({ scores }) => {
-  if (!scores) return null;
-
-  const size = 490;
-  const cx = size / 2;
-  const cy = size / 2 - 22;   // ☆ 上移一點，避免碰到底部
-  const r = size * 0.335;     // ☆ 半徑稍縮，保留邊界
-  const levels = [0.25, 0.5, 0.75];
-  const labelOffset = 56;
-
-  const clamp01 = (v) => Math.max(0, Math.min(1, Number(v) || 0));
-  const toXY = (angDeg, radius) => {
-    const a = (angDeg * Math.PI) / 180;
-    return [cx + radius * Math.cos(a), cy + radius * Math.sin(a)];
-  };
-
-  // 軸順序（與你四型一致）
-  const axes = [
-    { key: "insight",   ang: -90, label: "洞察型AI" },
-    { key: "empathy",   ang:   0, label: "同理型AI" },
-    { key: "solution",  ang:  90, label: "解決型AI" },
-    { key: "cognitive", ang: 180, label: "認知型AI" },
-  ];
-
-  // 多邊形點
-  const polyPoints = axes
-    .map(({ key, ang }) => {
-      const v = clamp01(scores[key]);
-      const [x, y] = toXY(ang, r * v);
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  return (
-    <svg
-      width="100%"
-      height="auto"
-      viewBox={`0 0 ${size} ${size}`}
-      role="img"
-      aria-label="個人化雷達圖"
-      shapeRendering="geometricPrecision"
-      style={{ display: "block" }} // 避免外層造成 baseline 空隙
-    >
-      <defs>
-        {/* 專業感輕量漸層（不刺眼） */}
-        <radialGradient id="rg-emobot" cx="50%" cy="50%" r="70%">
-          <stop offset="0%" stopColor="#2b3993" stopOpacity="0.16" />
-          <stop offset="100%" stopColor="#2b3993" stopOpacity="0.04" />
-        </radialGradient>
-      </defs>
-
-      {/* 交錯淡色象限（增可讀性） */}
-      {axes.map(({ ang }, i) => {
-        const [x2, y2] = toXY(ang, r);
-        const nextAng = axes[(i + 1) % axes.length].ang;
-        const [x3, y3] = toXY(nextAng, r);
-        return (
-          <polygon
-            key={`quad-${i}`}
-            points={`${cx},${cy} ${x2},${y2} ${x3},${y3}`}
-            fill={i % 2 === 0 ? "rgba(43,57,147,0.045)" : "rgba(0,0,0,0.02)"}
-            stroke="none"
-          />
-        );
-      })}
-
-      {/* 25/50/75% 參考環（虛線） */}
-      {levels.map((lv, i) => {
-        const rr = r * lv;
-        const pts = axes.map(({ ang }) => {
-          const [x, y] = toXY(ang, rr);
-          return `${x},${y}`;
-        }).join(" ");
-        return (
-          <g key={`lvl-${i}`}>
-            <polygon points={pts} fill="none" stroke="#C9CAD6" strokeDasharray="6 6" />
-            {i === 1 && (
-              <text x={cx + rr + 10} y={cy - 6} fontSize="12" fill="#7A7C88">50%</text>
-            )}
-          </g>
-        );
-      })}
-
-      {/* 軸線 */}
-      {axes.map(({ ang }, i) => {
-        const [x, y] = toXY(ang, r);
-        return <line key={`axis-${i}`} x1={cx} y1={cy} x2={x} y2={y} stroke="#B8BAC6" />;
-      })}
-
-      {/* 多邊形填色 + 邊界 */}
-      <polygon points={polyPoints} fill="url(#rg-emobot)" stroke="#2b3993" strokeWidth="2" />
-
-      {/* 頂點與文字標記（分數顯示 0~99） */}
-      {axes.map(({ key, ang, label }, i) => {
-        const v01 = clamp01(scores[key]);
-        const [vx, vy] = toXY(ang, r * v01);
-        const [lx, ly] = toXY(ang, r + labelOffset - 16);
-        const v99 = Math.min(99, Math.round(v01 * 100)); // ☆ 與後端一致，避免 100
-
-        return (
-          <g key={`pt-${i}`}>
-            <circle cx={vx} cy={vy} r="5" fill="#2b3993" />
-            {/* 軸標籤 */}
-            <text
-              x={lx}
-              y={ly}
-              fontSize="16"
-              textAnchor="middle"
-              dominantBaseline="central"
-              fill="#2A2A2E"
-              style={{ fontWeight: 600 }}
-            >
-              {label}
-            </text>
-            {/* 分數膠囊 */}
-            <rect
-              x={lx - 26} y={ly + 12} rx="10" ry="10" width="52" height="22"
-              fill="#FFFFFF" stroke="#2b3993" strokeWidth="1"
+   const RadarChartSVG = ({ scores }) => {
+    if (!scores) return null;
+  
+    const size = 490;
+    const cx = size / 2;
+    const cy = size / 2 - 22;   // ☆ 上移一點，避免碰到底部
+    const r = size * 0.335;     // ☆ 半徑稍縮，保留邊界
+    const levels = [0.25, 0.5, 0.75];
+    const labelOffset = 56;
+  
+    const clamp01 = (v) => Math.max(0, Math.min(1, Number(v) || 0));
+    const toXY = (angDeg, radius) => {
+      const a = (angDeg * Math.PI) / 180;
+      return [cx + radius * Math.cos(a), cy + radius * Math.sin(a)];
+    };
+  
+    // 軸順序（與你四型一致）
+    const axes = [
+      { key: "insight",   ang: -90, label: "洞察型AI" },
+      { key: "empathy",   ang:   0, label: "同理型AI" },
+      { key: "solution",  ang:  90, label: "解決型AI" },
+      { key: "cognitive", ang: 180, label: "認知型AI" },
+    ];
+  
+    // 多邊形點
+    const polyPoints = axes
+      .map(({ key, ang }) => {
+        const v = clamp01(scores[key]);
+        const [x, y] = toXY(ang, r * v);
+        return `${x},${y}`;
+      })
+      .join(" ");
+  
+    return (
+      <svg
+        width="100%"
+        height="auto"
+        viewBox={`0 0 ${size} ${size}`}
+        role="img"
+        aria-label="個人化雷達圖"
+        shapeRendering="geometricPrecision"
+        style={{ display: "block" }} // 避免外層造成 baseline 空隙
+      >
+        <defs>
+          {/* 專業感輕量漸層（不搶眼） */}
+          <radialGradient id="rg-emobot" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stopColor="#2b3993" stopOpacity="0.16" />
+            <stop offset="100%" stopColor="#2b3993" stopOpacity="0.04" />
+          </radialGradient>
+        </defs>
+  
+        {/* 交錯淡色象限（增可讀性） */}
+        {axes.map(({ ang }, i) => {
+          const [x2, y2] = toXY(ang, r);
+          const nextAng = axes[(i + 1) % axes.length].ang;
+          const [x3, y3] = toXY(nextAng, r);
+          return (
+            <polygon
+              key={`quad-${i}`}
+              points={`${cx},${cy} ${x2},${y2} ${x3},${y3}`}
+              fill={i % 2 === 0 ? "rgba(43,57,147,0.045)" : "rgba(0,0,0,0.02)"}
+              stroke="none"
             />
-            <text x={lx} y={ly + 23} fontSize="13" textAnchor="middle" dominantBaseline="central" fill="#2b3993" style={{ fontWeight: 600 }}>
-              {v99}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-};
+          );
+        })}
+  
+        {/* 25/50/75% 參考環（虛線） */}
+        {levels.map((lv, i) => {
+          const rr = r * lv;
+          const pts = axes.map(({ ang }) => {
+            const [x, y] = toXY(ang, rr);
+            return `${x},${y}`;
+          }).join(" ");
+          return (
+            <g key={`lvl-${i}`}>
+              <polygon points={pts} fill="none" stroke="#C9CAD6" strokeDasharray="6 6" />
+              {i === 1 && (
+                <text x={cx + rr + 10} y={cy - 6} fontSize="12" fill="#7A7C88">50%</text>
+              )}
+            </g>
+          );
+        })}
+  
+        {/* 軸線 */}
+        {axes.map(({ ang }, i) => {
+          const [x, y] = toXY(ang, r);
+          return <line key={`axis-${i}`} x1={cx} y1={cy} x2={x} y2={y} stroke="#B8BAC6" />;
+        })}
+  
+        {/* 多邊形填色 + 邊界 */}
+        <polygon points={polyPoints} fill="url(#rg-emobot)" stroke="#2b3993" strokeWidth="2" />
+  
+        {/* 頂點與文字標記（分數顯示 0~99） */}
+        {axes.map(({ key, ang, label }, i) => {
+          const v01 = clamp01(scores[key]);
+          const [vx, vy] = toXY(ang, r * v01);
+          const [lx, ly] = toXY(ang, r + labelOffset - 16);
+          const v99 = Math.min(99, Math.round(v01 * 100)); // ☆ 與後端一致，避免 100
+  
+          return (
+            <g key={`pt-${i}`}>
+              <circle cx={vx} cy={vy} r="5" fill="#2b3993" />
+              {/* 軸標籤 */}
+              <text
+                x={lx}
+                y={ly}
+                fontSize="16"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="#2A2A2E"
+                style={{ fontWeight: 600 }}
+              >
+                {label}
+              </text>
+              {/* 分數膠囊 */}
+              <rect
+                x={lx - 26} y={ly + 12} rx="10" ry="10" width="52" height="22"
+                fill="#FFFFFF" stroke="#2b3993" strokeWidth="1"
+              />
+              <text x={lx} y={ly + 23} fontSize="13" textAnchor="middle" dominantBaseline="central" fill="#2b3993" style={{ fontWeight: 600 }}>
+                {v99}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    );
+  };
+  
 
 const MemberDashboard = () => {
   const navigate = useNavigate();
@@ -584,7 +572,6 @@ const MemberDashboard = () => {
   const [isFlipping, setIsFlipping] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [resetting, setResetting] = useState(false); // ★ 新增：重設狀態
 
   const wrapperRef = useRef(null);
   const scalerRef = useRef(null);
@@ -632,13 +619,12 @@ const MemberDashboard = () => {
   const [chosenBotName, setChosenBotName] = useState("—");
   const [scores, setScores] = useState(null);
 
-  // ★ 修正：使用 useMemo 創建穩定的 typeNameMap
-  const typeNameMap = useMemo(() => ({
+  const typeNameMap = {
     empathy: "同理型AI",
     insight: "洞察型AI",
     solution: "解決型AI",
     cognitive: "認知型AI",
-  }), []);
+  };
 
   useEffect(() => {
     AOS.init({ duration: 800, once: true, offset: 100 });
@@ -648,23 +634,17 @@ const MemberDashboard = () => {
         setLoading(true);
         setError(null);
         const profileData = await apiMe();
-        
-        if (!profileData.ok) {
-          throw new Error(profileData.message || "Failed to load profile");
-        }
+        if (!profileData.ok) throw new Error(profileData.message || "Failed to load profile");
 
-        // ★ 更新：處理新的 API 回應格式
         if (profileData.user) {
           const user = profileData.user;
           if (user.nickname) setNickname(user.nickname);
           if (user.pid) setPid(user.pid);
         }
 
-        // ★ 更新：從新的 API 結構讀取 MBTI
         if (profileData.latest_assessment?.mbti?.raw) {
           setMbtiRaw(profileData.latest_assessment.mbti.raw);
         } else {
-          // 回退到 localStorage
           try {
             const cachedMBTI = localStorage.getItem("step1MBTI");
             if (cachedMBTI) {
@@ -679,18 +659,22 @@ const MemberDashboard = () => {
           } catch {}
         }
 
-        // ★ 更新：處理機器人選擇
         let botTypeFound = false;
-        if (profileData.user?.selected_bot) {
+        if (profileData.latest_recommendation?.selected_bot) {
+          const botType = profileData.latest_recommendation.selected_bot;
+          if (typeNameMap[botType]) {
+            setChosenBotName(typeNameMap[botType]);
+            botTypeFound = true;
+          }
+        }
+        if (!botTypeFound && profileData.user?.selected_bot) {
           const botType = profileData.user.selected_bot;
           if (typeNameMap[botType]) {
             setChosenBotName(typeNameMap[botType]);
             botTypeFound = true;
           }
         }
-        
         if (!botTypeFound) {
-          // 回退到 localStorage
           const selectedBotType = localStorage.getItem("selectedBotType");
           const selectedBotName = localStorage.getItem("selectedBotName");
           if (selectedBotType && typeNameMap[selectedBotType]) {
@@ -700,14 +684,12 @@ const MemberDashboard = () => {
           }
         }
 
-        // ★ 更新：處理分數數據
         if (profileData.latest_recommendation?.scores) {
           setScores(profileData.latest_recommendation.scores);
           try {
             localStorage.setItem("match.recommend", JSON.stringify(profileData.latest_recommendation));
           } catch {}
         } else {
-          // 回退到 localStorage
           try {
             const cached = localStorage.getItem("match.recommend");
             if (cached) {
@@ -718,7 +700,6 @@ const MemberDashboard = () => {
         }
       } catch (error) {
         setError(`載入用戶資料失敗: ${error.message}`);
-        // 回退到 localStorage 數據
         try {
           const userJson = localStorage.getItem("user");
           if (userJson) {
@@ -726,7 +707,6 @@ const MemberDashboard = () => {
             if (u?.nickname) setNickname(u.nickname);
             if (u?.pid) setPid(u.pid);
           }
-          
           const cachedMBTI = localStorage.getItem("step1MBTI");
           if (cachedMBTI) {
             const mbtiArray = JSON.parse(cachedMBTI);
@@ -737,7 +717,6 @@ const MemberDashboard = () => {
               setMbtiRaw(mbtiString);
             }
           }
-          
           const selectedBotType = localStorage.getItem("selectedBotType");
           const selectedBotName = localStorage.getItem("selectedBotName");
           if (selectedBotType && typeNameMap[selectedBotType]) {
@@ -745,7 +724,6 @@ const MemberDashboard = () => {
           } else if (selectedBotName) {
             setChosenBotName(selectedBotName.replace(" AI", "AI"));
           }
-          
           const cached = localStorage.getItem("match.recommend");
           if (cached) {
             const obj = JSON.parse(cached);
@@ -760,52 +738,24 @@ const MemberDashboard = () => {
     };
 
     loadUserData();
-  }, [typeNameMap]); // ★ 修正：添加 typeNameMap 依賴
+  }, []);
 
   const handleRetestClick = () => setShowModal(true);
   const handleCancelModal = () => setShowModal(false);
 
-  const handleConfirmRetest = async () => {
-    try {
-      setResetting(true);
-      setShowModal(false);
-      
-      // ★ 新增：呼叫後端重設 API（可選）
-      try {
-        await resetBotChoice();
-      } catch (apiError) {
-        console.warn("後端重設失敗，僅進行前端清理:", apiError.message);
-      }
-      
-      // ★ 保留：清除前端 localStorage（但不刪除聊天記錄相關的數據）
-      localStorage.removeItem("step1MBTI");
-      localStorage.removeItem("step2Answers");
-      localStorage.removeItem("step3Answers");
-      localStorage.removeItem("step4Answers");
-      localStorage.removeItem("match.recommend");
-      localStorage.removeItem("selectedBotId");
-      localStorage.removeItem("selectedBotImage");
-      localStorage.removeItem("selectedBotName");
-      localStorage.removeItem("selectedBotType");
-      
-      // ★ 注意：不清除以下項目，保留聊天記錄和基本用戶資訊
-      // - "user" (用戶基本資訊)
-      // - "token" (登入狀態)
-      // - 任何聊天相關的 localStorage 項目
-      
-      setScores(null);
-      setChosenBotName("—");
-      
-      // 延遲跳轉讓用戶看到狀態變化
-      setTimeout(() => {
-        navigate("/test/step1");
-      }, 500);
-    } catch (error) {
-      console.error("重新測驗過程出錯:", error);
-      setError("重新測驗設定失敗，請稍後再試");
-    } finally {
-      setResetting(false);
-    }
+  const handleConfirmRetest = () => {
+    setShowModal(false);
+    localStorage.removeItem("step1MBTI");
+    localStorage.removeItem("step2Answers");
+    localStorage.removeItem("step3Answers");
+    localStorage.removeItem("step4Answers");
+    localStorage.removeItem("match.recommend");
+    localStorage.removeItem("selectedBotId");
+    localStorage.removeItem("selectedBotImage");
+    localStorage.removeItem("selectedBotName");
+    localStorage.removeItem("selectedBotType");
+    setScores(null);
+    navigate("/test/step1");
   };
 
   if (loading) {
@@ -882,14 +832,12 @@ const MemberDashboard = () => {
                 <ActionButton
                   bgColor="linear-gradient(to right, #1f1713, #3a2a25)"
                   onClick={handleRetestClick}
-                  disabled={resetting}
                 >
-                  {resetting ? "重設中..." : "重新測驗"}
+                  重新測驗
                 </ActionButton>
                 <ActionButton
                   bgColor="linear-gradient(to right, #a53333, #cc4141)"
                   onClick={() => navigate("/mood")}
-                  disabled={resetting}
                 >
                   開始聊天
                 </ActionButton>
@@ -903,18 +851,13 @@ const MemberDashboard = () => {
         <ModalContent show={showModal} onClick={(e) => e.stopPropagation()}>
           <ModalTitle>想重新配對一位懂你的 AI 夥伴嗎？</ModalTitle>
           <ModalDescription>
-            點選後，我們會重設你的機器人選擇，<br />
+            點選後，我們會刪除目前心理測驗資料與所有聊天記錄，<br />
             重新為你媒合最適合的對話夥伴。
           </ModalDescription>
-          <ModalWarning>
-            ★ 你的聊天記錄和評估歷史將會保留 <br />
-            請確認你已準備好，重新踏上這段溫柔的探索旅程 💫
-          </ModalWarning>
+          <ModalWarning>請確認你已準備好，重新踏上這段溫柔的探索旅程 💫</ModalWarning>
           <ModalButtonGroup>
-            <CancelButton onClick={handleCancelModal} disabled={resetting}>取消</CancelButton>
-            <ConfirmButton onClick={handleConfirmRetest} disabled={resetting}>
-              {resetting ? "處理中..." : "確定重新測驗"}
-            </ConfirmButton>
+            <CancelButton onClick={handleCancelModal}>取消</CancelButton>
+            <ConfirmButton onClick={handleConfirmRetest}>確定重新測驗</ConfirmButton>
           </ModalButtonGroup>
         </ModalContent>
       </ModalOverlay>
