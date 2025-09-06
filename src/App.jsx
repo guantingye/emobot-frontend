@@ -1,4 +1,8 @@
+// src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { GlobalStyle } from "./styles/GlobalStyle"; // ⬅️ 新增：全域響應式樣式
+
+// 既有頁面：維持不變
 import MoodInput from "./components/MoodInput";
 import MemberDashboard from "./components/MemberDashboard";
 import TestEntry from "./components/TestEntry";
@@ -15,6 +19,9 @@ import Login from "./components/Login";
 function App() {
   return (
     <Router>
+      {/* 全站套用的 RWD 全域樣式（不影響後端，也不改動各頁元件邏輯） */}
+      <GlobalStyle />
+
       <Routes>
         {/* 主頁 */}
         <Route path="/Home" element={<Home />} />
@@ -44,5 +51,3 @@ function App() {
 }
 
 export default App;
-
-

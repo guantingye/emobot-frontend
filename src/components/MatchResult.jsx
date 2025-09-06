@@ -12,28 +12,85 @@ import { runMatching, commitChoice } from "../api/client";
 
 // 動畫 & 版面（沿用）
 const fadeInUp = keyframes`from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}`;
-const Container = styled.div`width:100vw;min-height:100vh;background:#e8e8e8;font-family:"Noto Sans TC",sans-serif;`;
-const Header = styled.header`width:100%;height:70px;background:white;display:flex;justify-content:space-between;align-items:center;padding:0 30px;position:sticky;top:0;z-index:10;box-shadow:0 2px 10px rgba(0,0,0,0.1);`;
-const Logo = styled.div`font-size:35px;font-weight:bold;color:#2b3993;display:flex;align-items:center;cursor:pointer;transition:.3s;&:hover{transform:scale(1.05)}}`;
-const Nav = styled.nav`display:flex;gap:40px;font-size:26px;font-weight:bold;color:black;div{cursor:pointer;transition:.2s;&:hover{color:#2b3993;transform:translateY(-2px)}&:active{transform:translateY(1px)}}}`;
-const AvatarImg = styled.img`width:50px;height:50px;border-radius:50%;object-fit:cover;cursor:pointer;transition:.3s;&:hover{transform:scale(1.1);box-shadow:0 4px 8px rgba(0,0,0,0.2)}}`;
-const RightSection = styled.div`display:flex;align-items:center;gap:30px;margin-right:40px;`;
-const Main = styled.div`max-width:1000px;margin:60px auto;padding:60px;background:white;border-radius:24px;text-align:center;animation:${fadeInUp} .8s ease-out;`;
-const Title = styled.h2`font-size:22px;font-weight:bold;margin-bottom:40px;color:#444;`;
-const Cards = styled.div`display:flex;justify-content:center;gap:40px;margin-bottom:48px;`;
+const Container = styled.div`
+  width:100%;
+  min-height:100dvh;
+  background:#e8e8e8;
+  font-family:"Noto Sans TC",sans-serif;
+`;
+const Header = styled.header`
+  width:100%;
+  height:70px;
+  background:white;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 30px;
+  position:sticky; top:0; z-index:10;
+  box-shadow:0 2px 10px rgba(0,0,0,0.1);
+  @media (max-width: 1024px){ padding: 0 16px; height:64px; }
+`;
+const Logo = styled.div`
+  font-size:35px;font-weight:bold;color:#2b3993;display:flex;align-items:center;cursor:pointer;transition:.3s;
+  &:hover{transform:scale(1.05)}
+  img{ height:68px; margin-right:8px; }
+  @media (max-width: 480px){ font-size: 28px; img{height:54px;} }
+`;
+const Nav = styled.nav`
+  display:flex; gap:40px; font-size:26px; font-weight:bold; color:black;
+  div{cursor:pointer; transition:.2s;
+    &:hover{color:#2b3993; transform:translateY(-2px)}
+    &:active{transform:translateY(1px)}
+  }
+  @media (max-width: 1024px){ gap:20px; font-size:18px; }
+  @media (max-width: 640px){ display:none; } /* 交給 GlobalStyle 同策略 */
+`;
+const AvatarImg = styled.img`
+  width:50px;height:50px;border-radius:50%;object-fit:cover;cursor:pointer;transition:.3s;
+  &:hover{transform:scale(1.1); box-shadow:0 4px 8px rgba(0,0,0,0.2)}
+`;
+const RightSection = styled.div`
+  display:flex; align-items:center; gap:30px; margin-right: 10px;
+  @media (max-width: 1024px){ gap:16px; }
+`;
+const Main = styled.div`
+  max-width:1000px; width: 92%;
+  margin:24px auto 60px;
+  padding: clamp(16px, 3vw, 60px);
+  background:white;border-radius:24px;text-align:center;animation:${fadeInUp} .8s ease-out;
+  @media (max-width: 640px){ border-radius:18px; }
+`;
+const Title = styled.h2`
+  font-size:clamp(18px, 2.4vw, 22px);
+  font-weight:bold;margin-bottom:28px;color:#444; line-height:1.6;
+`;
+const Cards = styled.div`
+  display:flex; justify-content:center; gap:24px; margin-bottom:32px; flex-wrap: wrap;
+  @media (max-width: 480px){ gap:16px; }
+`;
 const BotCard = styled.div`
-  position:relative;width:220px;cursor:pointer;transition:.3s;
-  img{width:100%;border-radius:20px;border:${({selected})=>selected?"5px solid #2b3993":"3px solid transparent"};opacity:${({selected})=>selected?"1":"0.6"};box-shadow:${({selected})=>selected?"0 0 12px rgba(43,57,147,0.6)":"none"};transition:all .3s;}
-  span{display:block;margin-top:10px;font-size:20px;font-weight:bold;color:#333;}
-  &:hover{transform:scale(1.05);img{opacity:1;border-color:${({selected})=>selected?"#2b3993":"#bbb"}}}
+  position:relative;
+  width:220px;
+  cursor:pointer; transition:.3s;
+  img{width:100%; border-radius:20px; border:${({selected})=>selected?"5px solid #2b3993":"3px solid transparent"};
+      opacity:${({selected})=>selected?"1":"0.75"}; box-shadow:${({selected})=>selected?"0 0 12px rgba(43,57,147,0.6)":"none"}; transition:all .3s;}
+  span{display:block;margin-top:10px;font-size:18px;font-weight:bold;color:#333;}
+  &:hover{transform:scale(1.05); img{opacity:1; border-color:${({selected})=>selected?"#2b3993":"#bbb"}}}
+  @media (max-width: 1024px){ width: 200px; }
+  @media (max-width: 768px){ width: calc(50% - 16px); }
+  @media (max-width: 420px){ width: 100%; }
 `;
 const ConfirmButton = styled.button`
-  font-size:22px;font-weight:bold;padding:14px 36px;border:3px solid #3f3e66;border-radius:999px;background-color:rgba(30,31,19,.8);color:white;cursor:pointer;transition:.3s;&:hover{transform:scale(1.05)}&:active{transform:scale(.95)}
+  font-size:20px;font-weight:bold;padding:12px 30px;border:3px solid #3f3e66;border-radius:999px;background-color:rgba(30,31,19,.85);color:white;cursor:pointer;transition:.3s;
+  &:hover{transform:scale(1.05)}
+  &:active{transform:scale(.95)}
+  @media (max-width: 480px){ width: 100%; }
 `;
-const RateText = styled.span`display:block;margin-top:6px;font-size:16px;color:#666;`;
+const RateText = styled.span`display:block;margin-top:6px;font-size:14px;color:#666;`;
 const HintBox = styled.div`
-  max-width:720px;margin:0 auto 24px;padding:14px 20px;background:#fff8e1;border:1px solid #ffecb3;border-radius:8px;
-  box-shadow:0 2px 6px rgba(0,0,0,.05);font-size:15px;color:#5d4037;text-align:center;line-height:1.6;display:flex;align-items:center;justify-content:center;gap:8px;
+  max-width:720px;margin:0 auto 20px;padding:12px 16px;background:#fff8e1;border:1px solid #ffecb3;border-radius:8px;
+  box-shadow:0 2px 6px rgba(0,0,0,.05);font-size:14px;color:#5d4037;text-align:center;line-height:1.6;display:flex;align-items:center;justify-content:center;gap:8px;
+  @media (max-width: 480px){ width: 100%; }
 `;
 
 export default function MatchResult() {
@@ -59,13 +116,11 @@ export default function MatchResult() {
     try {
       const botType = botIdToType[selectedBot];
       await commitChoice(botType);
-
       const selectedBotData = bots.find((b) => b.id === selectedBot);
       localStorage.setItem("selectedBotId", String(selectedBot));
       localStorage.setItem("selectedBotImage", selectedBotData.img);
       localStorage.setItem("selectedBotName", selectedBotData.name);
       localStorage.setItem("selectedBotType", botType);
-
       navigate("/dashboard");
     } catch (err) {
       console.error("Submit failed:", err);
@@ -83,11 +138,9 @@ export default function MatchResult() {
         if (cached) {
           data = JSON.parse(cached);
         } else {
-          data = await runMatching();               // 呼叫 /api/match/recommend
+          data = await runMatching();
           localStorage.setItem("match.recommend", JSON.stringify(data));
         }
-
-        // 優先使用 ranked（0~100）；若只有 scores(0~1) 就轉為 0~100
         const r = {};
         if (Array.isArray(data?.ranked) && data.ranked.length) {
           data.ranked.forEach(({ type, score }) => {
@@ -103,10 +156,7 @@ export default function MatchResult() {
             if (id) r[id] = Number((s[type] / max) * 100.0);
           });
         }
-
         setRates(r);
-
-        // 預設選最高分
         const ids = Object.keys(r);
         if (ids.length > 0) {
           const bestId = ids.reduce((a, b) => (r[a] > r[b] ? a : b));
@@ -125,7 +175,7 @@ export default function MatchResult() {
     <Container>
       <Header>
         <Logo onClick={() => navigate("/Home")}>
-          <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: 8 }} />
+          <img src={logoIcon} alt="logo" />
           Emobot+
         </Logo>
         <RightSection>
