@@ -148,6 +148,9 @@ const Pill = styled.button`
   &:hover { transform: translateY(-1px); }
   &:active { transform: translateY(0); }
   @media (max-width: 640px) { width: 100%; }
+  justify-self: center;              /* 水平置中到各自的 grid 欄位 */
+  display: flex;                     /* 讓字母在按鈕內也正中 */
+  align-items: center; justify-content: center;
 `;
 
 const Hint = styled.p` font-size: 16px; color: #777; margin-top: 8px; margin-bottom: 24px; `;
@@ -269,28 +272,28 @@ export default function TestStep1() {
 
             <Grid>
               <PairSelector
-                
+                title="外向 vs 內向"
                 left={{ letter: "E", desc: " Extraversion" }}
                 right={{ letter: "I", desc: " Introversion" }}
                 value={EorI}
                 onChange={setEorI}
               />
               <PairSelector
-          
+                title="直覺 vs 實感"
                 left={{ letter: "N", desc: " iNtuition" }}
                 right={{ letter: "S", desc: " Sensing" }}
                 value={NorS}
                 onChange={setNorS}
               />
               <PairSelector
-                
+                title="思考 vs 情感"
                 left={{ letter: "T", desc: " Thinking" }}
                 right={{ letter: "F", desc: " Feeling" }}
                 value={TorF}
                 onChange={setTorF}
               />
               <PairSelector
-                
+                title="知覺 vs 判斷"
                 left={{ letter: "P", desc: " Perceiving" }}
                 right={{ letter: "J", desc: " Judging" }}
                 value={PorJ}
