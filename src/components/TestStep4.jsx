@@ -6,9 +6,16 @@ import StepIndicator from "./StepIndicator";
 import logoIcon from "../assets/logofig.png";
 import { saveAssessment } from "../api/client";
 
+// === 動畫效果 ===
 const fadeInUp = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 `;
 
 const Container = styled.div`
@@ -19,6 +26,10 @@ const Container = styled.div`
   overflow-x: hidden;
   padding-bottom: 80px;
   animation: ${fadeInUp} 0.6s ease-in-out;
+
+  @media (max-width: 768px) {
+    padding-bottom: 60px;
+  }
 `;
 
 const Header = styled.header`
@@ -34,6 +45,11 @@ const Header = styled.header`
   left: 0;
   z-index: 10;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    height: 60px;
+    padding: 0 15px;
+  }
 `;
 
 const Logo = styled.div`
@@ -48,6 +64,15 @@ const Logo = styled.div`
   &:hover {
     transform: scale(1.05);
   }
+
+  @media (max-width: 768px) {
+    font-size: 24px;
+    
+    img {
+      height: 45px !important;
+      margin-right: 4px !important;
+    }
+  }
 `;
 
 const RightSection = styled.div`
@@ -56,6 +81,11 @@ const RightSection = styled.div`
   gap: 30px;
   margin-left: auto;
   margin-right: 40px;
+
+  @media (max-width: 768px) {
+    gap: 15px;
+    margin-right: 0;
+  }
 `;
 
 const Nav = styled.nav`
@@ -78,6 +108,10 @@ const Nav = styled.nav`
       transform: translateY(1px);
     }
   }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const AvatarImg = styled.img`
@@ -92,10 +126,19 @@ const AvatarImg = styled.img`
     transform: scale(1.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
+  @media (max-width: 768px) {
+    width: 40px;
+    height: 40px;
+  }
 `;
 
 const StepIndicatorWrapper = styled.div`
   margin-top: 120px;
+
+  @media (max-width: 768px) {
+    margin-top: 90px;
+  }
 `;
 
 const Main = styled.div`
@@ -106,13 +149,60 @@ const Main = styled.div`
   border-radius: 20px;
   padding: 50px;
   animation: ${fadeInUp} 0.8s ease-in-out;
+
+  @media (max-width: 768px) {
+    margin: 20px 10px 0;
+    padding: 30px 20px;
+    border-radius: 16px;
+  }
+
+  @media (max-width: 480px) {
+    margin: 15px 5px 0;
+    padding: 25px 15px;
+  }
 `;
 
 const Title = styled.h2`
   font-size: 36px;
   font-weight: bold;
-  margin-bottom: 70px;
+  margin-bottom: 30px;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 28px;
+    margin-bottom: 25px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+`;
+
+const Subtitle = styled.p`
+  font-size: 16px;
+  color: #444;
+  line-height: 1.7;
+  max-width: 720px;
+  margin: 0 auto 28px;
+  text-align: center;
+
+  background: #f9f9f9;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
 `;
 
 const QuestionList = styled.ul`
@@ -120,11 +210,27 @@ const QuestionList = styled.ul`
   color: #333;
   padding-left: 0;
   text-align: left;
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 16px;
+  }
 `;
 
 const QuestionItem = styled.li`
   list-style: decimal;
   margin-bottom: 64px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 50px;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 40px;
+  }
 `;
 
 const ScaleWrapper = styled.div`
@@ -133,6 +239,17 @@ const ScaleWrapper = styled.div`
   justify-content: center;
   gap: 18px;
   margin-top: 48px;
+
+  @media (max-width: 768px) {
+    gap: 12px;
+    margin-top: 35px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 480px) {
+    gap: 8px;
+    margin-top: 25px;
+  }
 `;
 
 const Circle = styled.div`
@@ -140,26 +257,26 @@ const Circle = styled.div`
   height: ${(props) => props.size}px;
   border-radius: 50%;
   border: 2px solid
-     ${(props) =>
+    ${(props) =>
     props.selected
-      ? props.index < 3
-        ? "#6A4C93"   // 紫色 (不同意)
-        : props.index === 3
-        ? "#aaa"      // 灰色 (中立)
-        : "#3AA87A"   // 綠色 (同意)
-      : props.index < 3
+      ? props.index < 2
+        ? "#6A4C93"
+        : props.index > 2
+        ? "#3AA87A"
+        : "#aaa"
+      : props.index < 2
       ? "#6A4C93"
-      : props.index === 3
-      ? "#aaa"
-      : "#3AA87A"};
+      : props.index > 2
+      ? "#3AA87A"
+      : "#aaa"};
 
 background: ${(props) =>
   props.selected
-    ? props.index < 3
-      ? "#6A4C93"     // 紫色實心
-      : props.index === 3
-      ? "#aaa"        // 灰色實心
-      : "#3AA87A"     // 綠色實心
+    ? props.index < 2
+      ? "#6A4C93"
+      : props.index > 2
+      ? "#3AA87A"
+      : "#aaa"
     : "transparent"};
   cursor: pointer;
   transition: all 0.2s ease;
@@ -173,13 +290,33 @@ background: ${(props) =>
     transform: scale(0.95);
     box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
   }
+
+  @media (max-width: 768px) {
+    width: ${(props) => Math.max(props.size * 0.8, 32)}px;
+    height: ${(props) => Math.max(props.size * 0.8, 32)}px;
+  }
+
+  @media (max-width: 480px) {
+    width: ${(props) => Math.max(props.size * 0.7, 28)}px;
+    height: ${(props) => Math.max(props.size * 0.7, 28)}px;
+  }
 `;
 
 const Label = styled.span`
   font-size: 18px;
-  color: ${(props) => (props.side === "left" ? "#6A4C93A" : "#3AA87A")};
+  color: ${(props) => (props.side === "left" ? "#6A4C93" : "#3AA87A")};
   width: 60px;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    width: 50px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+    width: 40px;
+  }
 `;
 
 const ButtonGroup = styled.div`
@@ -187,6 +324,17 @@ const ButtonGroup = styled.div`
   display: flex;
   justify-content: center;
   gap: 40px;
+
+  @media (max-width: 768px) {
+    gap: 20px;
+    margin-top: 30px;
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
 `;
 
 const Button = styled.button`
@@ -207,9 +355,21 @@ const Button = styled.button`
     opacity: 0.6;
     cursor: not-allowed;
   }
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+    padding: 12px 30px;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    max-width: 280px;
+    font-size: 18px;
+    padding: 10px 20px;
+  }
 `;
 
-export default function TestStep4() {
+export default function TestStep3() {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -217,27 +377,24 @@ export default function TestStep4() {
   }, []);
 
   const questions = [
-    "我覺得我能自由決定如何過我的生活。",
-    "我真的喜歡與我互動的人。",
-    "我經常覺得自己不太有能力。",
-    "我覺得生活中有很多壓力。",
-    "我認識的人告訴我我在做的事情上表現得不錯。",
-    "我與我接觸的人相處得很好。",
-    "我大多保持自己一人，沒有太多社交接觸。",
-    "我通常覺得自己能自由表達想法與意見。",
-    "我將我經常互動的人視為朋友。",
-    "最近我有學到一些有趣的新技能。",
-    "在日常生活中，我經常得照別人的話去做。",
-    "我的生活中有人在乎我。",
-    "我大多數日子都覺得自己做的事情有成就感。",
-    "每天互動的人大多會考慮我的感受。",
-    "我的生活中沒什麼機會展現我有多能幹。",
-    "我沒有太多親近的人。",
-    "在日常情境中，我感覺可以做自己。",
-    "我經常互動的人似乎不太喜歡我。",
-    "我常常覺得自己不太能幹。",
-    "我的日常生活中，我幾乎沒有機會自行決定事情的做法。",
-    "大多數人對我都很友善。"
+    "我會注意自己的感受。",
+    "我完全不知道自己在感受什麼。",
+    "我難以理解自己的感受。",
+    "我對自己的感受保持專注。",
+    "我對自己的感受感到困惑。",
+    "當我感到難過時，我會承認自己的情緒。",
+    "當我感到難過時，我會因為這種感受而感到尷尬。",
+    "當我感到難過時，我難以完成工作。",
+    "當我感到難過時，我變得失控。",
+    "當我感到難過時，我認為自己會長時間維持這種狀態。",
+    "當我感到難過時，我認為自己最終會變得非常憂鬱。",
+    "我感到難過時，我難以專注於其他事情。",
+    "當我感到難過時，我因為這種感受而感到羞愧。",
+    "當我感到難過時，我會因為這種感受而感到內疚。",
+    "當我感到難過時，我難以集中注意力。",
+    "當我感到難過時，我難以控制自己的行為。",
+    "當我感到難過時，我認為沉浸於這種情緒是我唯一能做的事。",
+    "當我感到難過時，我無法控制自己的行為。"
   ];
 
   const [answers, setAnswers] = useState(Array(questions.length).fill(null));
@@ -260,21 +417,19 @@ export default function TestStep4() {
     setLoading(true);
     
     try {
-      // 本地儲存（作為備份）
-      localStorage.setItem("step4Answers", JSON.stringify(answers));
+      localStorage.setItem("step3Answers", JSON.stringify(answers));
       
-      // 儲存到後端
-      console.log("Saving step4 answers:", answers);
+      console.log("Saving step3 answers:", answers);
       await saveAssessment({ 
-        step4Answers: answers,
+        step3Answers: answers,
         submittedAt: new Date().toISOString()
       });
       
-      navigate("/test/step5");
+      navigate("/test/step4");
     } catch (e) { 
-      console.error("Save step4 failed:", e);
+      console.error("Save step3 failed:", e);
       alert(`儲存失敗：${e.message}，但可以繼續下一步`);
-      navigate("/test/step5");
+      navigate("/test/step4");
     } finally {
       setLoading(false);
     }
@@ -300,21 +455,22 @@ export default function TestStep4() {
       </Header>
 
       <StepIndicatorWrapper>
-        <StepIndicator currentStep={4} />
+        <StepIndicator currentStep={3} />
       </StepIndicatorWrapper>
 
       <Main>
-        <Title>Step4 基本心理需求</Title>
+        <Title>Step3 情緒調節策略</Title>
+        <Subtitle>請根據您的真實感受，選擇最符合的選項。<br />越靠左側表示越不同意，越靠右側表示越同意，中間則代表中立或一般程度。</Subtitle>
         <QuestionList>
           {questions.map((q, i) => (
             <QuestionItem key={i}>
               {q}
               <ScaleWrapper>
                 <Label side="left">不同意</Label>
-                {[1, 2, 3, 4, 5, 6, 7].map((n, idx) => (
+                {[1, 2, 3, 4, 5].map((n, idx) => (
                   <Circle
                     key={n}
-                    size={48 + Math.abs(3 - idx) * 4}
+                    size={48 + Math.abs(2 - idx) * 6}
                     index={idx}
                     selected={answers[i] === n}
                     onClick={() => handleSelect(i, n)}
@@ -327,7 +483,7 @@ export default function TestStep4() {
         </QuestionList>
 
         <ButtonGroup>
-          <Button onClick={() => navigate("/test/step3")} disabled={loading}>返回上一步</Button>
+          <Button onClick={() => navigate("/test/step2")} disabled={loading}>返回上一步</Button>
           <Button onClick={handleNext} disabled={loading}>
             {loading ? "處理中..." : "繼續作答"}
           </Button>

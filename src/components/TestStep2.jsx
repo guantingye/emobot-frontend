@@ -26,6 +26,10 @@ const Container = styled.div`
   overflow-x: hidden;
   padding-bottom: 80px;
   animation: ${fadeInUp} 0.6s ease-in-out;
+
+  @media (max-width: 768px) {
+    padding-bottom: 60px;
+  }
 `;
 
 const Header = styled.header`
@@ -41,6 +45,11 @@ const Header = styled.header`
   left: 0;
   z-index: 10;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    height: 60px;
+    padding: 0 15px;
+  }
 `;
 
 const Logo = styled.div`
@@ -55,6 +64,15 @@ const Logo = styled.div`
   &:hover {
     transform: scale(1.05);
   }
+
+  @media (max-width: 768px) {
+    font-size: 24px;
+    
+    img {
+      height: 45px !important;
+      margin-right: 4px !important;
+    }
+  }
 `;
 
 const RightSection = styled.div`
@@ -63,6 +81,11 @@ const RightSection = styled.div`
   gap: 30px;
   margin-left: auto;
   margin-right: 40px;
+
+  @media (max-width: 768px) {
+    gap: 15px;
+    margin-right: 0;
+  }
 `;
 
 const Nav = styled.nav`
@@ -85,6 +108,10 @@ const Nav = styled.nav`
       transform: translateY(1px);
     }
   }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const AvatarImg = styled.img`
@@ -99,10 +126,19 @@ const AvatarImg = styled.img`
     transform: scale(1.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
+  @media (max-width: 768px) {
+    width: 40px;
+    height: 40px;
+  }
 `;
 
 const StepIndicatorWrapper = styled.div`
   margin-top: 120px;
+
+  @media (max-width: 768px) {
+    margin-top: 90px;
+  }
 `;
 
 const Main = styled.div`
@@ -113,6 +149,17 @@ const Main = styled.div`
   border-radius: 20px;
   padding: 50px;
   animation: ${fadeInUp} 0.8s ease-in-out;
+
+  @media (max-width: 768px) {
+    margin: 20px 10px 0;
+    padding: 30px 20px;
+    border-radius: 16px;
+  }
+
+  @media (max-width: 480px) {
+    margin: 15px 5px 0;
+    padding: 25px 15px;
+  }
 `;
 
 const Title = styled.h2`
@@ -120,6 +167,16 @@ const Title = styled.h2`
   font-weight: bold;
   margin-bottom: 30px;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 28px;
+    margin-bottom: 25px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
 `;
 
 const Subtitle = styled.p`
@@ -130,25 +187,50 @@ const Subtitle = styled.p`
   margin: 0 auto 28px;
   text-align: center;
 
-  background: #f9f9f9;      /* 背景色 */
-  padding: 12px 20px;       /* 內距 */
-  border-radius: 8px;       /* 圓角 */
-  border: 1px solid #eee;   /* 淡邊框 */
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* 陰影 */
+  background: #f9f9f9;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
 `;
-
-
 
 const QuestionList = styled.ul`
   font-size: 22px;
   color: #333;
   padding-left: 0;
   text-align: left;
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 16px;
+  }
 `;
 
 const QuestionItem = styled.li`
   list-style: decimal;
   margin-bottom: 64px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 50px;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 40px;
+  }
 `;
 
 const ScaleWrapper = styled.div`
@@ -157,6 +239,17 @@ const ScaleWrapper = styled.div`
   justify-content: center;
   gap: 18px;
   margin-top: 48px;
+
+  @media (max-width: 768px) {
+    gap: 12px;
+    margin-top: 35px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 480px) {
+    gap: 8px;
+    margin-top: 25px;
+  }
 `;
 
 const Circle = styled.div`
@@ -167,10 +260,10 @@ const Circle = styled.div`
   ${(props) =>
     props.selected
       ? props.index < 3
-        ? "#6A4C93"   // 紫色 (不同意)
+        ? "#6A4C93"
         : props.index === 3
-        ? "#aaa"      // 灰色 (中立)
-        : "#3AA87A"   // 綠色 (同意)
+        ? "#aaa"
+        : "#3AA87A"
       : props.index < 3
       ? "#6A4C93"
       : props.index === 3
@@ -180,10 +273,10 @@ const Circle = styled.div`
 background: ${(props) =>
   props.selected
     ? props.index < 3
-      ? "#6A4C93"     // 紫色實心
+      ? "#6A4C93"
       : props.index === 3
-      ? "#aaa"        // 灰色實心
-      : "#3AA87A"     // 綠色實心
+      ? "#aaa"
+      : "#3AA87A"
     : "transparent"};
   cursor: pointer;
   transition: all 0.2s ease;
@@ -197,6 +290,16 @@ background: ${(props) =>
     transform: scale(0.95);
     box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
   }
+
+  @media (max-width: 768px) {
+    width: ${(props) => Math.max(props.size * 0.8, 32)}px;
+    height: ${(props) => Math.max(props.size * 0.8, 32)}px;
+  }
+
+  @media (max-width: 480px) {
+    width: ${(props) => Math.max(props.size * 0.7, 28)}px;
+    height: ${(props) => Math.max(props.size * 0.7, 28)}px;
+  }
 `;
 
 const Label = styled.span`
@@ -204,6 +307,16 @@ const Label = styled.span`
   color: ${(props) => (props.side === "left" ? "#6A4C93" : "#3AA87A")};
   width: 60px;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    width: 50px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+    width: 40px;
+  }
 `;
 
 const ButtonGroup = styled.div`
@@ -211,6 +324,17 @@ const ButtonGroup = styled.div`
   display: flex;
   justify-content: center;
   gap: 40px;
+
+  @media (max-width: 768px) {
+    gap: 20px;
+    margin-top: 30px;
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
 `;
 
 const Button = styled.button`
@@ -230,6 +354,18 @@ const Button = styled.button`
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+    padding: 12px 30px;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    max-width: 280px;
+    font-size: 18px;
+    padding: 10px 20px;
   }
 `;
 
@@ -283,10 +419,8 @@ export default function TestStep2() {
     setLoading(true);
     
     try {
-      // 本地儲存（作為備份）
       localStorage.setItem("step2Answers", JSON.stringify(answers));
       
-      // 儲存到後端 - 修正：將 array 直接作為 step2Answers 傳送
       console.log("Saving step2 answers:", answers);
       await saveAssessment({ 
         step2Answers: answers,
