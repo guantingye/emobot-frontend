@@ -1,9 +1,9 @@
 // src/api/client.js
-// 簡化版本 - 專注解決 CORS 和連線問題
+// 增強版本 - 支援專業 AI persona 和同理心回應
 
 const API_BASE = "https://emobot-backend.onrender.com"; // ★ 請替換成你的實際後端 URL
 
-console.log("API_BASE:", API_BASE);
+console.log("Enhanced API_BASE:", API_BASE);
 
 function authHeader() {
   const token = localStorage.getItem("token");
@@ -26,7 +26,7 @@ function formatError(data, status) {
   return `HTTP ${status}`;
 }
 
-// ★ 簡化的 request 函數
+// ★ 增強的 request 函數
 async function request(path, options = {}) {
   const base = API_BASE.replace(/\/+$/, "");
   const url = `${base}${path}`;
@@ -259,10 +259,25 @@ export async function commitChoice(botType) {
   }
 }
 
-// ====== 聊天相關 ======
-export async function sendChatMessage(message, botType, mode = "text", history = []) {
+// ====== 增強版聊天相關 ======
+
+/**
+ * 發送增強版聊天訊息 - 支援專業 persona 和情緒分析
+ * @param {string} message - 使用者訊息
+ * @param {string} botType - AI 類型 (empathy|insight|solution|cognitive)
+ * @param {string} mode - 模式 (text|video)
+ * @param {Array} history - 對話歷史
+ * @param {Object} context - 上下文資訊
+ * @returns {Promise<Object>} 增強版回應結果
+ */
+export async function sendChatMessage(message, botType, mode = "text", history = [], context = {}) {
   try {
-    console.log("💬 Sending chat:", { message: message.substring(0, 50), botType, mode });
+    console.log("💬 Sending enhanced chat:", { 
+      message: message.substring(0, 50), 
+      botType, 
+      mode,
+      contextKeys: Object.keys(context)
+    });
     
     // 取得使用者 ID
     const userObj = JSON.parse(localStorage.getItem("user") || "{}");
@@ -278,14 +293,88 @@ export async function sendChatMessage(message, botType, mode = "text", history =
         bot_type: botType,
         mode,
         history,
-        demo: false
+        demo: false,
+        context  // 增強：包含上下文資訊
       },
     });
     
-    console.log("✅ Chat sent:", { ok: result.ok, hasReply: !!result.reply });
+    console.log("✅ Enhanced chat sent:", { 
+      ok: result.ok, 
+      hasReply: !!result.reply,
+      hasEmotionalAnalysis: !!result.emotional_analysis,
+      hasSuggestions: !!result.suggested_follow_up
+    });
+    
     return result;
   } catch (error) {
-    console.error("❌ Chat send failed:", error.message);
+    console.error("❌ Enhanced chat send failed:", error.message);
+    throw error;
+  }
+}
+
+/**
+ * 檢查 AI Persona 系統狀態
+ */
+export async function checkPersonaSystem() {
+  try {
+    console.log("🤖 Checking persona system...");
+    return await request("/api/chat/health/personas");
+  } catch (error) {
+    console.error("❌ Persona system check failed:", error.message);
+    throw error;
+  }
+}
+
+/**
+ * 獲取特定 AI 的詳細資訊
+ * @param {string} botType - AI 類型
+ */
+export async function getPersonaInfo(botType) {
+  try {
+    console.log(`🔍 Getting persona info for: ${botType}`);
+    return await request(`/api/chat/personas/${botType}/info`);
+  } catch (error) {
+    console.error(`❌ Get persona info failed for ${botType}:`, error.message);
+    throw error;
+  }
+}
+
+/**
+ * 發送帶情緒上下文的訊息
+ * @param {string} message - 訊息內容
+ * @param {string} botType - AI 類型
+ * @param {Object} emotionalContext - 情緒上下文
+ */
+export async function sendEmotionalMessage(message, botType, emotionalContext = {}) {
+  const context = {
+    emotional_state: emotionalContext,
+    timestamp: new Date().toISOString(),
+    requires_empathy: true
+  };
+  
+  return sendChatMessage(message, botType, "text", [], context);
+}
+
+/**
+ * 批次獲取所有 AI 類型的資訊
+ */
+export async function getAllPersonaInfo() {
+  try {
+    const botTypes = ['empathy', 'insight', 'solution', 'cognitive'];
+    const results = {};
+    
+    for (const botType of botTypes) {
+      try {
+        results[botType] = await getPersonaInfo(botType);
+      } catch (error) {
+        console.warn(`Failed to get info for ${botType}:`, error.message);
+        results[botType] = { error: error.message };
+      }
+    }
+    
+    return results;
+  } catch (error) {
+    console.error("❌ Get all persona info failed:", error.message);
     throw error;
   }
 }
@@ -369,21 +458,340 @@ export async function debugDbTest() {
   }
 }
 
+// ====== 增強功能輔助函數 ======
+
+/**
+ * 分析訊息中的情緒關鍵字
+ * @param {string} message - 訊息內容
+ * @returns {Object} 情緒分析結果
+ */
+export function analyzeMessageEmotion(message) {
+  const emotionKeywords = {
+    joy: ["開心", "快樂", "興奮", "愉悅", "高興", "滿足"],
+    sadness: ["難過", "傷心", "憂鬱", "沮喪", "失落", "悲傷"],
+    anger: ["生氣", "憤怒", "煩躁", "火大", "氣憤", "不爽"],
+    fear: ["害怕", "恐懼", "擴心", "緊張", "不安", "焦慮"],
+    stress: ["壓力", "疲憊", "累", "負擔", "喘不過氣", "壓抑"],
+    loneliness: ["孤單", "寂寞", "孤獨", "沒人懂", "一個人", "被忽視"]
+  };
+
+  const detected = [];
+  const intensity = {
+    high: ["非常", "極度", "超級", "完全", "總是", "永遠"],
+    medium: ["很", "蠻", "還蠻", "有點"],
+    low: ["一點", "稍微", "有時", "偶爾"]
+  };
+
+  let emotionLevel = "medium";
+
+  // 檢測情緒
+  Object.entries(emotionKeywords).forEach(([emotion, keywords]) => {
+    if (keywords.some(keyword => message.includes(keyword))) {
+      detected.push(emotion);
+    }
+  });
+
+  // 檢測強度
+  Object.entries(intensity).forEach(([level, keywords]) => {
+    if (keywords.some(keyword => message.includes(keyword))) {
+      emotionLevel = level;
+    }
+  });
+
+  return {
+    emotions: detected,
+    intensity: emotionLevel,
+    hasEmotionalContent: detected.length > 0,
+    needsSupport: emotionLevel === "high" || detected.some(e => ["sadness", "fear", "stress", "loneliness"].includes(e))
+  };
+}
+
+/**
+ * 根據情緒狀態推薦最適合的 AI 類型
+ * @param {Object} emotionalAnalysis - 情緒分析結果
+ * @returns {string} 推薦的 AI 類型
+ */
+export function recommendBotType(emotionalAnalysis) {
+  const { emotions, intensity, needsSupport } = emotionalAnalysis;
+  
+  // 高強度負面情緒 → 同理型
+  if (needsSupport && intensity === "high") {
+    return "empathy";
+  }
+  
+  // 複雜情緒或模式 → 洞察型
+  if (emotions.length > 2 || emotions.includes("loneliness")) {
+    return "insight";
+  }
+  
+  // 壓力或行動需求 → 解決型
+  if (emotions.includes("stress") || intensity === "low") {
+    return "solution";
+  }
+  
+  // 思維相關或焦慮 → 認知型
+  if (emotions.includes("fear") || emotions.includes("anger")) {
+    return "cognitive";
+  }
+  
+  // 預設推薦
+  return "empathy";
+}
+
+/**
+ * 格式化聊天歷史為 API 所需格式
+ * @param {Array} messages - 前端訊息陣列
+ * @returns {Array} API 格式的歷史記錄
+ */
+export function formatChatHistory(messages) {
+  return messages.map(msg => ({
+    role: msg.sender === "user" ? "user" : "assistant",
+    content: msg.content,
+    timestamp: msg.timestamp
+  }));
+}
+
+/**
+ * 驗證 Bot 類型是否有效
+ * @param {string} botType - AI 類型
+ * @returns {boolean} 是否有效
+ */
+export function isValidBotType(botType) {
+  const validTypes = ['empathy', 'insight', 'solution', 'cognitive'];
+  return validTypes.includes(botType);
+}
+
+/**
+ * 獲取 Bot 的本地化資訊
+ * @param {string} botType - AI 類型
+ * @returns {Object} Bot 資訊
+ */
+export function getBotDisplayInfo(botType) {
+  const botInfo = {
+    empathy: {
+      name: "Lumi",
+      displayName: "同理型 AI",
+      color: "#FFB6C1",
+      icon: "❤️",
+      description: "溫暖陪伴，情緒支持"
+    },
+    insight: {
+      name: "Solin", 
+      displayName: "洞察型 AI",
+      color: "#7AC2DD",
+      icon: "🔍",
+      description: "深度探索，自我覺察"
+    },
+    solution: {
+      name: "Niko",
+      displayName: "解決型 AI", 
+      color: "#9BB5E3",
+      icon: "🎯",
+      description: "實務導向，行動規劃"
+    },
+    cognitive: {
+      name: "Clara",
+      displayName: "認知型 AI",
+      color: "#8D8DF2", 
+      icon: "🧠",
+      description: "思維重建，理性分析"
+    }
+  };
+  
+  return botInfo[botType] || botInfo.empathy;
+}
+
+// ====== 偵錯和監控功能 ======
+
+/**
+ * 記錄聊天互動數據
+ * @param {Object} interactionData - 互動數據
+ */
+export function logChatInteraction(interactionData) {
+  if (process.env.NODE_ENV === 'development') {
+    console.log("💬 Chat Interaction:", {
+      timestamp: new Date().toISOString(),
+      ...interactionData
+    });
+  }
+  
+  // 可以在這裡添加分析追蹤代碼
+  // 例如：Google Analytics, Mixpanel 等
+}
+
+/**
+ * 檢查系統健康狀態
+ */
+export async function healthCheck() {
+  try {
+    const results = await Promise.allSettled([
+      testConnection(),
+      checkPersonaSystem()
+    ]);
+    
+    const connectionResult = results[0];
+    const personaResult = results[1];
+    
+    return {
+      overall: connectionResult.status === 'fulfilled' && personaResult.status === 'fulfilled',
+      connection: connectionResult.status === 'fulfilled' ? connectionResult.value : null,
+      personas: personaResult.status === 'fulfilled' ? personaResult.value : null,
+      errors: results.filter(r => r.status === 'rejected').map(r => r.reason?.message)
+    };
+  } catch (error) {
+    console.error("❌ Health check failed:", error.message);
+    return {
+      overall: false,
+      connection: null,
+      personas: null,
+      errors: [error.message]
+    };
+  }
+}
+
+// ====== 錯誤處理和重試機制 ======
+
+/**
+ * 帶有智能重試的聊天發送
+ * @param {string} message - 訊息
+ * @param {string} botType - AI 類型  
+ * @param {Object} options - 選項
+ */
+export async function sendChatWithRetry(message, botType, options = {}) {
+  const { maxRetries = 3, backoffMs = 1000, ...chatOptions } = options;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await sendChatMessage(message, botType, "text", [], chatOptions.context || {});
+      
+      // 記錄成功的互動
+      logChatInteraction({
+        success: true,
+        attempt,
+        botType,
+        messageLength: message.length,
+        hasEmotionalAnalysis: !!result.emotional_analysis
+      });
+      
+      return result;
+    } catch (error) {
+      console.warn(`Chat attempt ${attempt} failed:`, error.message);
+      
+      // 最後一次嘗試失敗
+      if (attempt === maxRetries) {
+        logChatInteraction({
+          success: false,
+          attempts: maxRetries,
+          botType,
+          error: error.message
+        });
+        throw error;
+      }
+      
+      // 等待後重試
+      await new Promise(resolve => setTimeout(resolve, backoffMs * attempt));
+    }
+  }
+}
+
+// ====== 本地儲存管理 ======
+
+/**
+ * 儲存聊天偏好設定
+ * @param {Object} preferences - 偏好設定
+ */
+export function saveChatPreferences(preferences) {
+  try {
+    const existing = JSON.parse(localStorage.getItem("chatPreferences") || "{}");
+    const updated = { ...existing, ...preferences, updatedAt: new Date().toISOString() };
+    localStorage.setItem("chatPreferences", JSON.stringify(updated));
+    console.log("✅ Chat preferences saved:", updated);
+  } catch (error) {
+    console.error("❌ Failed to save chat preferences:", error);
+  }
+}
+
+/**
+ * 獲取聊天偏好設定
+ * @returns {Object} 偏好設定
+ */
+export function getChatPreferences() {
+  try {
+    return JSON.parse(localStorage.getItem("chatPreferences") || "{}");
+  } catch (error) {
+    console.error("❌ Failed to get chat preferences:", error);
+    return {};
+  }
+}
+
+/**
+ * 清理舊的聊天數據
+ * @param {number} daysToKeep - 保留天數
+ */
+export function cleanupOldChatData(daysToKeep = 30) {
+  try {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+    
+    // 這裡可以清理本地儲存的舊聊天記錄
+    console.log(`🧹 Cleaning up chat data older than ${daysToKeep} days`);
+    
+    // 實作清理邏輯...
+    
+  } catch (error) {
+    console.error("❌ Failed to cleanup old chat data:", error);
+  }
+}
+
 // ====== 預設匯出 ======
 export default {
+  // 基本功能
   testConnection,
   apiJoin,
   apiMe,
+  
+  // 測評相關
   saveAssessment,
   saveAssessmentMBTI,
+  
+  // 配對相關
   runMatching,
   commitChoice,
+  
+  // 增強版聊天功能
   sendChatMessage,
+  sendChatWithRetry,
+  sendEmotionalMessage,
+  checkPersonaSystem,
+  getPersonaInfo,
+  getAllPersonaInfo,
+  
+  // 舊版相容
   saveChatMessage,
   getChatHistory,
+  
+  // 心情記錄
   saveMoodRecord,
   getMoodHistory,
+  
+  // 其他
   getMyAssessment,
   getMyMatchChoice,
   debugDbTest,
+  
+  // 輔助功能
+  analyzeMessageEmotion,
+  recommendBotType,
+  formatChatHistory,
+  isValidBotType,
+  getBotDisplayInfo,
+  
+  // 系統管理
+  healthCheck,
+  logChatInteraction,
+  
+  // 本地儲存
+  saveChatPreferences,
+  getChatPreferences,
+  cleanupOldChatData
 };
