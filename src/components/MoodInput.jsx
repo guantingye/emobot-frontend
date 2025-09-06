@@ -20,7 +20,7 @@ const pulse = keyframes`0%{box-shadow:0 0 0 0 rgba(122,194,221,.4)}70%{box-shado
 const recording = keyframes`0%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.8}100%{transform:scale(1);opacity:1}`;
 
 const Container = styled.div`
-  display:flex;flex-direction:column;width:100%;height:100dvh;
+  display:flex;flex-direction:column;width:100vw;height:100vh;
   background:linear-gradient(135deg,#f5f7fa 0%,#eef1f5 100%);font-family:'Noto Sans TC',sans-serif;
   position:relative;overflow:hidden;
 `;
@@ -29,7 +29,6 @@ const Header = styled.header`
   padding:0 24px;background:rgba(255,255,255,.8);backdrop-filter:blur(10px);
   border-bottom:1px solid rgba(0,0,0,.05);z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.04);
   animation:${fadeInDown} .8s ease-out both;animation-delay:.3s;
-  @media (max-width: 640px){ height: 64px; padding: 0 12px; }
 `;
 const BackButton = styled.button`
   background:transparent;color:#2e2f5e;display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;
@@ -53,34 +52,19 @@ const BotInfo = styled.div`display:flex;flex-direction:column;`;
 const BotName = styled.span`font-weight:700;font-size:16px;`;
 const BotStatus = styled.span`font-size:13px;color:#65B741;`;
 
-const Layout = styled.div`
-  flex:1;display:flex;padding:100px 40px 120px;box-sizing:border-box;overflow:hidden;margin-top:0;
-  @media (max-width: 1024px){
-    flex-direction: column;
-    padding: 84px 12px 120px;
-  }
-`;
-const VideoColumn = styled.div`
-  position:relative;top:60px;width:45%;max-width:520px;display:${p=>p.show?'block':'none'};padding-right:30px;
-  @media (max-width: 1024px){
-    width: 100%; max-width: none; top: 0; padding-right: 0;
-  }
-`;
+const Layout = styled.div`flex:1;display:flex;padding:100px 40px 120px;box-sizing:border-box;overflow:hidden;margin-top:0;`;
+const VideoColumn = styled.div`position:relative;top:60px;width:45%;max-width:520px;display:${p=>p.show?'block':'none'};padding-right:30px;`;
 const DemoVideo = styled.video`
   position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;border-radius:20px;
   transition:opacity 1.2s ease-in-out;opacity:${p=>p.visible?1:0};
 `;
-const ChatColumn = styled.div`
-  flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative;scroll-behavior:smooth;
-  @media (max-width: 1024px){ margin-top: 12px; }
-`;
+const ChatColumn = styled.div`flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative;scroll-behavior:smooth;`;
 const Description = styled.div`margin:auto;text-align:center;max-width:600px;animation:${fadeIn} 1s ease-out forwards;`;
 const Title = styled.h1`
-  font-size:clamp(28px, 4.2vw, 46px);
-  font-weight:800;margin-bottom:16px;
+  font-size:46px;font-weight:800;margin-bottom:16px;
   background:linear-gradient(45deg,#2e2f5e 30%,#5A8CF2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2;
 `;
-const Subtitle = styled.p`font-size:clamp(16px, 2.2vw, 22px);color:#666;line-height:1.7;opacity:0;animation:${fadeIn} 1s ease-out .5s forwards;`;
+const Subtitle = styled.p`font-size:22px;color:#666;line-height:1.7;opacity:0;animation:${fadeIn} 1s ease-out .5s forwards;`;
 const IntroBar = styled.div`
   margin:0 auto 24px;padding:16px 24px;background:rgba(255,255,255,.95);border-left:4px solid #7AC2DD;border-radius:12px;
   box-shadow:0 8px 20px rgba(0,0,0,.06);font-size:15px;line-height:1.5;animation:${fadeInDown} .4s ease-out, ${float} 4s ease-in-out 1s infinite;
@@ -110,11 +94,6 @@ const InputArea = styled.div`
   width:${p=>p.isVideoMode?'50%':'90%'};max-width:${p=>p.isVideoMode?'none':'1440px'};
   background:${p=>p.disabled?'rgba(240,240,240,.9)':'rgba(255,255,255,.95)'};border-radius:16px;display:flex;align-items:center;padding:6px 8px;
   backdrop-filter:blur(10px);box-shadow:0 10px 25px rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.05);z-index:100;transition:.3s;
-
-  /* 小螢幕強制置中 & 滿版寬度，避免溢位 */
-  @media (max-width: 1024px){
-    left: 50%; width: 94%; max-width: none; transform: translateX(-50%);
-  }
 `;
 const InputField = styled.input`
   flex:1;font-size:16px;background:transparent;border:none;outline:none;padding:14px 20px;
@@ -125,13 +104,13 @@ const InputButtons = styled.div`display:flex;align-items:center;gap:12px;padding
 const ActionButton = styled.button`
   width:40px;height:40px;background:${p=>p.isRecording?'rgba(234,84,85,.1)':'transparent'};border-radius:50%;border:none;
   color:${p=>p.isRecording?'#EA5455':'#888'};font-size:20px;display:flex;align-items:center;justify-content:center;
-  cursor:${p=>p.disabled?'not-allowed':'pointer'};transition:.2s;animation:${p=>p.isRecording?recording:'none'} 1.5s infinite;opacity:${p=> (p.disabled ? 0.5 : 1)};
+  cursor:${p=>p.disabled?'not-allowed':'pointer'};transition:.2s;animation:${p=>p.isRecording?recording:'none'} 1.5s infinite;opacity:${p=>p.disabled?.5:1};
   &:hover{background:${p=>p.disabled?'transparent':'rgba(0,0,0,.05)'};color:${p=>p.isRecording?'#EA5455':'#555'}}
 `;
 const SendButton = styled.button`
   width:48px;height:48px;background:${p=>p.disabled?'#ccc':'linear-gradient(135deg,#7AC2DD,#5A8CF2)'};
   border-radius:50%;border:none;color:white;font-size:20px;display:flex;align-items:center;justify-content:center;
-  cursor:${p=>p.disabled?'not-allowed':'pointer'};transition:.2s;animation:${p=>p.active&&!p.disabled?pulse:'none'} 1.5s infinite;opacity:${p=> (p.disabled ? 0.7 : 1)};
+  cursor:${p=>p.disabled?'not-allowed':'pointer'};transition:.2s;animation:${p=>p.active&&!p.disabled?pulse:'none'} 1.5s infinite;opacity:${p=>p.disabled?.7:1};
   &:hover{transform:${p=>p.disabled?'none':'scale(1.05)'};box-shadow:${p=>p.disabled?'none':'0 4px 12px rgba(122,194,221,.4)'}}
   &:active{transform:${p=>p.disabled?'none':'scale(.95)'}}
 `;
@@ -143,7 +122,6 @@ const WelcomeAnimation = styled.div`
   position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.9);
   display:flex;justify-content:center;align-items:center;font-size:80px;font-weight:bold;color:#2b3993;z-index:200;
   opacity:${p=>p.visible?1:0};visibility:${p=>p.visible?'visible':'hidden'};transition:.5s;
-  @media (max-width: 640px){ font-size: 56px; }
 `;
 const fadeInStagger = keyframes`from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}`;
 const IntroTextOverlay = styled.div`
@@ -151,31 +129,25 @@ const IntroTextOverlay = styled.div`
   background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(248,250,252,.95));backdrop-filter:blur(8px);
   display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding:200px 40px 40px;text-align:center;z-index:200;
   opacity:${p=>p.visible?1:0};visibility:${p=>p.visible?'visible':'hidden'};transition:opacity .6s cubic-bezier(.4,0,.2,1),visibility .6s;
-  @media (max-width: 640px){ padding: 140px 16px 24px; }
 `;
 const TipHeader = styled.h2`
   font-size:38px;font-weight:700;background:linear-gradient(45deg,#2e2f5e 30%,#5A8CF2 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px;animation:${fadeInStagger} .8s ease-out;
-  @media (max-width: 640px){ font-size: 28px; }
 `;
 const IntroContent = styled.div`
   max-width:680px;width:100%;padding:32px;background:rgba(255,255,255,.8);border-radius:20px;border:1px solid rgba(255,255,255,.3);
   box-shadow:0 8px 32px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.5);animation:${fadeInStagger} .8s ease-out .4s both;
 `;
-const IntroText = styled.p`font-size:clamp(16px, 2.2vw, 23px);color:#4a5568;line-height:1.8;margin:0;font-weight:400;`;
+const IntroText = styled.p`font-size:23px;color:#4a5568;line-height:1.8;margin:0;font-weight:400;`;
 const HighlightText = styled.span`
   color:#2e2f5e;font-weight:600;position:relative;
   &::before{content:'';position:absolute;bottom:2px;left:0;right:0;height:2px;background:linear-gradient(90deg,#7AC2DD,#5A8CF2);opacity:.3;border-radius:1px;}
 `;
 const Disclaimer = styled.div`
   position:fixed;bottom:4px;left:${p=>p.isVideoMode?'70%':'50%'};transform:translateX(-50%);width:90%;max-width:1440px;font-size:12px;color:#666;text-align:center;padding:4px 8px;z-index:100;transition:left .3s ease;
-  @media (max-width: 1024px){ left: 50%; }
 `;
 const FallbackImage = styled.img`position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;border-radius:20px;transition:opacity 1.2s;opacity:${p=>p.visible?1:0};`;
-const DemoContainer = styled.div`
-  position:relative;width:105%;height:91vh;max-height:90vh;
-  @media (max-width: 1024px){ width: 100%; height: 45vh; max-height: 45vh; }
-`;
+const DemoContainer = styled.div`position:relative;width:105%;height:91vh;max-height:90vh;`;
 
 /* ================= Bot 動態映射 ================= */
 const BOT_MAP = {
@@ -237,39 +209,45 @@ export default function MoodInput() {
   const selectedBotImage = localStorage.getItem("selectedBotImage") || botTemp;
   const nickname = (JSON.parse(localStorage.getItem("user")||"{}").nickname) || "你";
 
-  // 統一呼叫後端（沿用）
-  const API_BASE =
-    (import.meta?.env?.VITE_API_BASE) ||
-    (process.env.REACT_APP_API_BASE) ||
-    ""; // 若留空就走同網域相對路徑
+  
+  // ========== 小API：統一呼叫後端 ==========
+// 只貼 apiSend；把你的原本函式用這段覆蓋即可
+const API_BASE =
+  (import.meta?.env?.VITE_API_BASE) ||
+  (process.env.REACT_APP_API_BASE) ||
+  ""; // 若留空就走同網域相對路徑
 
-  const apiSend = async ({ botType, mode, message, history, demo = false }) => {
-    const userObj = JSON.parse(localStorage.getItem("user") || "{}");
-    const userId = userObj?.id ?? 0;
-    const url = `${API_BASE}/api/chat/send`.replace(/\/{2,}/g, "/").replace(":/", "://");
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-User-Id": String(userId),
-          ...(localStorage.getItem("token")
-            ? { Authorization: `Bearer ${localStorage.getItem("token")}` }
-            : {}),
-        },
-        credentials: "include",
-        body: JSON.stringify({ bot_type: botType, mode, message, history, demo }),
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`HTTP ${res.status} ${text.slice(0, 120)}`);
-      }
-      return await res.json();
-    } catch (e) {
-      console.warn("apiSend failed:", e);
-      return { ok: false, error: String(e) };
+const apiSend = async ({ botType, mode, message, history, demo = false }) => {
+  const userObj = JSON.parse(localStorage.getItem("user") || "{}");
+  const userId = userObj?.id ?? 0;
+
+  const url = `${API_BASE}/api/chat/send`.replace(/\/{2,}/g, "/").replace(":/", "://"); // 防雙斜線
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-User-Id": String(userId),               // ✅ 正確放在 headers
+        ...(localStorage.getItem("token")
+          ? { Authorization: `Bearer ${localStorage.getItem("token")}` } // 若你有存 token，一起帶上
+          : {}),
+      },
+      credentials: "include",
+      body: JSON.stringify({ bot_type: botType, mode, message, history, demo }),
+    });
+
+    if (!res.ok) {
+      // 405 代表後端沒有 POST 路由或方法不符，現在換了 main.py 就會正常
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status} ${text.slice(0, 120)}`);
     }
-  };
+    return await res.json();
+  } catch (e) {
+    console.warn("apiSend failed:", e);
+    return { ok: false, error: String(e) };
+  }
+};
 
   // 進場動畫
   useEffect(() => {
@@ -294,6 +272,7 @@ export default function MoodInput() {
     }
   }, [playIntroVideo]);
 
+  // 狀態提示
   const showStatus = (message, duration = 3000) => {
     setStatusMessage(message);
     setTimeout(() => setStatusMessage(null), duration);
@@ -305,6 +284,7 @@ export default function MoodInput() {
     setMessages([first]);
     setChatStarted(true);
     if (mode === "video") setPlayIntroVideo(true);
+    // 後端落庫（demo: 單純log）
     await apiSend({ botType: selectedBotType, mode, message: first.content, history: [{role:"assistant",content:first.content}], demo: true });
   };
 
@@ -320,11 +300,15 @@ export default function MoodInput() {
   }, [chatStarted]); // eslint-disable-line
 
   const handleSend = async () => {
+    // 空字串 or 正在錄音時避免送出
     if (!inputValue.trim() && !isRecording) return;
+
+    // 若還沒開始聊天：先啟動開場
     if (!chatStarted) { await startConversation(); return; }
 
     const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 
+    // === 使用者訊息先入列 ===
     let userMsgText = inputValue;
     if (isRecording) userMsgText = "[語音訊息]";
     setMessages(prev => [...prev, { sender: "user", content: userMsgText, timestamp: now }]);
@@ -333,16 +317,20 @@ export default function MoodInput() {
     setIsTyping(true);
     if (isRecording) setIsRecording(false);
 
+    // 準備歷史（轉 API 角色）
     const history = [...messages, { sender: "user", content: userMsgText, timestamp: now }].map(m => ({
       role: m.sender === "user" ? "user" : "assistant",
       content: m.content
     }));
 
     try {
+      // === 呼叫新的 chat API ===
       const result = await sendChatMessage(userMsgText, selectedBotType, mode, history);
+      
       if (result?.ok && result.reply) {
         const replyTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
         setMessages(prev => [...prev, { sender: "ai", content: result.reply, timestamp: replyTime }]);
+        
         if (mode === "video") {
           setIsSecondVideo(true);
           setPlayIntroVideo(true);
@@ -352,6 +340,7 @@ export default function MoodInput() {
       }
     } catch (error) {
       console.error("Chat API failed:", error);
+      // Fallback 回覆
       const replyTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
       const fallbackReply = mode === "video"
         ? "我在這裡，先一起做個小小的深呼吸。想和我說說剛剛最在意的一件事嗎？"
@@ -363,6 +352,7 @@ export default function MoodInput() {
     setInputDisabled(false);
   };
 
+  // 語音按鈕
   const handleVoiceButton = () => {
     if (inputDisabled) return;
     if (isRecording) {
@@ -422,15 +412,11 @@ export default function MoodInput() {
       <Layout>
         {mode === "video" && (
           <VideoColumn show={true}>
-            <div style={{position:"relative", paddingTop:"56.25%"}}>
+            <DemoContainer>
               <FallbackImage src={selectedBotImage} visible={!playIntroVideo} />
-              <DemoVideo
-                ref={videoRef}
-                src={isSecondVideo ? secondVideo : introVideo}
-                visible={playIntroVideo}
-                onEnded={() => { setPlayIntroVideo(false); try{ videoRef.current.pause(); }catch{} }}
-              />
-            </div>
+              <DemoVideo ref={videoRef} src={isSecondVideo ? secondVideo : introVideo} visible={playIntroVideo}
+                onEnded={() => { setPlayIntroVideo(false); try{ videoRef.current.pause(); }catch{} }} />
+            </DemoContainer>
           </VideoColumn>
         )}
 

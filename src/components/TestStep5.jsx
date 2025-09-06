@@ -7,58 +7,100 @@ import StepIndicator from "./StepIndicator";
 import logoIcon from "../assets/logofig.png";
 import { saveAssessment } from "../api/client";
 
-const fadeInUp = keyframes`from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}`;
+// 動畫 & 樣式（保持原樣）
+const fadeInUp = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
 
 const Container = styled.div`
-  width: 100%;
-  min-height: 100dvh;
+  width: 100vw;
+  min-height: 100vh;
   background: #e8e8e8;
   font-family: "Noto Sans TC", sans-serif;
-  overflow-x: hidden;
+  padding-top: 10px;
 `;
 
 const Header = styled.header`
-  width: 100%; height: 70px; background: white;
-  display:flex; justify-content:space-between; align-items:center;
-  padding: 0 30px; position: fixed; top:0; left:0; z-index:10; box-shadow:0 2px 10px rgba(0,0,0,.1);
-  @media (max-width:1024px){ height:64px; padding:0 16px; }
+  width: 100%;
+  height: 70px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 `;
 
 const Logo = styled.div`
-  font-size:35px; font-weight:bold; color:#2b3993; display:flex; align-items:center; cursor:pointer; transition:.3s;
-  img{ height:68px; margin-right:8px; }
-  &:hover{ transform: scale(1.05); }
-  @media (max-width:480px){ font-size:28px; img{ height:54px; } }
+  font-size: 35px;
+  font-weight: bold;
+  color: #2b3993;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  &:hover { transform: scale(1.05); }
 `;
 
 const Nav = styled.nav`
-  display:flex; gap:40px; font-size:26px; font-weight:bold; color:black;
-  div{ cursor:pointer; transition:.2s; &:hover{ color:#2b3993; transform: translateY(-2px); } &:active{ transform: translateY(1px); } }
-  @media (max-width:1024px){ gap:20px; font-size:18px; }
-  @media (max-width:640px){ display:none; }
+  display: flex;
+  gap: 40px;
+  font-size: 26px;
+  font-weight: bold;
+  color: black;
+  div {
+    cursor: pointer;
+    transition: color 0.3s ease, transform 0.2s ease;
+    &:hover { color: #2b3993; transform: translateY(-2px); }
+    &:active { transform: translateY(1px); }
+  }
 `;
 
-const AvatarImg = styled.img` width:50px; height:50px; border-radius:50%; object-fit:cover; transition:.3s; &:hover{ transform:scale(1.1) }`;
-const RightSection = styled.div` display:flex; align-items:center; gap:30px; margin-left:auto; margin-right:16px; @media (max-width:1024px){ gap:16px; }`;
-
-const StepIndicatorWrapper = styled.div` margin-top: 100px; `;
-
-const Main = styled.main`
-  max-width: 960px; width: 92%; margin: 24px auto 40px;
-  background:white; border-radius:24px; text-align:center; padding: clamp(20px, 3vw, 48px);
-  animation:${fadeInUp} .8s ease;
-  box-shadow: 0 8px 24px rgba(0,0,0,.06);
+const AvatarImg = styled.img`
+  width: 50px; height: 50px; border-radius: 50%;
+  object-fit: cover; cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  &:hover { transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 `;
 
-const BigTitle = styled.h2` font-size: clamp(22px, 3.2vw, 36px); font-weight: 900; color:#333; margin-bottom: 10px; `;
-const Paragraph = styled.p` white-space: pre-line; font-size: clamp(14px, 2.1vw, 18px); color:#444; line-height: 1.9; margin: 12px 0 22px; `;
+const RightSection = styled.div`
+  display: flex; align-items: center; gap: 30px; margin-left: auto; margin-right: 40px;
+`;
 
-const ButtonGroup = styled.div` display:flex; justify-content:center; gap:16px; flex-wrap:wrap; `;
+const StepIndicatorWrapper = styled.div` margin-top: 120px; `;
+
+const Main = styled.div`
+  max-width: 960px; margin: 40px auto; padding: 60px;
+  background: white; border-radius: 24px; text-align: center;
+  animation: ${fadeInUp} 0.8s ease-out;
+`;
+
+const BigTitle = styled.h2` font-size: 32px; font-weight: bold; margin-bottom: 40px; `;
+
+const Paragraph = styled.p`
+  font-size: 20px; line-height: 1.8; color: #333; margin-bottom: 48px; white-space: pre-line;
+`;
+
+const ButtonGroup = styled.div` display: flex; justify-content: center; gap: 40px; margin-bottom: 24px; `;
+
 const Button = styled.button`
-  min-width: 180px; padding: 12px 24px; font-size: 18px; font-weight: 800; border-radius: 999px; border: 3px solid #f5fbf2;
-  background: rgba(30,31,19,.85); color:white; cursor: pointer; transition:.2s;
-  &:hover{ transform: scale(1.05); } &:active{ transform: scale(.96); }
-  @media (max-width: 480px){ width: 100%; }
+  font-size: 20px; padding: 14px 36px;
+  border: 3px solid #3f3e66; border-radius: 999px;
+  background-color: rgba(30,31,19,0.8); color: white;
+  cursor: pointer; transition: all 0.3s ease;
+  &:hover { transform: scale(1.05); }
+  &:active { transform: scale(0.95); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+`;
+
+const DebugButton = styled(Button)`
+  display: none;
+  background-color: #999; border-color: #777;
 `;
 
 export default function TestStep5() {
@@ -66,36 +108,82 @@ export default function TestStep5() {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 原有彙總/整理程式（略）— 保持你的既有邏輯
   useEffect(() => {
+    // 檢查並整理用戶填寫的資料
+    const rawMBTI = localStorage.getItem("step1MBTI") || "";
+    let mbtiArr;
     try {
-      const rawMBTI = localStorage.getItem("step1MBTI") || "";
-      let mbtiArr;
-      try {
-        mbtiArr = JSON.parse(rawMBTI);
-        if (!Array.isArray(mbtiArr) || mbtiArr.length !== 4) throw new Error();
-      } catch {
-        mbtiArr = rawMBTI.toUpperCase().split("").map(c => (c==="E"||c==="N"||c==="T"||c==="P" ? 1 : 0));
-      }
-      setUserProfile({ mbtiArr });
-    } catch {}
+      mbtiArr = JSON.parse(rawMBTI);
+      if (!Array.isArray(mbtiArr) || mbtiArr.length !== 4) throw new Error();
+    } catch {
+      mbtiArr = rawMBTI
+        .toUpperCase()
+        .split("")
+        .map(c => (c==="E"||c==="N"||c==="T"||c==="P" ? 1 : 0));
+    }
+    const aas  = JSON.parse(localStorage.getItem("step2Answers") || "[]");
+    const ders = JSON.parse(localStorage.getItem("step3Answers") || "[]");
+    const bpns = JSON.parse(localStorage.getItem("step4Answers") || "[]");
+    
+    console.log("User profile data:", { mbti: mbtiArr, aas, ders, bpns });
+    setUserProfile({ mbti: mbtiArr, aas, ders, bpns });
   }, []);
 
+  // Step5 的「開始媒合」→ 確保所有資料都已儲存到後端，然後導向 Loading 頁
   const goMatch = async () => {
+    if (!userProfile) {
+      alert("測驗資料不完整，請重新填寫測驗");
+      navigate("/test/step1");
+      return;
+    }
+
     setLoading(true);
     try {
-      await saveAssessment({ step5Confirm: true, at: new Date().toISOString() });
+      // 最後確保所有資料都保存到後端
+      const finalData = {
+        mbti_raw: userProfile.mbti.map((v, i) => 
+          v === 1 ? ["E", "N", "T", "P"][i] : ["I", "S", "F", "J"][i]
+        ).join(""),
+        mbti_encoded: userProfile.mbti,
+        step2Answers: userProfile.aas,
+        step3Answers: userProfile.ders,
+        step4Answers: userProfile.bpns,
+        submittedAt: new Date().toISOString()
+      };
+
+      console.log("Saving final assessment data:", finalData);
+      await saveAssessment(finalData);
+      
+      // 導向匹配頁面
       navigate("/matching");
     } catch (e) {
-      console.error("confirm failed:", e);
-      navigate("/matching");
-    } finally { setLoading(false); }
+      console.error("Save final assessment failed:", e);
+      alert(`保存測驗資料失敗：${e.message || "請稍後重試"}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const exportToCSV = () => {
+    if (!userProfile) return;
+    const { mbti, aas, ders, bpns } = userProfile;
+    const headers = ["MBTI"], vals = [mbti.join("")];
+    (aas||[]).forEach((v,i)=>{ headers.push(`AAS_Q${i+1}`); vals.push(v); });
+    (ders||[]).forEach((v,i)=>{ headers.push(`DERS_Q${i+1}`); vals.push(v); });
+    (bpns||[]).forEach((v,i)=>{ headers.push(`BPNS_Q${i+1}`); vals.push(v); });
+    const csv = [headers.join(","), vals.join(",")].join("\n");
+    const blob= new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download="answers.csv"; a.click();
   };
 
   return (
     <Container>
       <Header>
-        <Logo onClick={() => navigate("/Home")}><img src={logoIcon} alt="logo" />Emobot+</Logo>
+        <Logo onClick={() => navigate("/Home")}>
+          <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
+          Emobot+
+        </Logo>
         <RightSection>
           <Nav>
             <div onClick={()=>navigate("/Home")}>主頁</div>
@@ -106,15 +194,26 @@ export default function TestStep5() {
         </RightSection>
       </Header>
 
-      <StepIndicatorWrapper><StepIndicator currentStep={5} /></StepIndicatorWrapper>
+      <StepIndicatorWrapper>
+        <StepIndicator currentStep={5} />
+      </StepIndicatorWrapper>
 
       <Main>
-        <BigTitle>謝謝你走過這段小小的探索旅程</BigTitle>
-        <Paragraph>{`我們已收到你的回覆，這些資料將幫助我們更了解你的心理特質與互動風格。\n接下來，我們會根據你的回覆，提供你與四位 AI 夥伴的適合程度。\n你可以挑選一位開始旅程，也能再度重新測驗。`}</Paragraph>
+        <BigTitle>謝謝你走過這段小小的探索旅程。</BigTitle>
+        <Paragraph>
+          我們已收到你的回覆，這些資料將幫助我們更了解你的心理特質與互動風格。
+          {"\n"}接下來，我們會根據你的回覆，提供你與四位AI夥伴的適合程度✨
+          {"\n"}你可以從中挑選一位開始旅程，也可以自由切換其他夥伴，或選擇重新測驗再次媒合。
+        </Paragraph>
+
         <ButtonGroup>
-          <Button onClick={() => navigate("/test/step4")} disabled={loading}>返回上一步</Button>
-          <Button onClick={goMatch} disabled={loading}>{loading ? "處理中..." : "開始媒合！"}</Button>
+          <Button onClick={() => navigate("/test/step4")}>返回上一步</Button>
+          <Button onClick={goMatch} disabled={loading}>
+            {loading ? "處理中..." : "開始媒合！"}
+          </Button>
         </ButtonGroup>
+
+        <DebugButton onClick={exportToCSV}>匯出填答資料 CSV（Debug）</DebugButton>
       </Main>
     </Container>
   );
