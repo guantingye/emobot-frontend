@@ -148,9 +148,6 @@ const Pill = styled.button`
   &:hover { transform: translateY(-1px); }
   &:active { transform: translateY(0); }
   @media (max-width: 640px) { width: 100%; }
-  justify-self: center;              /* 水平置中到各自的 grid 欄位 */
-  display: flex;                     /* 讓字母在按鈕內也正中 */
-  align-items: center; justify-content: center;
 `;
 
 const Hint = styled.p` font-size: 16px; color: #777; margin-top: 8px; margin-bottom: 24px; `;
