@@ -32,6 +32,11 @@ const Header = styled.header`
   top: 0;
   z-index: 10;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    height: 60px;
+    padding: 0 15px;
+  }
 `;
 
 const Logo = styled.div`
@@ -40,6 +45,15 @@ const Logo = styled.div`
   color: #2b3993;
   display: flex;
   align-items: center;
+
+  @media (max-width: 768px) {
+    font-size: 24px;
+    
+    img {
+      height: 45px !important;
+      margin-right: 4px !important;
+    }
+  }
 `;
 
 const Nav = styled.nav`
@@ -55,6 +69,30 @@ const Nav = styled.nav`
       color: #2b3993;
     }
   }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+const MobileNav = styled.nav`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    
+    div {
+      cursor: pointer;
+      transition: color 0.3s ease;
+      &:hover {
+        color: #2b3993;
+      }
+    }
+  }
 `;
 
 const AvatarImg = styled.img`
@@ -65,6 +103,11 @@ const AvatarImg = styled.img`
   &:hover {
     transform: scale(1.1);
   }
+
+  @media (max-width: 768px) {
+    width: 40px;
+    height: 40px;
+  }
 `;
 
 const RightSection = styled.div`
@@ -72,6 +115,11 @@ const RightSection = styled.div`
   align-items: center;
   gap: 30px;
   margin-right: 40px;
+
+  @media (max-width: 768px) {
+    gap: 15px;
+    margin-right: 0;
+  }
 `;
 
 const HeroSection = styled.section`
@@ -119,6 +167,13 @@ const HeroSection = styled.section`
     );
     pointer-events: none;
   }
+
+  @media (max-width: 768px) {
+    padding: 120px 20px 0 20px;
+    justify-content: center;
+    text-align: center;
+    gap: 20px;
+  }
 `;
 
 const Title = styled.h1`
@@ -130,6 +185,15 @@ const Title = styled.h1`
   z-index: 1;
   text-shadow: 0 4px 20px rgba(58, 72, 114, 0.2);
   letter-spacing: -2px;
+
+  @media (max-width: 768px) {
+    font-size: 48px;
+    letter-spacing: -1px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 36px;
+  }
 `;
 
 const Subtitle = styled.p`
@@ -144,6 +208,12 @@ const Subtitle = styled.p`
   position: relative;
   z-index: 1;
   text-shadow: 0 2px 10px rgba(90, 108, 125, 0.15);
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+    margin-top: -20px;
+    white-space: normal;
+  }
 `;
 
 const StartButton = styled.button`
@@ -203,6 +273,12 @@ const StartButton = styled.button`
     transform: translateY(-1px) scale(1.01);
     transition: all 0.1s ease;
   }
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+    padding: 16px 32px;
+    margin: 20px auto 0;
+  }
 `;
 
 const HeroContent = styled.div`
@@ -212,6 +288,12 @@ const HeroContent = styled.div`
   position: relative;
   z-index: 1;
   max-width: 800px;
+
+  @media (max-width: 768px) {
+    align-items: center;
+    text-align: center;
+    max-width: 100%;
+  }
 `;
 
 const HeroHighlight = styled.span`
@@ -237,6 +319,11 @@ const ButtonGroup = styled.div`
   gap: 20px;
   margin-top: 20px;
   align-items: center;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 15px;
+  }
 `;
 
 const SecondaryButton = styled.button`
@@ -265,6 +352,12 @@ const SecondaryButton = styled.button`
       0 8px 24px rgba(103, 126, 234, 0.25),
       0 4px 12px rgba(0, 0, 0, 0.1);
   }
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+    padding: 12px 24px;
+    width: fit-content;
+  }
 `;
 
 const FeatureBadge = styled.div`
@@ -290,9 +383,14 @@ const FeatureBadge = styled.div`
     content: '✨';
     font-size: 18px;
   }
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    padding: 10px 16px;
+  }
 `;
 
-// ===== 優化後的機器人卡片區塊樣式 =====
+// ===== 優化後的機器人卡片區域樣式 =====
 const CardSection = styled.section`
   padding: 120px 80px 80px 80px;
   background: linear-gradient(135deg, #f8fbff 0%, #e8f4fd 50%, #f0f8ff 100%);
@@ -327,6 +425,10 @@ const CardSection = styled.section`
     );
     pointer-events: none;
   }
+
+  @media (max-width: 768px) {
+    padding: 80px 20px 60px 20px;
+  }
 `;
 
 const SectionTitle = styled.h2`
@@ -337,6 +439,11 @@ const SectionTitle = styled.h2`
   color: #2c3e50;
   position: relative;
   z-index: 1;
+
+  @media (max-width: 768px) {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
 `;
 
 const SectionSubtitle = styled.p`
@@ -348,6 +455,12 @@ const SectionSubtitle = styled.p`
   letter-spacing: 0.5px;
   z-index: 1;
   position: relative;
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+    margin-bottom: 40px;
+    padding: 0 10px;
+  }
 `;
 
 const ScrollWrapper = styled.div`
@@ -363,6 +476,11 @@ const ScrollWrapper = styled.div`
   }
   
   scroll-behavior: smooth;
+
+  @media (max-width: 768px) {
+    margin: 0 -20px;
+    padding: 0 20px;
+  }
 `;
 
 const ScrollContainer = styled.div`
@@ -370,6 +488,11 @@ const ScrollContainer = styled.div`
   gap: 40px;
   padding: 40px 20px;
   scroll-snap-type: x mandatory;
+
+  @media (max-width: 768px) {
+    gap: 20px;
+    padding: 20px 10px;
+  }
 `;
 
 const ScrollCard = styled.div`
@@ -444,6 +567,15 @@ const ScrollCard = styled.div`
       background: linear-gradient(135deg, rgba(167, 243, 208, 0.12) 0%, rgba(255, 255, 255, 0.98) 100%);
     }
   }
+
+  @media (max-width: 768px) {
+    flex: 0 0 280px;
+    padding: 24px 16px;
+    
+    &:hover {
+      transform: translateY(-8px) scale(1.02);
+    }
+  }
 `;
 
 const CardImageContainer = styled.div`
@@ -455,7 +587,7 @@ const CardImageContainer = styled.div`
 
 const BotName = styled.div`
   display: inline-block;
-  margin: -10px auto 12px; /* 貼近頭像、維持原版式 */
+  margin: -10px auto 12px;
   padding: 6px 12px;
   font-size: 14px;
   font-weight: 700;
@@ -465,6 +597,11 @@ const BotName = styled.div`
   border: 1px solid rgba(102, 126, 234, 0.25);
   border-radius: 999px;
   backdrop-filter: blur(8px);
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
 `;
 
 const CardImg = styled.img`
@@ -482,6 +619,11 @@ const CardImg = styled.img`
     box-shadow: 
       0 12px 32px rgba(0, 0, 0, 0.2),
       0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  @media (max-width: 768px) {
+    width: 120px;
+    height: 140px;
   }
 `;
 
@@ -505,10 +647,19 @@ const CardTitle = styled.h3`
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 1px;
   }
+
+  @media (max-width: 768px) {
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
 `;
 
 const CardFeature = styled.div`
   margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 16px;
+  }
 `;
 
 const FeatureLabel = styled.div`
@@ -518,6 +669,11 @@ const FeatureLabel = styled.div`
   margin-bottom: 8px;
   font-family: "Noto Sans TC", sans-serif;
   letter-spacing: 0.5px;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
 `;
 
 const FeatureText = styled.p`
@@ -528,6 +684,11 @@ const FeatureText = styled.p`
   font-weight: 400;
   white-space: pre-line;
   letter-spacing: 0.3px;
+
+  @media (max-width: 768px) {
+    font-size: 13px;
+    line-height: 1.5;
+  }
 `;
 
 const CardDivider = styled.div`
@@ -535,6 +696,10 @@ const CardDivider = styled.div`
   height: 1px;
   background: linear-gradient(to right, transparent, #e2e8f0, transparent);
   margin: 20px auto;
+
+  @media (max-width: 768px) {
+    margin: 16px auto;
+  }
 `;
 
 const CarouselControls = styled.div`
@@ -544,6 +709,11 @@ const CarouselControls = styled.div`
   gap: 20px;
   position: relative;
   z-index: 1;
+
+  @media (max-width: 768px) {
+    margin-top: 32px;
+    gap: 15px;
+  }
 `;
 
 const CarouselButton = styled.button`
@@ -577,6 +747,12 @@ const CarouselButton = styled.button`
   
   &:active {
     transform: scale(1.05) translateY(-1px);
+  }
+
+  @media (max-width: 768px) {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
   }
 `;
 
@@ -616,6 +792,10 @@ const ServiceIntroSection = styled.section`
       radial-gradient(circle at 85% 80%, rgba(118, 75, 162, 0.04) 0%, transparent 50%);
     pointer-events: none;
   }
+
+  @media (max-width: 768px) {
+    padding: 60px 20px 80px 20px;
+  }
 `;
 
 const ServiceSectionTitle = styled.h2`
@@ -626,6 +806,11 @@ const ServiceSectionTitle = styled.h2`
   color: #2c3e50;
   position: relative;
   z-index: 1;
+
+  @media (max-width: 768px) {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
 `;
 
 const ServiceSubtitle = styled.p`
@@ -640,6 +825,12 @@ const ServiceSubtitle = styled.p`
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+    margin-bottom: 40px;
+    padding: 0 10px;
+  }
 `;
 
 const TimelineContainer = styled.div`
@@ -647,6 +838,12 @@ const TimelineContainer = styled.div`
   max-width: 1000px;
   margin: 60px auto;
   padding: 20px 0;
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    margin: 40px auto;
+    padding: 20px 10px;
+  }
 `;
 
 const TimelineCenterLine = styled.div`
@@ -694,6 +891,11 @@ const TimelineCenterLine = styled.div`
       0 0 0 4px rgba(155, 181, 227, 0.2),
       0 0 0 8px rgba(155, 181, 227, 0.1);
   }
+
+  @media (max-width: 768px) {
+    left: 30px;
+    margin-left: 0;
+  }
 `;
 
 const TimelineItem = styled.div`
@@ -717,6 +919,25 @@ const TimelineItem = styled.div`
   
   &:last-child {
     margin-bottom: 0;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 15px 15px 15px 70px;
+    text-align: left;
+    left: 0 !important;
+    
+    &:nth-child(odd) {
+      padding: 15px 15px 15px 70px;
+      text-align: left;
+    }
+    
+    &:nth-child(even) {
+      left: 0;
+      padding: 15px 15px 15px 70px;
+    }
+    
+    margin-bottom: 40px;
   }
 `;
 
@@ -754,6 +975,14 @@ const TimelineNumber = styled.div`
       0 0 0 12px rgba(103, 126, 234, 0.2),
       0 12px 35px rgba(103, 126, 234, 0.35);
   }
+
+  @media (max-width: 768px) {
+    left: 5px !important;
+    right: auto !important;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
 `;
 
 const TimelineContent = styled.div`
@@ -770,7 +999,6 @@ const TimelineContent = styled.div`
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.4);
   
-  // 新增：讓內容都置中對齊
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -800,7 +1028,6 @@ const TimelineContent = styled.div`
     }
   }
   
-  /* 不同步驟的背景色 */
   ${TimelineItem}:nth-child(1) & {
     background: linear-gradient(135deg, rgba(255, 182, 193, 0.06) 0%, rgba(255, 255, 255, 0.95) 100%);
   }
@@ -816,6 +1043,10 @@ const TimelineContent = styled.div`
   ${TimelineItem}:nth-child(4) & {
     background: linear-gradient(135deg, rgba(167, 243, 208, 0.06) 0%, rgba(255, 255, 255, 0.95) 100%);
   }
+
+  @media (max-width: 768px) {
+    padding: 25px 20px;
+  }
 `;
 
 const TimelineTitle = styled.h3`
@@ -828,10 +1059,14 @@ const TimelineTitle = styled.h3`
   font-family: "Noto Sans TC", "PingFang TC", sans-serif;
   letter-spacing: 0.5px;
   gap: 16px;
-  
-  // 移除原本的左右對齊，改為全部置中
   justify-content: center;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
 `;
 
 const TimelineText = styled.p`
@@ -842,9 +1077,12 @@ const TimelineText = styled.p`
   font-family: "Noto Sans TC", sans-serif;
   font-weight: 400;
   letter-spacing: 0.3px;
-  
-  // 移除原本的左右對齊，改為置中
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    line-height: 1.6;
+  }
 `;
 
 const TimelineIcon = styled.div`
@@ -856,12 +1094,10 @@ const TimelineIcon = styled.div`
   border-radius: 12px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  // 移除左右邊距，因為現在都置中了
   margin: 0;
   box-shadow: 0 4px 12px rgba(103, 126, 234, 0.3);
   transition: all 0.3s ease;
   
-  /* 確保圖標完全置中 */
   svg {
     display: block;
     width: 24px;
@@ -872,6 +1108,16 @@ const TimelineIcon = styled.div`
     transform: scale(1.1);
     box-shadow: 0 6px 16px rgba(103, 126, 234, 0.4);
   }
+
+  @media (max-width: 768px) {
+    width: 32px;
+    height: 32px;
+    
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
 `;
 
 const AboutSection = styled.section`
@@ -880,16 +1126,31 @@ const AboutSection = styled.section`
   display: flex;
   align-items: center;
   gap: 80px;
+
+  @media (max-width: 768px) {
+    padding: 60px 20px;
+    flex-direction: column;
+    gap: 40px;
+  }
 `;
 
 const AboutImage = styled.img`
   width: 550px;
   border-radius: 24px;
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 400px;
+  }
 `;
 
 const AboutContent = styled.div`
   flex: 1;
+
+  @media (max-width: 768px) {
+    text-align: center;
+  }
 `;
 
 const AboutTitle = styled.h2`
@@ -897,7 +1158,11 @@ const AboutTitle = styled.h2`
   font-weight: 700;
   color: #000;
   margin-bottom: 24px;
-  
+
+  @media (max-width: 768px) {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
 `;
 
 const AboutText = styled.p`
@@ -905,10 +1170,12 @@ const AboutText = styled.p`
   color: #333;
   line-height: 2;
   white-space: pre-line;
-  
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+    line-height: 1.7;
+  }
 `;
-
-
 
 const Footer = styled.footer`
   background: #c2c2c2;
@@ -917,6 +1184,14 @@ const Footer = styled.footer`
   display: flex;
   justify-content: space-between;
   font-size: 18px;
+
+  @media (max-width: 768px) {
+    padding: 15px 20px;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+    font-size: 14px;
+  }
 `;
 
 const FooterLinks = styled.div`
@@ -928,6 +1203,11 @@ const FooterLinks = styled.div`
     &:hover {
       opacity: 0.8;
     }
+  }
+
+  @media (max-width: 768px) {
+    gap: 20px;
+    justify-content: center;
   }
 `;
 
@@ -968,12 +1248,10 @@ export default function Home() {
     }
   ];
   
-  // 單個卡片的寬度（包含外邊距）
   const cardWidth = 340;
   const cardGap = 40;
   const cardFullWidth = cardWidth + cardGap;
   
-  // 服務流程步驟資料
   const serviceSteps = [
     {
       title: "為你找到最懂你的AI夥伴",
@@ -1010,7 +1288,6 @@ export default function Home() {
     const targetId = toRobots ? "robot-section" : toAbout ? "about-section" : null;
     if (!targetId) return;
   
-    // 等下一次/下下一次 paint，避免 AOS/圖片造成 reflow 抵銷捲動
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         document.getElementById(targetId)
@@ -1019,7 +1296,6 @@ export default function Home() {
     });
   }, [location]);
 
-  // 滾動到下一個或上一個卡片
   const scrollToCard = (direction) => {
     const ref = scrollRef.current;
     if (!ref) return;
@@ -1063,7 +1339,7 @@ export default function Home() {
           <Title data-aos="fade-up">Emobot+</Title>
           <Subtitle data-aos="fade-up" data-aos-delay="200">
             讓情緒被聽見，{"\n"}
-            讓支持更靠近。
+            讓支持更貼近。
           </Subtitle>
           
           <ButtonGroup data-aos="fade-up" data-aos-delay="400">
