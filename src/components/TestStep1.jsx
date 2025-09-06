@@ -269,30 +269,30 @@ export default function TestStep1() {
 
             <Grid>
               <PairSelector
-                title="外向 vs 內向"
-                left={{ letter: "E", desc: "外向 Extraversion" }}
-                right={{ letter: "I", desc: "內向 Introversion" }}
+                
+                left={{ letter: "E", desc: " Extraversion" }}
+                right={{ letter: "I", desc: " Introversion" }}
                 value={EorI}
                 onChange={setEorI}
               />
               <PairSelector
-                title="直覺 vs 實感"
-                left={{ letter: "N", desc: "直覺 iNtuition" }}
-                right={{ letter: "S", desc: "實感 Sensing" }}
+          
+                left={{ letter: "N", desc: " iNtuition" }}
+                right={{ letter: "S", desc: " Sensing" }}
                 value={NorS}
                 onChange={setNorS}
               />
               <PairSelector
-                title="思考 vs 情感"
-                left={{ letter: "T", desc: "思考 Thinking" }}
-                right={{ letter: "F", desc: "情感 Feeling" }}
+                
+                left={{ letter: "T", desc: " Thinking" }}
+                right={{ letter: "F", desc: " Feeling" }}
                 value={TorF}
                 onChange={setTorF}
               />
               <PairSelector
-                title="知覺 vs 判斷"
-                left={{ letter: "P", desc: "知覺 Perceiving" }}
-                right={{ letter: "J", desc: "判斷 Judging" }}
+                
+                left={{ letter: "P", desc: " Perceiving" }}
+                right={{ letter: "J", desc: " Judging" }}
                 value={PorJ}
                 onChange={setPorJ}
               />
