@@ -10,16 +10,17 @@ import userIcon from "../assets/profile.png";
 import logoIcon from "../assets/logofig.png";
 import { apiMe } from "../api/client";
 
-/* =========================
-   原有樣式（保持不變或僅微調）
-   ========================= */
-
 const Container = styled.div`
   width: 100%;
   min-height: 100dvh;
   background: #f1f1f1;
   font-family: "Noto Sans TC", sans-serif;
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
 `;
 
 const Header = styled.header`
@@ -35,6 +36,11 @@ const Header = styled.header`
   left: 0;
   z-index: 10;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    height: 60px;
+    padding: 0 15px;
+  }
 `;
 
 const Logo = styled.div`
@@ -49,6 +55,15 @@ const Logo = styled.div`
   &:hover {
     transform: scale(1.05);
   }
+
+  @media (max-width: 768px) {
+    font-size: 24px;
+    
+    img {
+      height: 45px !important;
+      margin-right: 4px !important;
+    }
+  }
 `;
 
 const RightSection = styled.div`
@@ -57,6 +72,11 @@ const RightSection = styled.div`
   gap: 30px;
   margin-left: auto;
   margin-right: 40px;
+
+  @media (max-width: 768px) {
+    gap: 15px;
+    margin-right: 0;
+  }
 `;
 
 const Nav = styled.nav`
@@ -79,6 +99,10 @@ const Nav = styled.nav`
       transform: translateY(1px);
     }
   }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const AvatarImg = styled.img`
@@ -93,6 +117,11 @@ const AvatarImg = styled.img`
     transform: scale(1.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
+  @media (max-width: 768px) {
+    width: 40px;
+    height: 40px;
+  }
 `;
 
 const MainContentWrapper = styled.div`
@@ -103,6 +132,15 @@ const MainContentWrapper = styled.div`
   justify-content: center;
   align-items: flex-start;
   padding: 12px;
+
+  @media (max-width: 768px) {
+    margin-top: 60px;
+    height: auto;
+    min-height: calc(100dvh - 60px);
+    overflow-y: auto;
+    padding: 20px 10px;
+    align-items: stretch;
+  }
 `;
 
 const ContentScaler = styled.div`
@@ -110,12 +148,23 @@ const ContentScaler = styled.div`
   width: 100%;
   max-width: 1200px;
   transform: ${({ $scale }) => `scale(${$scale})`};
+
+  @media (max-width: 768px) {
+    transform: none;
+    max-width: 100%;
+  }
 `;
 
 const UserInfo = styled.div`
   width: 80%;
   margin-bottom: 20px;
   transition: transform 0.5s ease;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 30px;
+  }
 `;
 
 const UserName = styled.p`
@@ -127,6 +176,15 @@ const UserName = styled.p`
   span {
     color: #2b3993;
   }
+
+  @media (max-width: 768px) {
+    font-size: 28px;
+    margin-bottom: 6px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 24px;
+  }
 `;
 
 const UserID = styled.p`
@@ -134,6 +192,14 @@ const UserID = styled.p`
   font-weight: bold;
   color: #666;
   opacity: 0.8;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 18px;
+  }
 `;
 
 const CardContainer = styled.div`
@@ -143,6 +209,12 @@ const CardContainer = styled.div`
   flex-wrap: wrap;
   width: 100%;
   margin-bottom: 16px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
+  }
 `;
 
 const ProfileCard = styled.div`
@@ -163,6 +235,24 @@ const ProfileCard = styled.div`
     transform: translateY(-10px);
     box-shadow: 0 15px 35px rgba(43, 57, 147, 0.15);
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 380px;
+    height: auto;
+    min-height: 500px;
+    padding: 24px;
+    
+    &:hover {
+      transform: translateY(-5px);
+    }
+  }
+
+  @media (max-width: 480px) {
+    max-width: 100%;
+    padding: 20px;
+    border-radius: 20px;
+  }
 `;
 
 const ProfileImage = styled.img`
@@ -178,6 +268,17 @@ const ProfileImage = styled.img`
     transform: scale(1.03);
     box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
   }
+
+  @media (max-width: 768px) {
+    width: 250px;
+    height: 250px;
+    margin-top: 10px;
+  }
+
+  @media (max-width: 480px) {
+    width: 200px;
+    height: 200px;
+  }
 `;
 
 const ProfileName = styled.div`
@@ -186,6 +287,16 @@ const ProfileName = styled.div`
   font-weight: bold;
   color: #333;
   transition: color 0.3s ease;
+
+  @media (max-width: 768px) {
+    margin-top: 30px;
+    font-size: 36px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 28px;
+    margin-top: 20px;
+  }
 `;
 
 const ProfileType = styled.div`
@@ -200,6 +311,16 @@ const ProfileType = styled.div`
   &:hover {
     background: rgba(43, 57, 147, 0.2);
     transform: scale(1.05);
+  }
+
+  @media (max-width: 768px) {
+    font-size: 28px;
+    padding: 6px 16px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 22px;
+    padding: 4px 12px;
   }
 `;
 
@@ -226,6 +347,11 @@ const FlipButton = styled.button`
   &:active {
     transform: translateY(0);
   }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
 `;
 
 const AICard = styled.div`
@@ -246,6 +372,24 @@ const AICard = styled.div`
     transform: translateY(-10px);
     box-shadow: 0 15px 35px rgba(43, 57, 147, 0.15);
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 380px;
+    height: auto;
+    min-height: 400px;
+    padding: 24px;
+    
+    &:hover {
+      transform: translateY(-5px);
+    }
+  }
+
+  @media (max-width: 480px) {
+    max-width: 100%;
+    padding: 20px;
+    border-radius: 20px;
+  }
 `;
 
 const AIDescription = styled.p`
@@ -259,6 +403,16 @@ const AIDescription = styled.p`
     color: #2b3993;
     position: relative;
   }
+
+  @media (max-width: 768px) {
+    font-size: 22px;
+    margin-bottom: 30px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
 `;
 
 const RadarImage = styled.img`
@@ -270,17 +424,32 @@ const RadarImage = styled.img`
   &:hover {
     transform: scale(1.03);
   }
+
+  @media (max-width: 768px) {
+    max-width: 300px;
+  }
+
+  @media (max-width: 480px) {
+    max-width: 250px;
+  }
 `;
 
-/* 右側直欄：包含白色卡片 + 其正下方按鈕 */
 const RightColumn = styled.div`
-  width: 591px;           /* 與 AICard 同寬，讓按鈕正好對齊卡片 */
+  width: 591px;
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 380px;
+  }
+
+  @media (max-width: 480px) {
+    max-width: 100%;
+  }
 `;
 
-/* 卡片正下方的按鈕列（不在卡片裡） */
 const ButtonsUnderCard = styled.div`
   width: 100%;
   display: flex;
@@ -288,6 +457,17 @@ const ButtonsUnderCard = styled.div`
   gap: 36px;
   flex-wrap: wrap;
   margin-top: 26px;
+
+  @media (max-width: 768px) {
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
 `;
 
 const ActionButton = styled.button`
@@ -313,6 +493,19 @@ const ActionButton = styled.button`
     transform: scale(0.96);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
+
+  @media (max-width: 768px) {
+    width: 200px;
+    height: 55px;
+    font-size: 22px;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    max-width: 280px;
+    height: 50px;
+    font-size: 20px;
+  }
 `;
 
 const ModalOverlay = styled.div`
@@ -329,10 +522,13 @@ const ModalOverlay = styled.div`
   opacity: ${(props) => (props.show ? 1 : 0)};
   visibility: ${(props) => (props.show ? "visible" : "hidden")};
   transition: all 0.3s ease;
+  padding: 20px;
+  box-sizing: border-box;
 `;
 
 const ModalContent = styled.div`
   width: 510px;
+  max-width: 100%;
   background: white;
   border-radius: 25px;
   padding: 40px;
@@ -340,6 +536,11 @@ const ModalContent = styled.div`
   text-align: center;
   transform: ${(props) => (props.show ? "scale(1)" : "scale(0.9)")};
   transition: all 0.3s ease;
+
+  @media (max-width: 480px) {
+    padding: 30px 20px;
+    border-radius: 20px;
+  }
 `;
 
 const ModalTitle = styled.h2`
@@ -348,6 +549,11 @@ const ModalTitle = styled.h2`
   color: #333;
   margin-bottom: 25px;
   line-height: 1.4;
+
+  @media (max-width: 480px) {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
 `;
 
 const ModalDescription = styled.p`
@@ -355,6 +561,11 @@ const ModalDescription = styled.p`
   color: #666;
   line-height: 1.6;
   margin-bottom: 15px;
+
+  @media (max-width: 480px) {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
 `;
 
 const ModalWarning = styled.p`
@@ -362,12 +573,22 @@ const ModalWarning = styled.p`
   color: #888;
   line-height: 1.6;
   margin-bottom: 35px;
+
+  @media (max-width: 480px) {
+    font-size: 14px;
+    margin-bottom: 25px;
+  }
 `;
 
 const ModalButtonGroup = styled.div`
   display: flex;
   gap: 20px;
   justify-content: center;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 15px;
+  }
 `;
 
 const ModalButton = styled.button`
@@ -386,6 +607,12 @@ const ModalButton = styled.button`
 
   &:active {
     transform: scale(0.95);
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    height: 45px;
+    font-size: 16px;
   }
 `;
 
@@ -413,6 +640,10 @@ const LoadingWrapper = styled.div`
   justify-content: center;
   align-items: center;
   height: 300px;
+
+  @media (max-width: 768px) {
+    height: 200px;
+  }
 `;
 
 const LoadingText = styled.div`
@@ -420,6 +651,10 @@ const LoadingText = styled.div`
   color: #666;
   text-align: center;
   margin: 20px 0;
+
+  @media (max-width: 480px) {
+    font-size: 16px;
+  }
 `;
 
 const ErrorText = styled.div`
@@ -427,21 +662,20 @@ const ErrorText = styled.div`
   color: #cc4141;
   text-align: center;
   margin: 10px 0;
+
+  @media (max-width: 480px) {
+    font-size: 14px;
+  }
 `;
 
-/* =========================
-   RadarChartSVG（專業版，上移）
-   - 使用 scores 的 0~1 值作圖
-   - 動態顯示每軸 0~99 分數膠囊
-   - 圖心上移＋半徑微縮，避免裁切
-   ========================= */
+// RadarChartSVG 組件保持不變，但添加響應式支持
 const RadarChartSVG = ({ scores }) => {
   if (!scores) return null;
 
   const size = 490;
   const cx = size / 2;
-  const cy = size / 2 - 22;   // ☆ 上移一點，避免碰到底部
-  const r = size * 0.335;     // ☆ 半徑稍縮，保留邊界
+  const cy = size / 2 - 22;
+  const r = size * 0.335;
   const levels = [0.25, 0.5, 0.75];
   const labelOffset = 56;
 
@@ -451,7 +685,6 @@ const RadarChartSVG = ({ scores }) => {
     return [cx + radius * Math.cos(a), cy + radius * Math.sin(a)];
   };
 
-  // 軸順序（與你四型一致）
   const axes = [
     { key: "insight",   ang: -90, label: "洞察型AI" },
     { key: "empathy",   ang:   0, label: "同理型AI" },
@@ -459,7 +692,6 @@ const RadarChartSVG = ({ scores }) => {
     { key: "cognitive", ang: 180, label: "認知型AI" },
   ];
 
-  // 多邊形點
   const polyPoints = axes
     .map(({ key, ang }) => {
       const v = clamp01(scores[key]);
@@ -476,17 +708,15 @@ const RadarChartSVG = ({ scores }) => {
       role="img"
       aria-label="個人化雷達圖"
       shapeRendering="geometricPrecision"
-      style={{ display: "block" }} // 避免外層造成 baseline 空隙
+      style={{ display: "block" }}
     >
       <defs>
-        {/* 專業感輕量漸層（不刺眼） */}
         <radialGradient id="rg-emobot" cx="50%" cy="50%" r="70%">
           <stop offset="0%" stopColor="#2b3993" stopOpacity="0.16" />
           <stop offset="100%" stopColor="#2b3993" stopOpacity="0.04" />
         </radialGradient>
       </defs>
 
-      {/* 交錯淡色象限（增可讀性） */}
       {axes.map(({ ang }, i) => {
         const [x2, y2] = toXY(ang, r);
         const nextAng = axes[(i + 1) % axes.length].ang;
@@ -501,7 +731,6 @@ const RadarChartSVG = ({ scores }) => {
         );
       })}
 
-      {/* 25/50/75% 參考環（虛線） */}
       {levels.map((lv, i) => {
         const rr = r * lv;
         const pts = axes.map(({ ang }) => {
@@ -518,26 +747,22 @@ const RadarChartSVG = ({ scores }) => {
         );
       })}
 
-      {/* 軸線 */}
       {axes.map(({ ang }, i) => {
         const [x, y] = toXY(ang, r);
         return <line key={`axis-${i}`} x1={cx} y1={cy} x2={x} y2={y} stroke="#B8BAC6" />;
       })}
 
-      {/* 多邊形填色 + 邊界 */}
       <polygon points={polyPoints} fill="url(#rg-emobot)" stroke="#2b3993" strokeWidth="2" />
 
-      {/* 頂點與文字標記（分數顯示 0~99） */}
       {axes.map(({ key, ang, label }, i) => {
         const v01 = clamp01(scores[key]);
         const [vx, vy] = toXY(ang, r * v01);
         const [lx, ly] = toXY(ang, r + labelOffset - 16);
-        const v99 = Math.min(99, Math.round(v01 * 100)); // ☆ 與後端一致，避免 100
+        const v99 = Math.min(99, Math.round(v01 * 100));
 
         return (
           <g key={`pt-${i}`}>
             <circle cx={vx} cy={vy} r="5" fill="#2b3993" />
-            {/* 軸標籤 */}
             <text
               x={lx}
               y={ly}
@@ -549,7 +774,6 @@ const RadarChartSVG = ({ scores }) => {
             >
               {label}
             </text>
-            {/* 分數膠囊 */}
             <rect
               x={lx - 26} y={ly + 12} rx="10" ry="10" width="52" height="22"
               fill="#FFFFFF" stroke="#2b3993" strokeWidth="1"
@@ -577,6 +801,12 @@ const MemberDashboard = () => {
   const [scale, setScale] = useState(0.96);
 
   const recomputeScale = () => {
+    // 在手機版不進行縮放
+    if (window.innerWidth <= 768) {
+      setScale(1);
+      return;
+    }
+
     const wrapper = wrapperRef.current;
     const scaler = scalerRef.current;
     if (!wrapper || !scaler) return;
@@ -640,7 +870,6 @@ const MemberDashboard = () => {
           if (user.pid) setPid(user.pid);
         }
 
-        // ★ 處理 MBTI 資料
         if (profileData.latest_recommendation?.mbti_raw) {
           setMbtiRaw(profileData.latest_recommendation.mbti_raw);
         } else {
@@ -658,7 +887,6 @@ const MemberDashboard = () => {
           } catch {}
         }
 
-        // ★ 處理選擇的機器人（優先從 user.selected_bot 讀取）
         let botTypeFound = false;
         if (profileData.user?.selected_bot) {
           const botType = profileData.user.selected_bot;
@@ -668,7 +896,6 @@ const MemberDashboard = () => {
           }
         }
         
-        // 如果用戶還沒選擇，從推薦結果讀取
         if (!botTypeFound && profileData.latest_recommendation?.selected_bot) {
           const botType = profileData.latest_recommendation.selected_bot;
           if (typeNameMap[botType]) {
@@ -677,7 +904,6 @@ const MemberDashboard = () => {
           }
         }
         
-        // 最後回退到 localStorage
         if (!botTypeFound) {
           const selectedBotType = localStorage.getItem("selectedBotType");
           const selectedBotName = localStorage.getItem("selectedBotName");
@@ -688,7 +914,6 @@ const MemberDashboard = () => {
           }
         }
 
-        // ★ 處理分數資料
         if (profileData.latest_recommendation?.scores) {
           setScores(profileData.latest_recommendation.scores);
           try {
@@ -707,7 +932,6 @@ const MemberDashboard = () => {
         console.error("載入用戶資料失敗:", error);
         setError(`載入用戶資料失敗: ${error.message}`);
         
-        // 回退到 localStorage 資料
         try {
           const userJson = localStorage.getItem("user");
           if (userJson) {
@@ -758,10 +982,8 @@ const MemberDashboard = () => {
   const handleConfirmRetest = () => {
     setShowModal(false);
     
-    // ★ 設定重新測驗標記到 localStorage，讓測驗流程知道這是重測
     localStorage.setItem("isRetest", "true");
     
-    // 清除相關的 localStorage 資料
     localStorage.removeItem("step1MBTI");
     localStorage.removeItem("step2Answers");
     localStorage.removeItem("step3Answers");
@@ -772,11 +994,9 @@ const MemberDashboard = () => {
     localStorage.removeItem("selectedBotName");
     localStorage.removeItem("selectedBotType");
     
-    // 清除狀態
     setScores(null);
     setChosenBotName("—");
     
-    // 跳轉到測驗第一步
     navigate("/test/step1");
   };
 
@@ -841,7 +1061,6 @@ const MemberDashboard = () => {
               <ProfileType>{mbtiRaw}</ProfileType>
             </ProfileCard>
 
-            {/* 右側直欄：白色卡片 + 正下方按鈕 */}
             <RightColumn>
               <AICard data-aos="fade-up" data-aos-delay="200">
                 <AIDescription>
@@ -876,7 +1095,7 @@ const MemberDashboard = () => {
             點選後，我們會保留你目前的聊天記錄，<br />
             但會重新為你媒合最適合的對話夥伴。
           </ModalDescription>
-          <ModalWarning>請確認你已準備好，重新踏上這段溫柔的探索旅程 💫</ModalWarning>
+          <ModalWarning>請確認你已準備好，重新踏上這段溫馨的探索旅程 💫</ModalWarning>
           <ModalButtonGroup>
             <CancelButton onClick={handleCancelModal}>取消</CancelButton>
             <ConfirmButton onClick={handleConfirmRetest}>確定重新測驗</ConfirmButton>

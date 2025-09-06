@@ -13,7 +13,6 @@ const fadeIn = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 
-// 全許滾動的頁面容器（保留原框架視覺）
 const Page = styled.div`
   width: 100vw;
   min-height: 100vh;
@@ -22,6 +21,10 @@ const Page = styled.div`
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 768px) {
+    min-height: 100vh;
+  }
 `;
 
 const Header = styled.header`
@@ -36,6 +39,11 @@ const Header = styled.header`
   top: 0; left: 0;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   z-index: 10;
+
+  @media (max-width: 768px) {
+    height: 60px;
+    padding: 0 15px;
+  }
 `;
 
 const Logo = styled.div`
@@ -47,6 +55,15 @@ const Logo = styled.div`
   cursor: pointer;
   transition: transform .3s ease;
   &:hover { transform: scale(1.05); }
+
+  @media (max-width: 768px) {
+    font-size: 24px;
+    
+    img {
+      height: 45px !important;
+      margin-right: 4px !important;
+    }
+  }
 `;
 
 const RightSection = styled.div`
@@ -55,6 +72,11 @@ const RightSection = styled.div`
   gap: 30px;
   margin-left: auto;
   margin-right: 40px;
+
+  @media (max-width: 768px) {
+    gap: 15px;
+    margin-right: 0;
+  }
 `;
 
 const Nav = styled.nav`
@@ -69,7 +91,10 @@ const Nav = styled.nav`
     &:hover { color: #2b3993; transform: translateY(-2px); }
     &:active { transform: translateY(1px); }
   }
-  @media (max-width: 900px) { gap: 20px; font-size: 20px; }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const AvatarImg = styled.img`
@@ -77,6 +102,11 @@ const AvatarImg = styled.img`
   object-fit: cover; cursor: pointer;
   transition: transform .3s ease, box-shadow .3s ease;
   &:hover { transform: scale(1.08); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+
+  @media (max-width: 768px) {
+    width: 40px;
+    height: 40px;
+  }
 `;
 
 const Content = styled.main`
@@ -84,15 +114,30 @@ const Content = styled.main`
   padding-bottom: 40px;
   display: flex;
   justify-content: center;
+
+  @media (max-width: 768px) {
+    padding-top: 80px;
+    padding-bottom: 30px;
+  }
 `;
 
 const Inner = styled.div`
   width: 100%;
   max-width: 960px;
   padding: 0 16px;
+
+  @media (max-width: 768px) {
+    padding: 0 10px;
+  }
 `;
 
-const StepIndicatorBox = styled.div` margin-bottom: 20px; `;
+const StepIndicatorBox = styled.div` 
+  margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 15px;
+  }
+`;
 
 const Card = styled.div`
   background: white;
@@ -101,16 +146,40 @@ const Card = styled.div`
   padding: 36px;
   text-align: center;
   animation: ${fadeIn} .8s ease;
-  @media (max-width: 860px) { padding: 22px 16px; border-radius: 16px; }
+
+  @media (max-width: 768px) {
+    padding: 24px 16px;
+    border-radius: 16px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 20px 12px;
+  }
 `;
 
 const Title = styled.h2`
   font-size: 32px; font-weight: 800; margin-bottom: 6px;
-  @media (max-width: 860px) { font-size: 24px; }
+
+  @media (max-width: 768px) {
+    font-size: 24px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 20px;
+  }
 `;
+
 const Subtitle = styled.p`
   font-size: 18px; color: #555; margin-bottom: 24px;
-  @media (max-width: 860px) { font-size: 16px; }
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 14px;
+  }
 `;
 
 const Grid = styled.div`
@@ -119,6 +188,14 @@ const Grid = styled.div`
   gap: 18px;
   max-width: 720px;
   margin: 0 auto 12px;
+
+  @media (max-width: 768px) {
+    gap: 15px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 12px;
+  }
 `;
 
 const Group = styled.div`
@@ -129,12 +206,55 @@ const Group = styled.div`
   border: 1.5px solid #e5e5e5;
   border-radius: 14px;
   background: #fafafa;
-  @media (max-width: 640px) { grid-template-columns: 1fr; text-align: center; }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 8px;
+    padding: 14px 12px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px 8px;
+    border-radius: 12px;
+  }
 `;
 
-const DimLabel = styled.div` font-size: 16px; color: #666; @media (max-width: 640px) { order: 2; } `;
-const DimTitle = styled.div` font-size: 18px; font-weight: 800; color: #222; text-align: center; @media (max-width: 640px) { order: 1; margin-bottom: 6px; } `;
-const Center = styled.div` display: flex; align-items: center; justify-content: center; gap: 10px; `;
+const DimLabel = styled.div` 
+  font-size: 16px; color: #666;
+
+  @media (max-width: 768px) {
+    order: 2;
+    font-size: 14px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+  }
+`;
+
+const DimTitle = styled.div` 
+  font-size: 18px; font-weight: 800; color: #222; text-align: center;
+
+  @media (max-width: 768px) {
+    order: 1;
+    margin-bottom: 6px;
+    font-size: 16px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 14px;
+  }
+`;
+
+const Center = styled.div` 
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+
+  @media (max-width: 768px) {
+    order: 3;
+    gap: 15px;
+  }
+`;
 
 const Pill = styled.button`
   appearance: none;
@@ -147,11 +267,47 @@ const Pill = styled.button`
   box-shadow: ${p => (p.$active ? "0 4px 10px rgba(43,57,147,.25)" : "none")};
   &:hover { transform: translateY(-1px); }
   &:active { transform: translateY(0); }
-  @media (max-width: 640px) { width: 100%; }
+
+  @media (max-width: 768px) {
+    width: 80px;
+    font-size: 16px;
+    padding: 8px 12px;
+  }
+
+  @media (max-width: 480px) {
+    width: 70px;
+    font-size: 14px;
+    padding: 6px 8px;
+  }
 `;
 
-const Hint = styled.p` font-size: 16px; color: #777; margin-top: 8px; margin-bottom: 24px; `;
-const ButtonRow = styled.div` display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; `;
+const Hint = styled.p` 
+  font-size: 16px; color: #777; margin-top: 8px; margin-bottom: 24px;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+  }
+`;
+
+const ButtonRow = styled.div` 
+  display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    gap: 15px;
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+`;
+
 const Button = styled.button`
   background: rgba(30,31,19,0.9);
   color: white; font-size: 18px; padding: 12px 26px;
@@ -159,15 +315,48 @@ const Button = styled.button`
   cursor: pointer; transition: all .2s;
   &:hover { transform: scale(1.03); }
   &:disabled { opacity: .55; cursor: not-allowed; }
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+    padding: 10px 20px;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    max-width: 280px;
+    font-size: 14px;
+    padding: 8px 16px;
+  }
 `;
 
 const ErrorMessage = styled.div`
   background: #fee; border: 1px solid #fcc; border-radius: 8px;
   color: #c33; font-size: 16px; margin: 10px 0; padding: 12px; text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+    padding: 8px;
+  }
 `;
+
 const SuccessMessage = styled.div`
   background: #efe; border: 1px solid #cfc; border-radius: 8px;
   color: #363; font-size: 16px; margin: 10px 0; padding: 12px; text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+    padding: 8px;
+  }
 `;
 
 // 子元件：二擇一
@@ -219,15 +408,13 @@ export default function TestStep1() {
       setError("請完成四個維度的選擇（外向/內向、直覺/實感、思考/情感、知覺/判斷）。");
       return;
     }
-
+  
     setLoading(true);
     try {
       console.log("Saving MBTI data:", { mbti, encoded });
       
-      // 本地也存一份（與 Step5 保持一致）
       localStorage.setItem("step1MBTI", JSON.stringify(encoded));
 
-      // 修正：直接傳送 MBTI 字串和編碼陣列
       await saveAssessmentMBTI(mbti, encoded);
 
       setSuccess("MBTI 資料已成功儲存！");
