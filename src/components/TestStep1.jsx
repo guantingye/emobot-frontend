@@ -176,7 +176,7 @@ function PairSelector({ title, left, right, value, onChange }) {
     <Group role="group" aria-label={title}>
       <DimLabel>{left.desc}</DimLabel>
       <Center><DimTitle>{title}</DimTitle></Center>
-      <DimLabel style={{ textAlign: "right" }}>{right.desc}</DimLabel>
+      <DimLabel style={{ textAlign: "center" }}>{right.desc}</DimLabel>
 
       <Pill aria-pressed={value === left.letter} $active={value === left.letter} onClick={() => onChange(left.letter)}>
         {left.letter}
@@ -264,7 +264,7 @@ export default function TestStep1() {
           </StepIndicatorBox>
 
           <Card>
-            <Title>step1 mbti 人格特質</Title>
+            <Title>Step1 MBTI 人格特質</Title>
             <Subtitle>請在每個維度中選擇最符合自己的傾向</Subtitle>
 
             <Grid>
