@@ -323,34 +323,34 @@ const apiSend = async ({ botType, mode, message, history, demo = false }) => {
       content: m.content
     }));
 
-      try {
-    // === 呼叫新的 chat API ===
-    const result = await sendChatMessage(userMsgText, selectedBotType, mode, history);
-    
-    if (result?.ok && result.reply) {
-      const replyTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-      setMessages(prev => [...prev, { sender: "ai", content: result.reply, timestamp: replyTime }]);
+    try {
+      // === 呼叫新的 chat API ===
+      const result = await sendChatMessage(userMsgText, selectedBotType, mode, history);
       
-      if (mode === "video") {
-        setIsSecondVideo(true);
-        setPlayIntroVideo(true);
+      if (result?.ok && result.reply) {
+        const replyTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        setMessages(prev => [...prev, { sender: "ai", content: result.reply, timestamp: replyTime }]);
+        
+        if (mode === "video") {
+          setIsSecondVideo(true);
+          setPlayIntroVideo(true);
+        }
+      } else {
+        throw new Error(result?.error || "API 回傳格式錯誤");
       }
-    } else {
-      throw new Error(result?.error || "API 回傳格式錯誤");
+    } catch (error) {
+      console.error("Chat API failed:", error);
+      // Fallback 回覆
+      const replyTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      const fallbackReply = mode === "video"
+        ? "我在這裡，先一起做個小小的深呼吸。想和我說說剛剛最在意的一件事嗎？"
+        : "收到，讓我們一步一步來。想先從今天最困擾你的情境開始聊聊嗎？";
+      setMessages(prev => [...prev, { sender: "ai", content: fallbackReply, timestamp: replyTime }]);
     }
-  } catch (error) {
-    console.error("Chat API failed:", error);
-    // Fallback 回覆
-    const replyTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-    const fallbackReply = mode === "video"
-      ? "我在這裡，先一起做個小小的深呼吸。想和我說說剛剛最在意的一件事嗎？"
-      : "收到，讓我們一步一步來。想先從今天最困擾你的情境開始聊聊嗎？";
-    setMessages(prev => [...prev, { sender: "ai", content: fallbackReply, timestamp: replyTime }]);
-  }
-
-  setIsTyping(false);
-  setInputDisabled(false);
-};
+  
+    setIsTyping(false);
+    setInputDisabled(false);
+  };
 
   // 語音按鈕
   const handleVoiceButton = () => {
