@@ -13,6 +13,7 @@ const fadeIn = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 
+// 全許滾動的頁面容器（保留原框架視覺）
 const Page = styled.div`
   width: 100vw;
   min-height: 100vh;
@@ -21,10 +22,6 @@ const Page = styled.div`
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-
-  @media (max-width: 768px) {
-    min-height: 100vh;
-  }
 `;
 
 const Header = styled.header`
@@ -36,13 +33,20 @@ const Header = styled.header`
   align-items: center;
   padding: 0 30px;
   position: fixed;
-  top: 0; left: 0;
+  top: 0; 
+  left: 0;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   z-index: 10;
 
   @media (max-width: 768px) {
     height: 60px;
-    padding: 0 15px;
+    padding: 0 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  @media (max-width: 480px) {
+    height: 56px;
+    padding: 0 12px;
   }
 `;
 
@@ -54,14 +58,31 @@ const Logo = styled.div`
   align-items: center;
   cursor: pointer;
   transition: transform .3s ease;
-  &:hover { transform: scale(1.05); }
+  
+  &:hover { 
+    transform: scale(1.05); 
+  }
+
+  img {
+    height: 68px;
+    margin-right: 8px;
+  }
 
   @media (max-width: 768px) {
+    font-size: 28px;
+    
+    img {
+      height: 48px;
+      margin-right: 6px;
+    }
+  }
+
+  @media (max-width: 480px) {
     font-size: 24px;
     
     img {
-      height: 45px !important;
-      margin-right: 4px !important;
+      height: 40px;
+      margin-right: 4px;
     }
   }
 `;
@@ -74,8 +95,12 @@ const RightSection = styled.div`
   margin-right: 40px;
 
   @media (max-width: 768px) {
-    gap: 15px;
+    gap: 20px;
     margin-right: 0;
+  }
+
+  @media (max-width: 480px) {
+    gap: 12px;
   }
 `;
 
@@ -85,27 +110,57 @@ const Nav = styled.nav`
   font-size: 26px;
   font-weight: bold;
   color: black;
+  
   div {
     cursor: pointer;
     transition: color .3s ease, transform .2s ease;
-    &:hover { color: #2b3993; transform: translateY(-2px); }
-    &:active { transform: translateY(1px); }
+    
+    &:hover { 
+      color: #2b3993; 
+      transform: translateY(-2px); 
+    }
+    
+    &:active { 
+      transform: translateY(1px); 
+    }
+  }
+  
+  @media (max-width: 900px) { 
+    gap: 20px; 
+    font-size: 20px; 
   }
 
   @media (max-width: 768px) {
+    gap: 16px;
+    font-size: 16px;
+  }
+
+  @media (max-width: 480px) {
     display: none;
   }
 `;
 
 const AvatarImg = styled.img`
-  width: 50px; height: 50px; border-radius: 50%;
-  object-fit: cover; cursor: pointer;
+  width: 50px; 
+  height: 50px; 
+  border-radius: 50%;
+  object-fit: cover; 
+  cursor: pointer;
   transition: transform .3s ease, box-shadow .3s ease;
-  &:hover { transform: scale(1.08); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+  
+  &:hover { 
+    transform: scale(1.08); 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+  }
 
   @media (max-width: 768px) {
     width: 40px;
     height: 40px;
+  }
+
+  @media (max-width: 480px) {
+    width: 36px;
+    height: 36px;
   }
 `;
 
@@ -117,7 +172,12 @@ const Content = styled.main`
 
   @media (max-width: 768px) {
     padding-top: 80px;
-    padding-bottom: 30px;
+    padding-bottom: 24px;
+  }
+
+  @media (max-width: 480px) {
+    padding-top: 76px;
+    padding-bottom: 20px;
   }
 `;
 
@@ -126,16 +186,20 @@ const Inner = styled.div`
   max-width: 960px;
   padding: 0 16px;
 
-  @media (max-width: 768px) {
-    padding: 0 10px;
+  @media (max-width: 480px) {
+    padding: 0 12px;
   }
 `;
 
 const StepIndicatorBox = styled.div` 
-  margin-bottom: 20px;
+  margin-bottom: 20px; 
 
   @media (max-width: 768px) {
-    margin-bottom: 15px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 12px;
   }
 `;
 
@@ -146,39 +210,50 @@ const Card = styled.div`
   padding: 36px;
   text-align: center;
   animation: ${fadeIn} .8s ease;
-
-  @media (max-width: 768px) {
-    padding: 24px 16px;
-    border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  
+  @media (max-width: 860px) { 
+    padding: 28px 20px; 
+    border-radius: 16px; 
   }
 
   @media (max-width: 480px) {
-    padding: 20px 12px;
+    padding: 20px 16px;
+    border-radius: 12px;
+    border: 1px solid #d0d0d0;
   }
 `;
 
 const Title = styled.h2`
-  font-size: 32px; font-weight: 800; margin-bottom: 6px;
-
-  @media (max-width: 768px) {
-    font-size: 24px;
+  font-size: 32px; 
+  font-weight: 800; 
+  margin-bottom: 6px;
+  color: #2b3993;
+  text-shadow: 0 1px 3px rgba(43, 57, 147, 0.1);
+  
+  @media (max-width: 860px) { 
+    font-size: 26px; 
   }
 
   @media (max-width: 480px) {
-    font-size: 20px;
+    font-size: 22px;
+    margin-bottom: 4px;
   }
 `;
 
 const Subtitle = styled.p`
-  font-size: 18px; color: #555; margin-bottom: 24px;
-
-  @media (max-width: 768px) {
-    font-size: 16px;
-    margin-bottom: 20px;
+  font-size: 18px; 
+  color: #555; 
+  margin-bottom: 24px;
+  font-weight: 400;
+  
+  @media (max-width: 860px) { 
+    font-size: 16px; 
   }
 
   @media (max-width: 480px) {
     font-size: 14px;
+    margin-bottom: 20px;
   }
 `;
 
@@ -190,7 +265,8 @@ const Grid = styled.div`
   margin: 0 auto 12px;
 
   @media (max-width: 768px) {
-    gap: 15px;
+    gap: 14px;
+    max-width: 100%;
   }
 
   @media (max-width: 480px) {
@@ -201,58 +277,74 @@ const Grid = styled.div`
 const Group = styled.div`
   display: grid;
   grid-template-columns: 1fr 160px 1fr;
-  align-items: center; gap: 12px;
+  align-items: center; 
+  gap: 12px;
   padding: 16px 18px;
   border: 1.5px solid #e5e5e5;
   border-radius: 14px;
   background: #fafafa;
+  transition: all 0.2s ease;
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    text-align: center;
+  &:hover {
+    border-color: #2b3993;
+    background: #f8f9ff;
+    box-shadow: 0 2px 8px rgba(43, 57, 147, 0.1);
+  }
+  
+  @media (max-width: 640px) { 
+    grid-template-columns: 1fr; 
+    text-align: center; 
     gap: 8px;
-    padding: 14px 12px;
+    padding: 14px 16px;
   }
 
   @media (max-width: 480px) {
-    padding: 12px 8px;
-    border-radius: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    gap: 6px;
   }
 `;
 
 const DimLabel = styled.div` 
-  font-size: 16px; color: #666;
-
-  @media (max-width: 768px) {
-    order: 2;
+  font-size: 16px; 
+  color: #666; 
+  
+  @media (max-width: 640px) { 
+    order: 2; 
     font-size: 14px;
   }
 
   @media (max-width: 480px) {
-    font-size: 12px;
+    font-size: 13px;
   }
 `;
 
 const DimTitle = styled.div` 
-  font-size: 18px; font-weight: 800; color: #222; text-align: center;
-
-  @media (max-width: 768px) {
-    order: 1;
-    margin-bottom: 6px;
+  font-size: 18px; 
+  font-weight: 800; 
+  color: #222; 
+  text-align: center; 
+  
+  @media (max-width: 640px) { 
+    order: 1; 
+    margin-bottom: 6px; 
     font-size: 16px;
   }
 
   @media (max-width: 480px) {
-    font-size: 14px;
+    font-size: 15px;
+    margin-bottom: 4px;
   }
 `;
 
 const Center = styled.div` 
-  display: flex; align-items: center; justify-content: center; gap: 10px;
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 10px; 
 
-  @media (max-width: 768px) {
-    order: 3;
-    gap: 15px;
+  @media (max-width: 480px) {
+    gap: 8px;
   }
 `;
 
@@ -261,101 +353,121 @@ const Pill = styled.button`
   border: 2px solid ${p => (p.$active ? "#2b3993" : "#d7d7d7")};
   background: ${p => (p.$active ? "#2b3993" : "white")};
   color: ${p => (p.$active ? "white" : "#222")};
-  font-size: 18px; font-weight: 800;
-  border-radius: 999px; padding: 10px 16px;
-  cursor: pointer; transition: all .15s ease;
-  box-shadow: ${p => (p.$active ? "0 4px 10px rgba(43,57,147,.25)" : "none")};
-  &:hover { transform: translateY(-1px); }
-  &:active { transform: translateY(0); }
-
-  @media (max-width: 768px) {
-    width: 80px;
+  font-size: 18px; 
+  font-weight: 800;
+  border-radius: 999px; 
+  padding: 10px 16px;
+  cursor: pointer; 
+  transition: all .15s ease;
+  box-shadow: ${p => (p.$active ? "0 4px 10px rgba(43,57,147,.25)" : "0 2px 4px rgba(0,0,0,.05)")};
+  min-height: 44px;
+  
+  &:hover { 
+    transform: translateY(-1px);
+    box-shadow: ${p => (p.$active ? "0 6px 14px rgba(43,57,147,.3)" : "0 4px 8px rgba(0,0,0,.1)")};
+  }
+  
+  &:active { 
+    transform: translateY(0); 
+  }
+  
+  @media (max-width: 640px) { 
+    width: 100%; 
     font-size: 16px;
-    padding: 8px 12px;
+    padding: 8px 14px;
+    min-height: 40px;
   }
 
   @media (max-width: 480px) {
-    width: 70px;
-    font-size: 14px;
-    padding: 6px 8px;
+    font-size: 15px;
+    padding: 8px 12px;
+    min-height: 38px;
   }
 `;
 
 const Hint = styled.p` 
-  font-size: 16px; color: #777; margin-top: 8px; margin-bottom: 24px;
-
-  @media (max-width: 768px) {
-    font-size: 14px;
-    margin-bottom: 20px;
-  }
+  font-size: 16px; 
+  color: #777; 
+  margin-top: 8px; 
+  margin-bottom: 24px; 
+  font-weight: 500;
 
   @media (max-width: 480px) {
-    font-size: 12px;
+    font-size: 14px;
+    margin-bottom: 20px;
   }
 `;
 
 const ButtonRow = styled.div` 
-  display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;
-
-  @media (max-width: 768px) {
-    gap: 15px;
-  }
+  display: flex; 
+  justify-content: center; 
+  gap: 20px; 
+  flex-wrap: wrap; 
 
   @media (max-width: 480px) {
-    flex-direction: column;
-    align-items: center;
     gap: 12px;
   }
 `;
 
 const Button = styled.button`
   background: rgba(30,31,19,0.9);
-  color: white; font-size: 18px; padding: 12px 26px;
-  border: 3px solid #f5fbf2; border-radius: 999px;
-  cursor: pointer; transition: all .2s;
-  &:hover { transform: scale(1.03); }
-  &:disabled { opacity: .55; cursor: not-allowed; }
-
-  @media (max-width: 768px) {
-    font-size: 16px;
-    padding: 10px 20px;
+  color: white; 
+  font-size: 18px; 
+  padding: 12px 26px;
+  border: 3px solid #f5fbf2; 
+  border-radius: 999px;
+  cursor: pointer; 
+  transition: all .2s;
+  min-height: 44px;
+  font-weight: 600;
+  
+  &:hover { 
+    transform: scale(1.03); 
+    background: rgba(30,31,19,1);
+  }
+  
+  &:disabled { 
+    opacity: .55; 
+    cursor: not-allowed; 
   }
 
   @media (max-width: 480px) {
+    font-size: 16px;
+    padding: 10px 20px;
     width: 100%;
-    max-width: 280px;
-    font-size: 14px;
-    padding: 8px 16px;
+    max-width: 200px;
   }
 `;
 
 const ErrorMessage = styled.div`
-  background: #fee; border: 1px solid #fcc; border-radius: 8px;
-  color: #c33; font-size: 16px; margin: 10px 0; padding: 12px; text-align: center;
-
-  @media (max-width: 768px) {
-    font-size: 14px;
-    padding: 10px;
-  }
+  background: #fee; 
+  border: 1px solid #fcc; 
+  border-radius: 8px;
+  color: #c33; 
+  font-size: 16px; 
+  margin: 10px 0; 
+  padding: 12px; 
+  text-align: center;
 
   @media (max-width: 480px) {
-    font-size: 12px;
-    padding: 8px;
+    font-size: 14px;
+    padding: 10px;
   }
 `;
 
 const SuccessMessage = styled.div`
-  background: #efe; border: 1px solid #cfc; border-radius: 8px;
-  color: #363; font-size: 16px; margin: 10px 0; padding: 12px; text-align: center;
-
-  @media (max-width: 768px) {
-    font-size: 14px;
-    padding: 10px;
-  }
+  background: #efe; 
+  border: 1px solid #cfc; 
+  border-radius: 8px;
+  color: #363; 
+  font-size: 16px; 
+  margin: 10px 0; 
+  padding: 12px; 
+  text-align: center;
 
   @media (max-width: 480px) {
-    font-size: 12px;
-    padding: 8px;
+    font-size: 14px;
+    padding: 10px;
   }
 `;
 
@@ -408,13 +520,15 @@ export default function TestStep1() {
       setError("請完成四個維度的選擇（外向/內向、直覺/實感、思考/情感、知覺/判斷）。");
       return;
     }
-  
+
     setLoading(true);
     try {
       console.log("Saving MBTI data:", { mbti, encoded });
       
+      // 本地也存一份（與 Step5 保持一致）
       localStorage.setItem("step1MBTI", JSON.stringify(encoded));
 
+      // 修正：直接傳送 MBTI 字串和編碼陣列
       await saveAssessmentMBTI(mbti, encoded);
 
       setSuccess("MBTI 資料已成功儲存！");
@@ -431,7 +545,7 @@ export default function TestStep1() {
     <Page>
       <Header>
         <Logo onClick={() => navigate("/Home")}>
-          <img src={logoIcon} alt="logo" style={{ height: 68, marginRight: 8 }} />
+          <img src={logoIcon} alt="logo" />
           Emobot+
         </Logo>
         <RightSection>

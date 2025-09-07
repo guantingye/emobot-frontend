@@ -21,7 +21,11 @@ const Container = styled.div`
   padding-top: 10px;
 
   @media (max-width: 768px) {
-    padding-top: 0;
+    padding-top: 8px;
+  }
+
+  @media (max-width: 480px) {
+    padding-top: 6px;
   }
 `;
 
@@ -41,7 +45,13 @@ const Header = styled.header`
 
   @media (max-width: 768px) {
     height: 60px;
-    padding: 0 15px;
+    padding: 0 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  @media (max-width: 480px) {
+    height: 56px;
+    padding: 0 12px;
   }
 `;
 
@@ -53,14 +63,31 @@ const Logo = styled.div`
   align-items: center;
   cursor: pointer;
   transition: transform 0.3s ease;
-  &:hover { transform: scale(1.05); }
+  
+  &:hover { 
+    transform: scale(1.05); 
+  }
+
+  img {
+    height: 68px;
+    margin-right: 8px;
+  }
 
   @media (max-width: 768px) {
+    font-size: 28px;
+    
+    img {
+      height: 48px;
+      margin-right: 6px;
+    }
+  }
+
+  @media (max-width: 480px) {
     font-size: 24px;
     
     img {
-      height: 45px !important;
-      margin-right: 4px !important;
+      height: 40px;
+      margin-right: 4px;
     }
   }
 `;
@@ -71,118 +98,191 @@ const Nav = styled.nav`
   font-size: 26px;
   font-weight: bold;
   color: black;
+
   div {
     cursor: pointer;
     transition: color 0.3s ease, transform 0.2s ease;
-    &:hover { color: #2b3993; transform: translateY(-2px); }
-    &:active { transform: translateY(1px); }
+
+    &:hover {
+      color: #2b3993;
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
   }
 
   @media (max-width: 768px) {
+    gap: 16px;
+    font-size: 16px;
+  }
+
+  @media (max-width: 480px) {
     display: none;
   }
 `;
 
 const AvatarImg = styled.img`
-  width: 50px; height: 50px; border-radius: 50%;
-  object-fit: cover; cursor: pointer;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  &:hover { transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
 
   @media (max-width: 768px) {
     width: 40px;
     height: 40px;
   }
-`;
 
-const RightSection = styled.div`
-  display: flex; align-items: center; gap: 30px; margin-left: auto; margin-right: 40px;
-
-  @media (max-width: 768px) {
-    gap: 15px;
-    margin-right: 0;
+  @media (max-width: 480px) {
+    width: 36px;
+    height: 36px;
   }
 `;
 
-const StepIndicatorWrapper = styled.div` 
+const RightSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  margin-left: auto;
+  margin-right: 40px;
+
+  @media (max-width: 768px) {
+    gap: 20px;
+    margin-right: 0;
+  }
+
+  @media (max-width: 480px) {
+    gap: 12px;
+  }
+`;
+
+const StepIndicatorWrapper = styled.div`
   margin-top: 120px;
 
   @media (max-width: 768px) {
-    margin-top: 90px;
+    margin-top: 100px;
+  }
+
+  @media (max-width: 480px) {
+    margin-top: 80px;
   }
 `;
 
 const Main = styled.div`
-  max-width: 960px; margin: 40px auto; padding: 60px;
-  background: white; border-radius: 24px; text-align: center;
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 60px;
+  background: white;
+  border-radius: 24px;
+  text-align: center;
   animation: ${fadeInUp} 0.8s ease-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 
   @media (max-width: 768px) {
-    margin: 20px 10px;
-    padding: 40px 20px;
-    border-radius: 20px;
+    margin: 24px 16px;
+    padding: 40px 24px;
+    border-radius: 16px;
   }
 
   @media (max-width: 480px) {
-    margin: 15px 5px;
-    padding: 30px 15px;
-    border-radius: 16px;
+    margin: 20px 12px;
+    padding: 32px 16px;
+    border-radius: 12px;
   }
 `;
 
-const BigTitle = styled.h2` 
-  font-size: 32px; font-weight: bold; margin-bottom: 40px;
+const BigTitle = styled.h2`
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 40px;
+  color: #2b3993;
+  text-shadow: 0 1px 3px rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
     font-size: 26px;
-    margin-bottom: 30px;
+    margin-bottom: 32px;
   }
 
   @media (max-width: 480px) {
     font-size: 22px;
-    margin-bottom: 25px;
+    margin-bottom: 24px;
+    line-height: 1.3;
   }
 `;
 
 const Paragraph = styled.p`
-  font-size: 20px; line-height: 1.8; color: #333; margin-bottom: 48px; white-space: pre-line;
+  font-size: 20px;
+  line-height: 1.8;
+  color: #333;
+  margin-bottom: 48px;
+  white-space: pre-line;
+  font-weight: 400;
 
   @media (max-width: 768px) {
     font-size: 18px;
+    margin-bottom: 36px;
     line-height: 1.7;
-    margin-bottom: 35px;
   }
 
   @media (max-width: 480px) {
     font-size: 16px;
+    margin-bottom: 28px;
     line-height: 1.6;
-    margin-bottom: 30px;
   }
 `;
 
-const ButtonGroup = styled.div` 
-  display: flex; justify-content: center; gap: 40px; margin-bottom: 24px;
+const ButtonGroup = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 24px;
 
   @media (max-width: 768px) {
-    gap: 20px;
+    gap: 24px;
     margin-bottom: 20px;
   }
 
   @media (max-width: 480px) {
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 16px;
+    margin-bottom: 16px;
   }
 `;
 
 const Button = styled.button`
-  font-size: 20px; padding: 14px 36px;
-  border: 3px solid #3f3e66; border-radius: 999px;
-  background-color: rgba(30,31,19,0.8); color: white;
-  cursor: pointer; transition: all 0.3s ease;
-  &:hover { transform: scale(1.05); }
-  &:active { transform: scale(0.95); }
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  font-size: 20px;
+  padding: 14px 36px;
+  border: 3px solid #3f3e66;
+  border-radius: 999px;
+  background-color: rgba(30,31,19,0.8);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  min-height: 44px;
+
+  &:hover {
+    transform: scale(1.05);
+    background-color: rgba(30,31,19,1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 
   @media (max-width: 768px) {
     font-size: 18px;
@@ -190,16 +290,17 @@ const Button = styled.button`
   }
 
   @media (max-width: 480px) {
-    width: 100%;
-    max-width: 280px;
     font-size: 16px;
-    padding: 10px 20px;
+    padding: 12px 24px;
+    width: 100%;
+    max-width: 200px;
   }
 `;
 
 const DebugButton = styled(Button)`
   display: none;
-  background-color: #999; border-color: #777;
+  background-color: #999;
+  border-color: #777;
 `;
 
 export default function TestStep5() {
@@ -253,7 +354,7 @@ export default function TestStep5() {
       console.log("Saving final assessment data:", finalData);
       await saveAssessment(finalData);
       
-      // 導向匹配頁面
+      // 導向匹配頁
       navigate("/matching");
     } catch (e) {
       console.error("Save final assessment failed:", e);
@@ -280,7 +381,7 @@ export default function TestStep5() {
     <Container>
       <Header>
         <Logo onClick={() => navigate("/Home")}>
-          <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
+          <img src={logoIcon} alt="logo" />
           Emobot+
         </Logo>
         <RightSection>
@@ -301,7 +402,7 @@ export default function TestStep5() {
         <BigTitle>謝謝你走過這段小小的探索旅程。</BigTitle>
         <Paragraph>
           我們已收到你的回覆，這些資料將幫助我們更了解你的心理特質與互動風格。
-          {"\n"}接下來，我們會根據你的回覆，提供你與四位AI夥伴的適合程度✨
+          {"\n"}接下來，我們會根據你的回覆，提供你與四位AI夥伴的適合程度
           {"\n"}你可以從中挑選一位開始旅程，也可以自由切換其他夥伴，或選擇重新測驗再次媒合。
         </Paragraph>
 

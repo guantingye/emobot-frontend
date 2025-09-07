@@ -30,6 +30,10 @@ const Container = styled.div`
   @media (max-width: 768px) {
     padding-bottom: 60px;
   }
+
+  @media (max-width: 480px) {
+    padding-bottom: 40px;
+  }
 `;
 
 const Header = styled.header`
@@ -48,7 +52,13 @@ const Header = styled.header`
 
   @media (max-width: 768px) {
     height: 60px;
-    padding: 0 15px;
+    padding: 0 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  @media (max-width: 480px) {
+    height: 56px;
+    padding: 0 12px;
   }
 `;
 
@@ -65,12 +75,26 @@ const Logo = styled.div`
     transform: scale(1.05);
   }
 
+  img {
+    height: 68px;
+    margin-right: 8px;
+  }
+
   @media (max-width: 768px) {
+    font-size: 28px;
+    
+    img {
+      height: 48px;
+      margin-right: 6px;
+    }
+  }
+
+  @media (max-width: 480px) {
     font-size: 24px;
     
     img {
-      height: 45px !important;
-      margin-right: 4px !important;
+      height: 40px;
+      margin-right: 4px;
     }
   }
 `;
@@ -83,8 +107,12 @@ const RightSection = styled.div`
   margin-right: 40px;
 
   @media (max-width: 768px) {
-    gap: 15px;
+    gap: 20px;
     margin-right: 0;
+  }
+
+  @media (max-width: 480px) {
+    gap: 12px;
   }
 `;
 
@@ -110,6 +138,11 @@ const Nav = styled.nav`
   }
 
   @media (max-width: 768px) {
+    gap: 16px;
+    font-size: 16px;
+  }
+
+  @media (max-width: 480px) {
     display: none;
   }
 `;
@@ -131,13 +164,22 @@ const AvatarImg = styled.img`
     width: 40px;
     height: 40px;
   }
+
+  @media (max-width: 480px) {
+    width: 36px;
+    height: 36px;
+  }
 `;
 
 const StepIndicatorWrapper = styled.div`
   margin-top: 120px;
 
   @media (max-width: 768px) {
-    margin-top: 90px;
+    margin-top: 100px;
+  }
+
+  @media (max-width: 480px) {
+    margin-top: 80px;
   }
 `;
 
@@ -149,16 +191,19 @@ const Main = styled.div`
   border-radius: 20px;
   padding: 50px;
   animation: ${fadeInUp} 0.8s ease-in-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 
   @media (max-width: 768px) {
-    margin: 20px 10px 0;
-    padding: 30px 20px;
+    margin: 24px 16px 0;
+    padding: 32px 24px;
     border-radius: 16px;
+    border: 1px solid #d0d0d0;
   }
 
   @media (max-width: 480px) {
-    margin: 15px 5px 0;
-    padding: 25px 15px;
+    margin: 20px 12px 0;
+    padding: 24px 16px;
+    border-radius: 12px;
   }
 `;
 
@@ -167,10 +212,12 @@ const Title = styled.h2`
   font-weight: bold;
   margin-bottom: 30px;
   text-align: center;
+  color: #2b3993;
+  text-shadow: 0 1px 3px rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
     font-size: 28px;
-    margin-bottom: 25px;
+    margin-bottom: 24px;
   }
 
   @media (max-width: 480px) {
@@ -186,7 +233,6 @@ const Subtitle = styled.p`
   max-width: 720px;
   margin: 0 auto 28px;
   text-align: center;
-
   background: #f9f9f9;
   padding: 12px 20px;
   border-radius: 8px;
@@ -195,13 +241,14 @@ const Subtitle = styled.p`
 
   @media (max-width: 768px) {
     font-size: 14px;
-    padding: 10px 15px;
-    margin-bottom: 20px;
+    padding: 10px 16px;
+    margin: 0 auto 20px;
   }
 
   @media (max-width: 480px) {
     font-size: 13px;
     padding: 8px 12px;
+    margin: 0 auto 16px;
   }
 `;
 
@@ -223,13 +270,14 @@ const QuestionList = styled.ul`
 const QuestionItem = styled.li`
   list-style: decimal;
   margin-bottom: 64px;
+  line-height: 1.5;
 
   @media (max-width: 768px) {
-    margin-bottom: 50px;
+    margin-bottom: 48px;
   }
 
   @media (max-width: 480px) {
-    margin-bottom: 40px;
+    margin-bottom: 36px;
   }
 `;
 
@@ -242,13 +290,13 @@ const ScaleWrapper = styled.div`
 
   @media (max-width: 768px) {
     gap: 12px;
-    margin-top: 35px;
+    margin-top: 32px;
     flex-wrap: wrap;
   }
 
   @media (max-width: 480px) {
     gap: 8px;
-    margin-top: 25px;
+    margin-top: 24px;
   }
 `;
 
@@ -260,10 +308,10 @@ const Circle = styled.div`
   ${(props) =>
     props.selected
       ? props.index < 3
-        ? "#6A4C93"
+        ? "#6A4C93"   
         : props.index === 3
-        ? "#aaa"
-        : "#3AA87A"
+        ? "#aaa"      
+        : "#3AA87A"   
       : props.index < 3
       ? "#6A4C93"
       : props.index === 3
@@ -273,13 +321,15 @@ const Circle = styled.div`
 background: ${(props) =>
   props.selected
     ? props.index < 3
-      ? "#6A4C93"
+      ? "#6A4C93"     
       : props.index === 3
-      ? "#aaa"
-      : "#3AA87A"
+      ? "#aaa"        
+      : "#3AA87A"     
     : "transparent"};
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 44px;
+  min-width: 44px;
 
   &:hover {
     transform: scale(1.1);
@@ -294,11 +344,15 @@ background: ${(props) =>
   @media (max-width: 768px) {
     width: ${(props) => Math.max(props.size * 0.8, 32)}px;
     height: ${(props) => Math.max(props.size * 0.8, 32)}px;
+    min-height: 32px;
+    min-width: 32px;
   }
 
   @media (max-width: 480px) {
     width: ${(props) => Math.max(props.size * 0.7, 28)}px;
     height: ${(props) => Math.max(props.size * 0.7, 28)}px;
+    min-height: 28px;
+    min-width: 28px;
   }
 `;
 
@@ -307,14 +361,15 @@ const Label = styled.span`
   color: ${(props) => (props.side === "left" ? "#6A4C93" : "#3AA87A")};
   width: 60px;
   text-align: center;
+  font-weight: 600;
 
   @media (max-width: 768px) {
-    font-size: 14px;
+    font-size: 16px;
     width: 50px;
   }
 
   @media (max-width: 480px) {
-    font-size: 12px;
+    font-size: 14px;
     width: 40px;
   }
 `;
@@ -326,14 +381,15 @@ const ButtonGroup = styled.div`
   gap: 40px;
 
   @media (max-width: 768px) {
-    gap: 20px;
-    margin-top: 30px;
+    gap: 24px;
+    margin-top: 32px;
   }
 
   @media (max-width: 480px) {
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 16px;
+    margin-top: 24px;
   }
 `;
 
@@ -346,9 +402,12 @@ const Button = styled.button`
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s;
+  font-weight: 600;
+  min-height: 44px;
 
   &:hover {
     transform: scale(1.05);
+    background: rgba(30, 31, 19, 1);
   }
 
   &:disabled {
@@ -358,14 +417,14 @@ const Button = styled.button`
 
   @media (max-width: 768px) {
     font-size: 20px;
-    padding: 12px 30px;
+    padding: 14px 32px;
   }
 
   @media (max-width: 480px) {
-    width: 100%;
-    max-width: 280px;
     font-size: 18px;
-    padding: 10px 20px;
+    padding: 12px 28px;
+    width: 100%;
+    max-width: 200px;
   }
 `;
 
@@ -419,8 +478,10 @@ export default function TestStep2() {
     setLoading(true);
     
     try {
+      // 本地儲存（作為備份）
       localStorage.setItem("step2Answers", JSON.stringify(answers));
       
+      // 儲存到後端 - 修正：將 array 直接作為 step2Answers 傳送
       console.log("Saving step2 answers:", answers);
       await saveAssessment({ 
         step2Answers: answers,
