@@ -26,7 +26,7 @@ const Container = styled.div`
 const Header = styled.header`
   width: 100%;
   height: 70px;
-  background: white;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -35,11 +35,19 @@ const Header = styled.header`
   top: 0;
   left: 0;
   z-index: 10;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(43, 57, 147, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
     height: 60px;
-    padding: 0 15px;
+    padding: 0 16px;
+    box-shadow: 0 2px 12px rgba(43, 57, 147, 0.06);
+  }
+
+  @media (max-width: 480px) {
+    height: 55px;
+    padding: 0 12px;
   }
 `;
 
@@ -50,18 +58,35 @@ const Logo = styled.div`
   display: flex;
   align-items: center;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  text-shadow: 0 2px 4px rgba(43, 57, 147, 0.1);
 
   &:hover {
     transform: scale(1.05);
+    color: #1e2a6b;
+  }
+
+  img {
+    height: 68px;
+    margin-right: 8px;
+    filter: drop-shadow(0 2px 4px rgba(43, 57, 147, 0.1));
   }
 
   @media (max-width: 768px) {
     font-size: 24px;
     
     img {
-      height: 45px !important;
-      margin-right: 4px !important;
+      height: 48px;
+      margin-right: 6px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    font-size: 20px;
+    
+    img {
+      height: 40px;
+      margin-right: 4px;
     }
   }
 `;
@@ -74,8 +99,12 @@ const RightSection = styled.div`
   margin-right: 40px;
 
   @media (max-width: 768px) {
-    gap: 15px;
+    gap: 16px;
     margin-right: 0;
+  }
+
+  @media (max-width: 480px) {
+    gap: 12px;
   }
 `;
 
@@ -88,7 +117,9 @@ const Nav = styled.nav`
 
   div {
     cursor: pointer;
-    transition: color 0.3s ease, transform 0.2s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 8px 0;
 
     &:hover {
       color: #2b3993;
@@ -98,9 +129,34 @@ const Nav = styled.nav`
     &:active {
       transform: translateY(1px);
     }
+
+    &:hover::after {
+      width: 100%;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #2b3993, #667eea);
+      transition: width 0.3s ease;
+    }
+  }
+
+  @media (max-width: 900px) {
+    gap: 20px;
+    font-size: 20px;
   }
 
   @media (max-width: 768px) {
+    gap: 16px;
+    font-size: 16px;
+  }
+
+  @media (max-width: 480px) {
     display: none;
   }
 `;
@@ -111,16 +167,24 @@ const AvatarImg = styled.img`
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(43, 57, 147, 0.1);
+  box-shadow: 0 4px 12px rgba(43, 57, 147, 0.1);
 
   &:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px rgba(43, 57, 147, 0.2);
+    border-color: rgba(43, 57, 147, 0.3);
   }
 
   @media (max-width: 768px) {
     width: 40px;
     height: 40px;
+  }
+
+  @media (max-width: 480px) {
+    width: 36px;
+    height: 36px;
   }
 `;
 
@@ -1047,7 +1111,7 @@ const MemberDashboard = () => {
         <ContentScaler ref={scalerRef} $scale={scale}>
           <UserInfo data-aos="fade-right">
             <UserName>
-              歡迎回來，<span>{nickname}</span>✧
+              歡迎回來，<span>{nickname}</span>
             </UserName>
             <UserID>ID: {pid}</UserID>
             {error && <ErrorText>{error}</ErrorText>}
@@ -1095,7 +1159,7 @@ const MemberDashboard = () => {
             點選後，我們會保留你目前的聊天記錄，<br />
             但會重新為你媒合最適合的對話夥伴。
           </ModalDescription>
-          <ModalWarning>請確認你已準備好，重新踏上這段溫馨的探索旅程 💫</ModalWarning>
+          <ModalWarning>請確認你已準備好，重新踏上這段溫馨的探索旅程</ModalWarning>
           <ModalButtonGroup>
             <CancelButton onClick={handleCancelModal}>取消</CancelButton>
             <ConfirmButton onClick={handleConfirmRetest}>確定重新測驗</ConfirmButton>

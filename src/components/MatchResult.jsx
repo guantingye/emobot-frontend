@@ -11,50 +11,64 @@ import logoIcon from "../assets/logofig.png";
 import { runMatching, commitChoice } from "../api/client";
 
 // 動畫 & 版面（沿用）
-const fadeInUp = keyframes`from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}`;
+const fadeInUp = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
 
 const Container = styled.div`
-  width:100vw;
-  min-height:100vh;
-  background:#e8e8e8;
-  font-family:"Noto Sans TC",sans-serif;
+  width: 100vw;
+  min-height: 100vh;
+  background: #e8e8e8;
+  font-family: "Noto Sans TC", sans-serif;
 `;
 
 const Header = styled.header`
-  width:100%;
-  height:70px;
-  background:white;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:0 30px;
-  position:sticky;
-  top:0;
-  z-index:10;
-  box-shadow:0 2px 10px rgba(0,0,0,0.1);
+  width: 100%;
+  height: 70px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 4px 20px rgba(43, 57, 147, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
     height: 60px;
     padding: 0 16px;
+    box-shadow: 0 2px 12px rgba(43, 57, 147, 0.06);
+  }
+
+  @media (max-width: 480px) {
+    height: 55px;
+    padding: 0 12px;
   }
 `;
 
 const Logo = styled.div`
-  font-size:35px;
-  font-weight:bold;
-  color:#2b3993;
-  display:flex;
-  align-items:center;
-  cursor:pointer;
-  transition:.3s;
-  
-  &:hover{
-    transform:scale(1.05);
+  font-size: 35px;
+  font-weight: bold;
+  color: #2b3993;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 2px 4px rgba(43, 57, 147, 0.1);
+
+  &:hover {
+    transform: scale(1.05);
+    color: #1e2a6b;
   }
 
   img {
     height: 68px;
     margin-right: 8px;
+    filter: drop-shadow(0 2px 4px rgba(43, 57, 147, 0.1));
   }
 
   @media (max-width: 768px) {
@@ -65,27 +79,58 @@ const Logo = styled.div`
       margin-right: 6px;
     }
   }
+
+  @media (max-width: 480px) {
+    font-size: 20px;
+    
+    img {
+      height: 40px;
+      margin-right: 4px;
+    }
+  }
 `;
 
 const Nav = styled.nav`
-  display:flex;
-  gap:40px;
-  font-size:26px;
-  font-weight:bold;
-  color:black;
-  
-  div{
-    cursor:pointer;
-    transition:.2s;
-    
-    &:hover{
-      color:#2b3993;
-      transform:translateY(-2px);
+  display: flex;
+  gap: 40px;
+  font-size: 26px;
+  font-weight: bold;
+  color: black;
+
+  div {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 8px 0;
+
+    &:hover {
+      color: #2b3993;
+      transform: translateY(-2px);
     }
-    
-    &:active{
-      transform:translateY(1px);
+
+    &:active {
+      transform: translateY(1px);
     }
+
+    &:hover::after {
+      width: 100%;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #2b3993, #667eea);
+      transition: width 0.3s ease;
+    }
+  }
+
+  @media (max-width: 900px) {
+    gap: 20px;
+    font-size: 20px;
   }
 
   @media (max-width: 768px) {
@@ -99,44 +144,57 @@ const Nav = styled.nav`
 `;
 
 const AvatarImg = styled.img`
-  width:50px;
-  height:50px;
-  border-radius:50%;
-  object-fit:cover;
-  cursor:pointer;
-  transition:.3s;
-  
-  &:hover{
-    transform:scale(1.1);
-    box-shadow:0 4px 8px rgba(0,0,0,0.2);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(43, 57, 147, 0.1);
+  box-shadow: 0 4px 12px rgba(43, 57, 147, 0.1);
+
+  &:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px rgba(43, 57, 147, 0.2);
+    border-color: rgba(43, 57, 147, 0.3);
   }
 
   @media (max-width: 768px) {
     width: 40px;
     height: 40px;
   }
+
+  @media (max-width: 480px) {
+    width: 36px;
+    height: 36px;
+  }
 `;
 
 const RightSection = styled.div`
-  display:flex;
-  align-items:center;
-  gap:30px;
-  margin-right:40px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  margin-left: auto;
+  margin-right: 40px;
 
   @media (max-width: 768px) {
     gap: 16px;
     margin-right: 0;
   }
+
+  @media (max-width: 480px) {
+    gap: 12px;
+  }
 `;
 
 const Main = styled.div`
-  max-width:1000px;
-  margin:60px auto;
-  padding:60px;
-  background:white;
-  border-radius:24px;
-  text-align:center;
-  animation:${fadeInUp} .8s ease-out;
+  max-width: 1000px;
+  margin: 60px auto;
+  padding: 60px;
+  background: white;
+  border-radius: 24px;
+  text-align: center;
+  animation: ${fadeInUp} 0.8s ease-out;
 
   @media (max-width: 768px) {
     margin: 20px 16px;
@@ -152,10 +210,10 @@ const Main = styled.div`
 `;
 
 const Title = styled.h2`
-  font-size:22px;
-  font-weight:bold;
-  margin-bottom:40px;
-  color:#444;
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 40px;
+  color: #444;
 
   @media (max-width: 768px) {
     font-size: 18px;
@@ -170,10 +228,10 @@ const Title = styled.h2`
 `;
 
 const Cards = styled.div`
-  display:flex;
-  justify-content:center;
-  gap:40px;
-  margin-bottom:48px;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 48px;
 
   @media (max-width: 768px) {
     display: grid;
@@ -190,34 +248,34 @@ const Cards = styled.div`
 `;
 
 const BotCard = styled.div`
-  position:relative;
-  width:220px;
-  cursor:pointer;
-  transition:.3s;
+  position: relative;
+  width: 220px;
+  cursor: pointer;
+  transition: all 0.3s ease;
   
-  img{
-    width:100%;
-    border-radius:20px;
-    border:${({selected})=>selected?"5px solid #2b3993":"3px solid transparent"};
-    opacity:${({selected})=>selected?"1":"0.6"};
-    box-shadow:${({selected})=>selected?"0 0 12px rgba(43,57,147,0.6)":"none"};
-    transition:all .3s;
+  img {
+    width: 100%;
+    border-radius: 20px;
+    border: ${({selected}) => selected ? "5px solid #2b3993" : "3px solid transparent"};
+    opacity: ${({selected}) => selected ? "1" : "0.6"};
+    box-shadow: ${({selected}) => selected ? "0 0 12px rgba(43,57,147,0.6)" : "none"};
+    transition: all 0.3s ease;
   }
   
-  span{
-    display:block;
-    margin-top:10px;
-    font-size:20px;
-    font-weight:bold;
-    color:#333;
+  span {
+    display: block;
+    margin-top: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
   }
   
-  &:hover{
-    transform:scale(1.05);
+  &:hover {
+    transform: scale(1.05);
     
-    img{
-      opacity:1;
-      border-color:${({selected})=>selected?"#2b3993":"#bbb"};
+    img {
+      opacity: 1;
+      border-color: ${({selected}) => selected ? "#2b3993" : "#bbb"};
     }
   }
 
@@ -242,22 +300,22 @@ const BotCard = styled.div`
 `;
 
 const ConfirmButton = styled.button`
-  font-size:22px;
-  font-weight:bold;
-  padding:14px 36px;
-  border:3px solid #3f3e66;
-  border-radius:999px;
-  background-color:rgba(30,31,19,.8);
-  color:white;
-  cursor:pointer;
-  transition:.3s;
-  
-  &:hover{
-    transform:scale(1.05);
+  font-size: 22px;
+  font-weight: bold;
+  padding: 14px 36px;
+  border: 3px solid #3f3e66;
+  border-radius: 999px;
+  background-color: rgba(30,31,19,.8);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
   }
-  
-  &:active{
-    transform:scale(.95);
+
+  &:active {
+    transform: scale(.95);
   }
 
   &:disabled {
@@ -279,10 +337,10 @@ const ConfirmButton = styled.button`
 `;
 
 const RateText = styled.span`
-  display:block;
-  margin-top:6px;
-  font-size:16px;
-  color:#666;
+  display: block;
+  margin-top: 6px;
+  font-size: 16px;
+  color: #666;
 
   @media (max-width: 768px) {
     font-size: 14px;
@@ -294,21 +352,21 @@ const RateText = styled.span`
 `;
 
 const HintBox = styled.div`
-  max-width:720px;
-  margin:0 auto 24px;
-  padding:14px 20px;
-  background:#fff8e1;
-  border:1px solid #ffecb3;
-  border-radius:8px;
-  box-shadow:0 2px 6px rgba(0,0,0,.05);
-  font-size:15px;
-  color:#5d4037;
-  text-align:center;
-  line-height:1.6;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
+  max-width: 720px;
+  margin: 0 auto 24px;
+  padding: 14px 20px;
+  background: #fff8e1;
+  border: 1px solid #ffecb3;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.05);
+  font-size: 15px;
+  color: #5d4037;
+  text-align: center;
+  line-height: 1.6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 
   @media (max-width: 768px) {
     margin: 0 auto 20px;
@@ -439,7 +497,7 @@ export default function MatchResult() {
           ))}
         </Cards>
 
-        <HintBox>提醒您 📋 系統目前處於測試階段，AI 夥伴為首次選擇固定；欲更換需重新進行心理測驗。</HintBox>
+        <HintBox>提醒您 系統目前處於測試階段，AI 夥伴為首次選擇固定；欲更換需重新進行心理測驗。</HintBox>
 
         <ConfirmButton onClick={handleSubmit} disabled={loading}>
           {loading ? "處理中..." : "選擇完畢"}
