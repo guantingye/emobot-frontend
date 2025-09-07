@@ -35,7 +35,12 @@ const Header = styled.header`
 
   @media (max-width: 768px) {
     height: 60px;
-    padding: 0 15px;
+    padding: 0 16px;
+  }
+
+  @media (max-width: 480px) {
+    height: 55px;
+    padding: 0 12px;
   }
 `;
 
@@ -46,12 +51,26 @@ const Logo = styled.div`
   display: flex;
   align-items: center;
 
+  img {
+    height: 68px;
+    margin-right: 8px;
+  }
+
   @media (max-width: 768px) {
     font-size: 24px;
     
     img {
-      height: 45px !important;
-      margin-right: 4px !important;
+      height: 48px;
+      margin-right: 6px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    font-size: 20px;
+    
+    img {
+      height: 40px;
+      margin-right: 4px;
     }
   }
 `;
@@ -71,27 +90,12 @@ const Nav = styled.nav`
   }
 
   @media (max-width: 768px) {
-    display: none;
+    gap: 16px;
+    font-size: 16px;
   }
-`;
 
-const MobileNav = styled.nav`
-  display: none;
-
-  @media (max-width: 768px) {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    font-size: 18px;
-    font-weight: bold;
-    
-    div {
-      cursor: pointer;
-      transition: color 0.3s ease;
-      &:hover {
-        color: #2b3993;
-      }
-    }
+  @media (max-width: 480px) {
+    display: none;
   }
 `;
 
@@ -108,6 +112,11 @@ const AvatarImg = styled.img`
     width: 40px;
     height: 40px;
   }
+
+  @media (max-width: 480px) {
+    width: 36px;
+    height: 36px;
+  }
 `;
 
 const RightSection = styled.div`
@@ -117,8 +126,12 @@ const RightSection = styled.div`
   margin-right: 40px;
 
   @media (max-width: 768px) {
-    gap: 15px;
+    gap: 16px;
     margin-right: 0;
+  }
+
+  @media (max-width: 480px) {
+    gap: 12px;
   }
 `;
 
@@ -169,10 +182,24 @@ const HeroSection = styled.section`
   }
 
   @media (max-width: 768px) {
-    padding: 120px 20px 0 20px;
-    justify-content: center;
+    background-size: 120%;
+    background-position: center top;
+    padding: 120px 24px 0;
     text-align: center;
-    gap: 20px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 480px) {
+    background-size: 140%;
+    background-position: center 20%;
+    padding: 100px 16px 0;
+    height: 90vh;
+  }
+
+  @media (max-width: 320px) {
+    background-size: 160%;
+    background-position: center 30%;
   }
 `;
 
@@ -187,12 +214,18 @@ const Title = styled.h1`
   letter-spacing: -2px;
 
   @media (max-width: 768px) {
-    font-size: 48px;
+    font-size: 64px;
     letter-spacing: -1px;
+    margin-bottom: 16px;
   }
 
   @media (max-width: 480px) {
-    font-size: 36px;
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 40px;
   }
 `;
 
@@ -210,9 +243,19 @@ const Subtitle = styled.p`
   text-shadow: 0 2px 10px rgba(90, 108, 125, 0.15);
 
   @media (max-width: 768px) {
+    font-size: 24px;
+    margin-top: 0;
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 480px) {
     font-size: 20px;
-    margin-top: -20px;
-    white-space: normal;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 18px;
   }
 `;
 
@@ -277,7 +320,15 @@ const StartButton = styled.button`
   @media (max-width: 768px) {
     font-size: 20px;
     padding: 16px 32px;
-    margin: 20px auto 0;
+    border-radius: 40px;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 18px;
+    padding: 14px 28px;
+    width: 100%;
+    max-width: 200px;
   }
 `;
 
@@ -290,9 +341,8 @@ const HeroContent = styled.div`
   max-width: 800px;
 
   @media (max-width: 768px) {
-    align-items: center;
-    text-align: center;
     max-width: 100%;
+    align-items: center;
   }
 `;
 
@@ -322,7 +372,7 @@ const ButtonGroup = styled.div`
 
   @media (max-width: 768px) {
     flex-direction: column;
-    gap: 15px;
+    gap: 16px;
   }
 `;
 
@@ -356,7 +406,10 @@ const SecondaryButton = styled.button`
   @media (max-width: 768px) {
     font-size: 18px;
     padding: 12px 24px;
-    width: fit-content;
+  }
+
+  @media (max-width: 480px) {
+    display: none;
   }
 `;
 
@@ -388,9 +441,13 @@ const FeatureBadge = styled.div`
     font-size: 14px;
     padding: 10px 16px;
   }
+
+  @media (max-width: 480px) {
+    display: none;
+  }
 `;
 
-// ===== 優化後的機器人卡片區域樣式 =====
+// ===== 優化後的機器人卡片區塊樣式 =====
 const CardSection = styled.section`
   padding: 120px 80px 80px 80px;
   background: linear-gradient(135deg, #f8fbff 0%, #e8f4fd 50%, #f0f8ff 100%);
@@ -427,7 +484,11 @@ const CardSection = styled.section`
   }
 
   @media (max-width: 768px) {
-    padding: 80px 20px 60px 20px;
+    padding: 80px 40px 60px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 60px 20px 40px;
   }
 `;
 
@@ -441,6 +502,11 @@ const SectionTitle = styled.h2`
   z-index: 1;
 
   @media (max-width: 768px) {
+    font-size: 32px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 480px) {
     font-size: 28px;
     margin-bottom: 16px;
   }
@@ -457,9 +523,13 @@ const SectionSubtitle = styled.p`
   position: relative;
 
   @media (max-width: 768px) {
-    font-size: 16px;
+    font-size: 18px;
     margin-bottom: 40px;
-    padding: 0 10px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 16px;
+    margin-bottom: 32px;
   }
 `;
 
@@ -476,11 +546,6 @@ const ScrollWrapper = styled.div`
   }
   
   scroll-behavior: smooth;
-
-  @media (max-width: 768px) {
-    margin: 0 -20px;
-    padding: 0 20px;
-  }
 `;
 
 const ScrollContainer = styled.div`
@@ -492,6 +557,11 @@ const ScrollContainer = styled.div`
   @media (max-width: 768px) {
     gap: 20px;
     padding: 20px 10px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 16px;
+    padding: 16px 8px;
   }
 `;
 
@@ -570,10 +640,21 @@ const ScrollCard = styled.div`
 
   @media (max-width: 768px) {
     flex: 0 0 280px;
-    padding: 24px 16px;
-    
+    padding: 24px 20px;
+    border-radius: 20px;
+
     &:hover {
       transform: translateY(-8px) scale(1.02);
+    }
+  }
+
+  @media (max-width: 480px) {
+    flex: 0 0 240px;
+    padding: 20px 16px;
+    border-radius: 16px;
+
+    &:hover {
+      transform: translateY(-4px) scale(1.01);
     }
   }
 `;
@@ -583,6 +664,14 @@ const CardImageContainer = styled.div`
   margin-bottom: 24px;
   display: flex;
   justify-content: center;
+
+  @media (max-width: 768px) {
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 16px;
+  }
 `;
 
 const BotName = styled.div`
@@ -599,8 +688,15 @@ const BotName = styled.div`
   backdrop-filter: blur(8px);
 
   @media (max-width: 768px) {
+    font-size: 13px;
+    padding: 5px 10px;
+    margin: -8px auto 10px;
+  }
+
+  @media (max-width: 480px) {
     font-size: 12px;
     padding: 4px 8px;
+    margin: -6px auto 8px;
   }
 `;
 
@@ -624,6 +720,13 @@ const CardImg = styled.img`
   @media (max-width: 768px) {
     width: 120px;
     height: 140px;
+    border-radius: 16px;
+  }
+
+  @media (max-width: 480px) {
+    width: 100px;
+    height: 120px;
+    border-radius: 12px;
   }
 `;
 
@@ -649,7 +752,12 @@ const CardTitle = styled.h3`
   }
 
   @media (max-width: 768px) {
-    font-size: 22px;
+    font-size: 24px;
+    margin-bottom: 14px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 20px;
     margin-bottom: 12px;
   }
 `;
@@ -659,6 +767,10 @@ const CardFeature = styled.div`
 
   @media (max-width: 768px) {
     margin-bottom: 16px;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 14px;
   }
 `;
 
@@ -671,8 +783,13 @@ const FeatureLabel = styled.div`
   letter-spacing: 0.5px;
 
   @media (max-width: 768px) {
-    font-size: 14px;
+    font-size: 15px;
     margin-bottom: 6px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 14px;
+    margin-bottom: 5px;
   }
 `;
 
@@ -686,8 +803,13 @@ const FeatureText = styled.p`
   letter-spacing: 0.3px;
 
   @media (max-width: 768px) {
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.5;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 13px;
+    line-height: 1.4;
   }
 `;
 
@@ -699,6 +821,10 @@ const CardDivider = styled.div`
 
   @media (max-width: 768px) {
     margin: 16px auto;
+  }
+
+  @media (max-width: 480px) {
+    margin: 14px auto;
   }
 `;
 
@@ -712,7 +838,12 @@ const CarouselControls = styled.div`
 
   @media (max-width: 768px) {
     margin-top: 32px;
-    gap: 15px;
+    gap: 16px;
+  }
+
+  @media (max-width: 480px) {
+    margin-top: 24px;
+    gap: 12px;
   }
 `;
 
@@ -752,6 +883,12 @@ const CarouselButton = styled.button`
   @media (max-width: 768px) {
     width: 44px;
     height: 44px;
+    font-size: 20px;
+  }
+
+  @media (max-width: 480px) {
+    width: 40px;
+    height: 40px;
     font-size: 18px;
   }
 `;
@@ -794,7 +931,11 @@ const ServiceIntroSection = styled.section`
   }
 
   @media (max-width: 768px) {
-    padding: 60px 20px 80px 20px;
+    padding: 60px 40px 80px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 40px 20px 60px;
   }
 `;
 
@@ -808,6 +949,11 @@ const ServiceSectionTitle = styled.h2`
   z-index: 1;
 
   @media (max-width: 768px) {
+    font-size: 32px;
+    margin-bottom: 18px;
+  }
+
+  @media (max-width: 480px) {
     font-size: 28px;
     margin-bottom: 16px;
   }
@@ -829,7 +975,11 @@ const ServiceSubtitle = styled.p`
   @media (max-width: 768px) {
     font-size: 16px;
     margin-bottom: 40px;
-    padding: 0 10px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 15px;
+    margin-bottom: 32px;
   }
 `;
 
@@ -840,9 +990,13 @@ const TimelineContainer = styled.div`
   padding: 20px 0;
 
   @media (max-width: 768px) {
-    max-width: 100%;
     margin: 40px auto;
-    padding: 20px 10px;
+    padding: 16px 0;
+  }
+
+  @media (max-width: 480px) {
+    margin: 32px auto;
+    padding: 12px 0;
   }
 `;
 
@@ -893,8 +1047,10 @@ const TimelineCenterLine = styled.div`
   }
 
   @media (max-width: 768px) {
-    left: 30px;
+    left: 20px;
     margin-left: 0;
+    top: 60px;
+    bottom: 60px;
   }
 `;
 
@@ -923,21 +1079,15 @@ const TimelineItem = styled.div`
 
   @media (max-width: 768px) {
     width: 100%;
-    padding: 15px 15px 15px 70px;
-    text-align: left;
     left: 0 !important;
-    
-    &:nth-child(odd) {
-      padding: 15px 15px 15px 70px;
-      text-align: left;
-    }
-    
-    &:nth-child(even) {
-      left: 0;
-      padding: 15px 15px 15px 70px;
-    }
-    
+    text-align: left !important;
+    padding: 15px 20px 15px 60px !important;
     margin-bottom: 40px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px 16px 12px 50px !important;
+    margin-bottom: 32px;
   }
 `;
 
@@ -977,11 +1127,18 @@ const TimelineNumber = styled.div`
   }
 
   @media (max-width: 768px) {
-    left: 5px !important;
+    left: -25px !important;
     right: auto !important;
     width: 40px;
     height: 40px;
     font-size: 16px;
+  }
+
+  @media (max-width: 480px) {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+    left: -18px !important;
   }
 `;
 
@@ -998,7 +1155,6 @@ const TimelineContent = styled.div`
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.4);
-  
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -1045,7 +1201,13 @@ const TimelineContent = styled.div`
   }
 
   @media (max-width: 768px) {
-    padding: 25px 20px;
+    padding: 24px 20px;
+    border-radius: 16px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 20px 16px;
+    border-radius: 12px;
   }
 `;
 
@@ -1067,6 +1229,12 @@ const TimelineTitle = styled.h3`
     margin-bottom: 12px;
     gap: 12px;
   }
+
+  @media (max-width: 480px) {
+    font-size: 16px;
+    margin-bottom: 10px;
+    gap: 10px;
+  }
 `;
 
 const TimelineText = styled.p`
@@ -1082,6 +1250,11 @@ const TimelineText = styled.p`
   @media (max-width: 768px) {
     font-size: 14px;
     line-height: 1.6;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 13px;
+    line-height: 1.5;
   }
 `;
 
@@ -1112,10 +1285,22 @@ const TimelineIcon = styled.div`
   @media (max-width: 768px) {
     width: 32px;
     height: 32px;
+    border-radius: 10px;
     
     svg {
       width: 20px;
       height: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    
+    svg {
+      width: 18px;
+      height: 18px;
     }
   }
 `;
@@ -1128,9 +1313,14 @@ const AboutSection = styled.section`
   gap: 80px;
 
   @media (max-width: 768px) {
-    padding: 60px 20px;
+    padding: 60px 40px;
     flex-direction: column;
     gap: 40px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 40px 20px;
+    gap: 32px;
   }
 `;
 
@@ -1142,6 +1332,11 @@ const AboutImage = styled.img`
   @media (max-width: 768px) {
     width: 100%;
     max-width: 400px;
+    border-radius: 20px;
+  }
+
+  @media (max-width: 480px) {
+    border-radius: 16px;
   }
 `;
 
@@ -1160,7 +1355,12 @@ const AboutTitle = styled.h2`
   margin-bottom: 24px;
 
   @media (max-width: 768px) {
-    font-size: 32px;
+    font-size: 36px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 28px;
     margin-bottom: 16px;
   }
 `;
@@ -1172,8 +1372,13 @@ const AboutText = styled.p`
   white-space: pre-line;
 
   @media (max-width: 768px) {
+    font-size: 18px;
+    line-height: 1.8;
+  }
+
+  @media (max-width: 480px) {
     font-size: 16px;
-    line-height: 1.7;
+    line-height: 1.6;
   }
 `;
 
@@ -1186,11 +1391,17 @@ const Footer = styled.footer`
   font-size: 18px;
 
   @media (max-width: 768px) {
-    padding: 15px 20px;
+    padding: 16px 20px;
+    font-size: 16px;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     text-align: center;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px 16px;
     font-size: 14px;
+    gap: 8px;
   }
 `;
 
@@ -1206,8 +1417,13 @@ const FooterLinks = styled.div`
   }
 
   @media (max-width: 768px) {
-    gap: 20px;
     justify-content: center;
+    gap: 24px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 16px;
+    flex-wrap: wrap;
   }
 `;
 
@@ -1312,7 +1528,7 @@ export default function Home() {
     <Container>
       <Header>
         <Logo>
-          <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
+          <img src={logoIcon} alt="logo" />
           Emobot+
         </Logo>
         <RightSection>
@@ -1339,7 +1555,7 @@ export default function Home() {
           <Title data-aos="fade-up">Emobot+</Title>
           <Subtitle data-aos="fade-up" data-aos-delay="200">
             讓情緒被聽見，{"\n"}
-            讓支持更貼近。
+            讓支持更靠近。
           </Subtitle>
           
           <ButtonGroup data-aos="fade-up" data-aos-delay="400">
@@ -1412,7 +1628,7 @@ export default function Home() {
               <TimelineNumber>{index + 1}</TimelineNumber>
               <TimelineContent>
                 <TimelineTitle>
-                  <TimelineIcon $isOdd={index % 2 === 0}>
+                  <TimelineIcon>
                     {step.icon}
                   </TimelineIcon>
                   {step.title}

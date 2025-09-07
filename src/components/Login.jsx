@@ -17,7 +17,18 @@ const Container = styled.div`
   overflow: hidden;
 
   @media (max-width: 768px) {
-    background-attachment: scroll;
+    background-size: 120%;
+    background-position: center top;
+  }
+
+  @media (max-width: 480px) {
+    background-size: 140%;
+    background-position: center 20%;
+  }
+
+  @media (max-width: 320px) {
+    background-size: 160%;
+    background-position: center 30%;
   }
 `;
 
@@ -36,7 +47,12 @@ const Header = styled.header`
 
   @media (max-width: 768px) {
     height: 60px;
-    padding: 0 15px;
+    padding: 0 16px;
+  }
+
+  @media (max-width: 480px) {
+    height: 55px;
+    padding: 0 12px;
   }
 `;
 
@@ -47,12 +63,26 @@ const Logo = styled.div`
   display: flex;
   align-items: center;
 
+  img {
+    height: 68px;
+    margin-right: 8px;
+  }
+
   @media (max-width: 768px) {
     font-size: 24px;
     
     img {
-      height: 45px !important;
-      margin-right: 4px !important;
+      height: 48px;
+      margin-right: 6px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    font-size: 20px;
+    
+    img {
+      height: 40px;
+      margin-right: 4px;
     }
   }
 `;
@@ -72,6 +102,11 @@ const Nav = styled.nav`
   }
 
   @media (max-width: 768px) {
+    gap: 16px;
+    font-size: 16px;
+  }
+
+  @media (max-width: 480px) {
     display: none;
   }
 `;
@@ -89,6 +124,11 @@ const AvatarImg = styled.img`
     width: 40px;
     height: 40px;
   }
+
+  @media (max-width: 480px) {
+    width: 36px;
+    height: 36px;
+  }
 `;
 
 const RightSection = styled.div`
@@ -98,8 +138,12 @@ const RightSection = styled.div`
   margin-right: 40px;
 
   @media (max-width: 768px) {
-    gap: 15px;
+    gap: 16px;
     margin-right: 0;
+  }
+
+  @media (max-width: 480px) {
+    gap: 12px;
   }
 `;
 
@@ -121,20 +165,22 @@ const LoginCard = styled.div`
   }
 
   @media (max-width: 768px) {
-    position: fixed;
-    top: 50%;
-    left: 50%;
+    position: relative;
+    top: auto;
     right: auto;
-    transform: translate(-50%, -50%);
+    transform: none;
     width: 90%;
     max-width: 400px;
-    padding: 30px 20px;
+    margin: 100px auto 20px;
+    padding: 32px 24px;
     border-radius: 20px;
   }
 
   @media (max-width: 480px) {
     width: 95%;
-    padding: 25px 15px;
+    margin: 80px auto 16px;
+    padding: 24px 20px;
+    border-radius: 16px;
   }
 `;
 
@@ -147,7 +193,7 @@ const Title = styled.h2`
 
   @media (max-width: 768px) {
     font-size: 32px;
-    margin-bottom: 25px;
+    margin-bottom: 24px;
     text-align: center;
   }
 
@@ -160,8 +206,12 @@ const Title = styled.h2`
 const FormGroup = styled.div`
   margin-bottom: 24px;
 
-  @media (max-width: 480px) {
+  @media (max-width: 768px) {
     margin-bottom: 20px;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 18px;
   }
 `;
 
@@ -173,7 +223,7 @@ const Label = styled.label`
   margin-bottom: 8px;
 
   @media (max-width: 480px) {
-    font-size: 14px;
+    font-size: 15px;
     margin-bottom: 6px;
   }
 `;
@@ -214,7 +264,7 @@ const HelperText = styled.div`
   font-family: "Gilroy-Medium";
 
   @media (max-width: 480px) {
-    font-size: 12px;
+    font-size: 13px;
     margin-top: 4px;
   }
 `;
@@ -226,7 +276,7 @@ const ErrorText = styled.div`
   font-family: "Gilroy-Medium";
 
   @media (max-width: 480px) {
-    font-size: 12px;
+    font-size: 13px;
     margin-top: 4px;
   }
 `;
@@ -297,8 +347,9 @@ const StatusMessage = styled.div`
   }
 
   @media (max-width: 480px) {
-    font-size: 12px;
+    font-size: 13px;
     margin-top: 10px;
+    min-height: 18px;
   }
 `;
 
@@ -408,7 +459,7 @@ export default function Login() {
     <Container>
       <Header>
         <Logo>
-          <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
+          <img src={logoIcon} alt="logo" />
           Emobot+
         </Logo>
         <RightSection>
