@@ -24,7 +24,7 @@ const fadeInUp = keyframes`
   }
 `;
 
-// ===== 元件樣式區塊 =====
+// ===== 元件樣式優化 =====
 const Container = styled.div`
   width: 100vw;
   height: 100vh;
@@ -35,6 +35,10 @@ const Container = styled.div`
   font-family: "Noto Sans TC", sans-serif;
   overflow: hidden;
   position: relative;
+
+  @media (max-width: 768px) {
+    background-attachment: scroll;
+  }
 `;
 
 const Header = styled.header`
@@ -50,6 +54,11 @@ const Header = styled.header`
   left: 0;
   z-index: 10;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    height: 60px;
+    padding: 0 15px;
+  }
 `;
 
 const Logo = styled.div`
@@ -64,6 +73,15 @@ const Logo = styled.div`
   &:hover {
     transform: scale(1.05);
   }
+
+  @media (max-width: 768px) {
+    font-size: 24px;
+    
+    img {
+      height: 45px !important;
+      margin-right: 4px !important;
+    }
+  }
 `;
 
 const RightSection = styled.div`
@@ -72,6 +90,11 @@ const RightSection = styled.div`
   gap: 30px;
   margin-left: auto;
   margin-right: 40px;
+
+  @media (max-width: 768px) {
+    gap: 15px;
+    margin-right: 0;
+  }
 `;
 
 const Nav = styled.nav`
@@ -94,6 +117,10 @@ const Nav = styled.nav`
       transform: translateY(1px);
     }
   }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const AvatarImg = styled.img`
@@ -108,6 +135,11 @@ const AvatarImg = styled.img`
     transform: scale(1.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
+  @media (max-width: 768px) {
+    width: 40px;
+    height: 40px;
+  }
 `;
 
 const MainContentWrapper = styled.div`
@@ -116,11 +148,21 @@ const MainContentWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+
+  @media (max-width: 768px) {
+    margin-top: 60px;
+    height: calc(100vh - 60px);
+    padding: 0 20px;
+  }
 `;
 
 const ContentScaler = styled.div`
   max-width: 700px;
   text-align: center;
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+  }
 `;
 
 const Title = styled.h1`
@@ -130,6 +172,16 @@ const Title = styled.h1`
   margin-bottom: 40px;
   opacity: 0;
   animation: ${fadeInUp} 0.8s ease-out 0.2s forwards;
+
+  @media (max-width: 768px) {
+    font-size: 36px;
+    margin-bottom: 30px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 28px;
+    margin-bottom: 25px;
+  }
 `;
 
 const Description = styled.p`
@@ -139,6 +191,16 @@ const Description = styled.p`
   white-space: pre-line;
   opacity: 0;
   animation: ${fadeInUp} 0.8s ease-out 0.5s forwards;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+    line-height: 1.8;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 16px;
+    line-height: 1.7;
+  }
 `;
 
 const StartButton = styled.button`
@@ -164,6 +226,18 @@ const StartButton = styled.button`
   &:active {
     transform: scale(0.95);
   }
+
+  @media (max-width: 768px) {
+    margin-top: 35px;
+    font-size: 20px;
+    padding: 14px 32px;
+  }
+
+  @media (max-width: 480px) {
+    margin-top: 30px;
+    font-size: 18px;
+    padding: 12px 24px;
+  }
 `;
 
 const RobotImage = styled.img`
@@ -173,6 +247,16 @@ const RobotImage = styled.img`
   width: 240px;
   animation: ${float} 3s ease-in-out infinite;
   z-index: 0;
+
+  @media (max-width: 1024px) {
+    right: 30px;
+    bottom: 30px;
+    width: 200px;
+  }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 // ===== 主組件 =====
@@ -215,4 +299,3 @@ export default function TestEntry() {
     </Container>
   );
 }
-

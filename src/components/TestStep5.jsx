@@ -19,6 +19,10 @@ const Container = styled.div`
   background: #e8e8e8;
   font-family: "Noto Sans TC", sans-serif;
   padding-top: 10px;
+
+  @media (max-width: 768px) {
+    padding-top: 0;
+  }
 `;
 
 const Header = styled.header`
@@ -34,6 +38,11 @@ const Header = styled.header`
   left: 0;
   z-index: 10;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    height: 60px;
+    padding: 0 15px;
+  }
 `;
 
 const Logo = styled.div`
@@ -45,6 +54,15 @@ const Logo = styled.div`
   cursor: pointer;
   transition: transform 0.3s ease;
   &:hover { transform: scale(1.05); }
+
+  @media (max-width: 768px) {
+    font-size: 24px;
+    
+    img {
+      height: 45px !important;
+      margin-right: 4px !important;
+    }
+  }
 `;
 
 const Nav = styled.nav`
@@ -59,6 +77,10 @@ const Nav = styled.nav`
     &:hover { color: #2b3993; transform: translateY(-2px); }
     &:active { transform: translateY(1px); }
   }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const AvatarImg = styled.img`
@@ -66,27 +88,92 @@ const AvatarImg = styled.img`
   object-fit: cover; cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   &:hover { transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+
+  @media (max-width: 768px) {
+    width: 40px;
+    height: 40px;
+  }
 `;
 
 const RightSection = styled.div`
   display: flex; align-items: center; gap: 30px; margin-left: auto; margin-right: 40px;
+
+  @media (max-width: 768px) {
+    gap: 15px;
+    margin-right: 0;
+  }
 `;
 
-const StepIndicatorWrapper = styled.div` margin-top: 120px; `;
+const StepIndicatorWrapper = styled.div` 
+  margin-top: 120px;
+
+  @media (max-width: 768px) {
+    margin-top: 90px;
+  }
+`;
 
 const Main = styled.div`
   max-width: 960px; margin: 40px auto; padding: 60px;
   background: white; border-radius: 24px; text-align: center;
   animation: ${fadeInUp} 0.8s ease-out;
+
+  @media (max-width: 768px) {
+    margin: 20px 10px;
+    padding: 40px 20px;
+    border-radius: 20px;
+  }
+
+  @media (max-width: 480px) {
+    margin: 15px 5px;
+    padding: 30px 15px;
+    border-radius: 16px;
+  }
 `;
 
-const BigTitle = styled.h2` font-size: 32px; font-weight: bold; margin-bottom: 40px; `;
+const BigTitle = styled.h2` 
+  font-size: 32px; font-weight: bold; margin-bottom: 40px;
+
+  @media (max-width: 768px) {
+    font-size: 26px;
+    margin-bottom: 30px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 22px;
+    margin-bottom: 25px;
+  }
+`;
 
 const Paragraph = styled.p`
   font-size: 20px; line-height: 1.8; color: #333; margin-bottom: 48px; white-space: pre-line;
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+    line-height: 1.7;
+    margin-bottom: 35px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+  }
 `;
 
-const ButtonGroup = styled.div` display: flex; justify-content: center; gap: 40px; margin-bottom: 24px; `;
+const ButtonGroup = styled.div` 
+  display: flex; justify-content: center; gap: 40px; margin-bottom: 24px;
+
+  @media (max-width: 768px) {
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+`;
 
 const Button = styled.button`
   font-size: 20px; padding: 14px 36px;
@@ -96,6 +183,18 @@ const Button = styled.button`
   &:hover { transform: scale(1.05); }
   &:active { transform: scale(0.95); }
   &:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+    padding: 12px 28px;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    max-width: 280px;
+    font-size: 16px;
+    padding: 10px 20px;
+  }
 `;
 
 const DebugButton = styled(Button)`
