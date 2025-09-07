@@ -19,20 +19,12 @@ const Container = styled.div`
   overflow-x: hidden;
   padding-bottom: 80px;
   animation: ${fadeInUp} 0.6s ease-in-out;
-
-  @media (max-width: 768px) {
-    padding-bottom: 60px;
-  }
-
-  @media (max-width: 480px) {
-    padding-bottom: 40px;
-  }
 `;
 
 const Header = styled.header`
   width: 100%;
   height: 70px;
-  background: white;
+  background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -41,16 +33,18 @@ const Header = styled.header`
   top: 0;
   left: 0;
   z-index: 10;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(43, 57, 147, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
     height: 60px;
     padding: 0 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 12px rgba(43, 57, 147, 0.06);
   }
 
   @media (max-width: 480px) {
-    height: 56px;
+    height: 55px;
     padding: 0 12px;
   }
 `;
@@ -62,19 +56,22 @@ const Logo = styled.div`
   display: flex;
   align-items: center;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  text-shadow: 0 2px 4px rgba(43, 57, 147, 0.1);
 
   &:hover {
     transform: scale(1.05);
+    color: #1e2a6b;
   }
 
   img {
     height: 68px;
     margin-right: 8px;
+    filter: drop-shadow(0 2px 4px rgba(43, 57, 147, 0.1));
   }
 
   @media (max-width: 768px) {
-    font-size: 28px;
+    font-size: 24px;
     
     img {
       height: 48px;
@@ -83,7 +80,7 @@ const Logo = styled.div`
   }
 
   @media (max-width: 480px) {
-    font-size: 24px;
+    font-size: 20px;
     
     img {
       height: 40px;
@@ -100,7 +97,7 @@ const RightSection = styled.div`
   margin-right: 40px;
 
   @media (max-width: 768px) {
-    gap: 20px;
+    gap: 16px;
     margin-right: 0;
   }
 
@@ -118,7 +115,9 @@ const Nav = styled.nav`
 
   div {
     cursor: pointer;
-    transition: color 0.3s ease, transform 0.2s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 8px 0;
 
     &:hover {
       color: #2b3993;
@@ -128,6 +127,26 @@ const Nav = styled.nav`
     &:active {
       transform: translateY(1px);
     }
+
+    &:hover::after {
+      width: 100%;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #2b3993, #667eea);
+      transition: width 0.3s ease;
+    }
+  }
+
+  @media (max-width: 900px) {
+    gap: 20px;
+    font-size: 20px;
   }
 
   @media (max-width: 768px) {
@@ -146,11 +165,14 @@ const AvatarImg = styled.img`
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(43, 57, 147, 0.1);
+  box-shadow: 0 4px 12px rgba(43, 57, 147, 0.1);
 
   &:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px rgba(43, 57, 147, 0.2);
+    border-color: rgba(43, 57, 147, 0.3);
   }
 
   @media (max-width: 768px) {
@@ -168,33 +190,33 @@ const StepIndicatorWrapper = styled.div`
   margin-top: 120px;
 
   @media (max-width: 768px) {
-    margin-top: 100px;
+    margin-top: 80px;
   }
 
   @media (max-width: 480px) {
-    margin-top: 80px;
+    margin-top: 75px;
   }
 `;
 
 const Main = styled.div`
   max-width: 900px;
   margin: 40px auto 0;
-  background: white;
-  border: 2px solid #d0d0d0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  border: 2px solid rgba(43, 57, 147, 0.1);
   border-radius: 20px;
   padding: 50px;
   animation: ${fadeInUp} 0.8s ease-in-out;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px rgba(43, 57, 147, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(10px);
 
   @media (max-width: 768px) {
-    margin: 24px 16px 0;
+    margin: 20px 16px 0;
     padding: 32px 24px;
     border-radius: 16px;
-    border: 1px solid #d0d0d0;
   }
 
   @media (max-width: 480px) {
-    margin: 20px 12px 0;
+    margin: 16px 12px 0;
     padding: 24px 16px;
     border-radius: 12px;
   }
@@ -205,8 +227,10 @@ const Title = styled.h2`
   font-weight: bold;
   margin-bottom: 70px;
   text-align: center;
-  color: #2b3993;
-  text-shadow: 0 1px 3px rgba(43, 57, 147, 0.1);
+  background: linear-gradient(135deg, #2b3993 0%, #667eea 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 4px rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
     font-size: 28px;
@@ -237,14 +261,16 @@ const QuestionList = styled.ul`
 const QuestionItem = styled.li`
   list-style: decimal;
   margin-bottom: 64px;
-  line-height: 1.5;
+  padding: 0 8px;
 
   @media (max-width: 768px) {
     margin-bottom: 48px;
+    padding: 0 4px;
   }
 
   @media (max-width: 480px) {
     margin-bottom: 36px;
+    padding: 0;
   }
 `;
 
@@ -264,6 +290,7 @@ const ScaleWrapper = styled.div`
   @media (max-width: 480px) {
     gap: 8px;
     margin-top: 24px;
+    flex-direction: column;
   }
 `;
 
@@ -275,10 +302,10 @@ const Circle = styled.div`
      ${(props) =>
     props.selected
       ? props.index < 3
-        ? "#6A4C93"   
+        ? "#6A4C93"
         : props.index === 3
-        ? "#aaa"      
-        : "#3AA87A"   
+        ? "#aaa"
+        : "#3AA87A"
       : props.index < 3
       ? "#6A4C93"
       : props.index === 3
@@ -288,19 +315,18 @@ const Circle = styled.div`
 background: ${(props) =>
   props.selected
     ? props.index < 3
-      ? "#6A4C93"     
+      ? "#6A4C93"
       : props.index === 3
-      ? "#aaa"        
-      : "#3AA87A"     
+      ? "#aaa"
+      : "#3AA87A"
     : "transparent"};
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 44px;
-  min-width: 44px;
+  transition: all 0.3s ease;
+  box-shadow: ${(props) => (props.selected ? "0 4px 12px rgba(106, 76, 147, 0.3)" : "0 2px 6px rgba(0, 0, 0, 0.1)")};
 
   &:hover {
     transform: scale(1.1);
-    box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
   }
 
   &:active {
@@ -309,17 +335,13 @@ background: ${(props) =>
   }
 
   @media (max-width: 768px) {
-    width: ${(props) => Math.max(props.size * 0.8, 32)}px;
-    height: ${(props) => Math.max(props.size * 0.8, 32)}px;
-    min-height: 32px;
-    min-width: 32px;
+    width: ${(props) => Math.max(props.size - 8, 28)}px;
+    height: ${(props) => Math.max(props.size - 8, 28)}px;
   }
 
   @media (max-width: 480px) {
-    width: ${(props) => Math.max(props.size * 0.7, 28)}px;
-    height: ${(props) => Math.max(props.size * 0.7, 28)}px;
-    min-height: 28px;
-    min-width: 28px;
+    width: ${(props) => Math.max(props.size - 12, 24)}px;
+    height: ${(props) => Math.max(props.size - 12, 24)}px;
   }
 `;
 
@@ -337,7 +359,25 @@ const Label = styled.span`
 
   @media (max-width: 480px) {
     font-size: 14px;
-    width: 40px;
+    width: 100%;
+    margin: 4px 0;
+  }
+`;
+
+const CircleRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+
+  @media (max-width: 768px) {
+    gap: 10px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 6px;
+    order: 2;
+    margin: 8px 0;
   }
 `;
 
@@ -348,7 +388,7 @@ const ButtonGroup = styled.div`
   gap: 40px;
 
   @media (max-width: 768px) {
-    gap: 24px;
+    gap: 20px;
     margin-top: 32px;
   }
 
@@ -361,25 +401,26 @@ const ButtonGroup = styled.div`
 `;
 
 const Button = styled.button`
-  background: rgba(30, 31, 19, 0.8);
+  background: linear-gradient(135deg, rgba(30,31,19,0.9) 0%, rgba(43,57,147,0.9) 100%);
   color: white;
   font-size: 24px;
   padding: 16px 40px;
-  border: 3px solid #f5fbf2;
+  border: 3px solid rgba(43, 57, 147, 0.2);
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   font-weight: 600;
-  min-height: 44px;
+  box-shadow: 0 4px 16px rgba(43, 57, 147, 0.2);
 
   &:hover {
     transform: scale(1.05);
-    background: rgba(30, 31, 19, 1);
+    box-shadow: 0 6px 20px rgba(43, 57, 147, 0.3);
   }
 
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
   }
 
   @media (max-width: 768px) {
@@ -470,7 +511,7 @@ export default function TestStep4() {
     <Container>
       <Header>
         <Logo onClick={() => navigate("/Home")}>
-          <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
+          <img src={logoIcon} alt="logo" />
           Emobot+
         </Logo>
         <RightSection>
@@ -497,15 +538,17 @@ export default function TestStep4() {
               {q}
               <ScaleWrapper>
                 <Label side="left">不同意</Label>
-                {[1, 2, 3, 4, 5, 6, 7].map((n, idx) => (
-                  <Circle
-                    key={n}
-                    size={48 + Math.abs(3 - idx) * 4}
-                    index={idx}
-                    selected={answers[i] === n}
-                    onClick={() => handleSelect(i, n)}
-                  />
-                ))}
+                <CircleRow>
+                  {[1, 2, 3, 4, 5, 6, 7].map((n, idx) => (
+                    <Circle
+                      key={n}
+                      size={48 + Math.abs(3 - idx) * 4}
+                      index={idx}
+                      selected={answers[i] === n}
+                      onClick={() => handleSelect(i, n)}
+                    />
+                  ))}
+                </CircleRow>
                 <Label side="right">同意</Label>
               </ScaleWrapper>
             </QuestionItem>

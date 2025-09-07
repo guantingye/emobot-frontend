@@ -13,7 +13,7 @@ const fadeIn = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 
-// 全許滾動的頁面容器（保留原框架視覺）
+// 全頁滾動的容器（保留原框架視覺）
 const Page = styled.div`
   width: 100vw;
   min-height: 100vh;
@@ -27,7 +27,7 @@ const Page = styled.div`
 const Header = styled.header`
   width: 100%;
   height: 70px;
-  background: white;
+  background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -35,17 +35,19 @@ const Header = styled.header`
   position: fixed;
   top: 0; 
   left: 0;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(43, 57, 147, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
   z-index: 10;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
     height: 60px;
     padding: 0 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 12px rgba(43, 57, 147, 0.06);
   }
 
   @media (max-width: 480px) {
-    height: 56px;
+    height: 55px;
     padding: 0 12px;
   }
 `;
@@ -57,19 +59,22 @@ const Logo = styled.div`
   display: flex;
   align-items: center;
   cursor: pointer;
-  transition: transform .3s ease;
+  transition: all 0.3s ease;
+  text-shadow: 0 2px 4px rgba(43, 57, 147, 0.1);
   
   &:hover { 
-    transform: scale(1.05); 
+    transform: scale(1.05);
+    color: #1e2a6b;
   }
 
   img {
     height: 68px;
     margin-right: 8px;
+    filter: drop-shadow(0 2px 4px rgba(43, 57, 147, 0.1));
   }
 
   @media (max-width: 768px) {
-    font-size: 28px;
+    font-size: 24px;
     
     img {
       height: 48px;
@@ -78,7 +83,7 @@ const Logo = styled.div`
   }
 
   @media (max-width: 480px) {
-    font-size: 24px;
+    font-size: 20px;
     
     img {
       height: 40px;
@@ -95,7 +100,7 @@ const RightSection = styled.div`
   margin-right: 40px;
 
   @media (max-width: 768px) {
-    gap: 20px;
+    gap: 16px;
     margin-right: 0;
   }
 
@@ -110,21 +115,38 @@ const Nav = styled.nav`
   font-size: 26px;
   font-weight: bold;
   color: black;
-  
+
   div {
     cursor: pointer;
-    transition: color .3s ease, transform .2s ease;
-    
-    &:hover { 
-      color: #2b3993; 
-      transform: translateY(-2px); 
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 8px 0;
+
+    &:hover {
+      color: #2b3993;
+      transform: translateY(-2px);
     }
-    
-    &:active { 
-      transform: translateY(1px); 
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    &:hover::after {
+      width: 100%;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #2b3993, #667eea);
+      transition: width 0.3s ease;
     }
   }
-  
+
   @media (max-width: 900px) { 
     gap: 20px; 
     font-size: 20px; 
@@ -146,11 +168,14 @@ const AvatarImg = styled.img`
   border-radius: 50%;
   object-fit: cover; 
   cursor: pointer;
-  transition: transform .3s ease, box-shadow .3s ease;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(43, 57, 147, 0.1);
+  box-shadow: 0 4px 12px rgba(43, 57, 147, 0.1);
   
   &:hover { 
     transform: scale(1.08); 
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+    box-shadow: 0 8px 20px rgba(43, 57, 147, 0.2);
+    border-color: rgba(43, 57, 147, 0.3);
   }
 
   @media (max-width: 768px) {
@@ -172,12 +197,12 @@ const Content = styled.main`
 
   @media (max-width: 768px) {
     padding-top: 80px;
-    padding-bottom: 24px;
+    padding-bottom: 20px;
   }
 
   @media (max-width: 480px) {
-    padding-top: 76px;
-    padding-bottom: 20px;
+    padding-top: 75px;
+    padding-bottom: 16px;
   }
 `;
 
@@ -204,23 +229,24 @@ const StepIndicatorBox = styled.div`
 `;
 
 const Card = styled.div`
-  background: white;
-  border: 2px solid #d0d0d0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  border: 2px solid rgba(43, 57, 147, 0.1);
   border-radius: 20px;
   padding: 36px;
   text-align: center;
   animation: ${fadeIn} .8s ease;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  
+  box-shadow: 0 8px 32px rgba(43, 57, 147, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(10px);
+
   @media (max-width: 860px) { 
-    padding: 28px 20px; 
+    padding: 24px 20px; 
     border-radius: 16px; 
   }
 
   @media (max-width: 480px) {
     padding: 20px 16px;
     border-radius: 12px;
-    border: 1px solid #d0d0d0;
+    margin: 0 4px;
   }
 `;
 
@@ -228,16 +254,17 @@ const Title = styled.h2`
   font-size: 32px; 
   font-weight: 800; 
   margin-bottom: 6px;
-  color: #2b3993;
-  text-shadow: 0 1px 3px rgba(43, 57, 147, 0.1);
-  
+  background: linear-gradient(135deg, #2b3993 0%, #667eea 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 4px rgba(43, 57, 147, 0.1);
+
   @media (max-width: 860px) { 
-    font-size: 26px; 
+    font-size: 24px; 
   }
 
   @media (max-width: 480px) {
-    font-size: 22px;
-    margin-bottom: 4px;
+    font-size: 20px;
   }
 `;
 
@@ -245,8 +272,7 @@ const Subtitle = styled.p`
   font-size: 18px; 
   color: #555; 
   margin-bottom: 24px;
-  font-weight: 400;
-  
+
   @media (max-width: 860px) { 
     font-size: 16px; 
   }
@@ -280,35 +306,35 @@ const Group = styled.div`
   align-items: center; 
   gap: 12px;
   padding: 16px 18px;
-  border: 1.5px solid #e5e5e5;
+  border: 1.5px solid rgba(43, 57, 147, 0.15);
   border-radius: 14px;
-  background: #fafafa;
-  transition: all 0.2s ease;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(43, 57, 147, 0.05);
 
   &:hover {
-    border-color: #2b3993;
-    background: #f8f9ff;
-    box-shadow: 0 2px 8px rgba(43, 57, 147, 0.1);
+    border-color: rgba(43, 57, 147, 0.3);
+    box-shadow: 0 4px 16px rgba(43, 57, 147, 0.1);
+    transform: translateY(-2px);
   }
-  
+
   @media (max-width: 640px) { 
     grid-template-columns: 1fr; 
     text-align: center; 
-    gap: 8px;
     padding: 14px 16px;
   }
 
   @media (max-width: 480px) {
     padding: 12px 14px;
     border-radius: 10px;
-    gap: 6px;
+    gap: 8px;
   }
 `;
 
 const DimLabel = styled.div` 
   font-size: 16px; 
   color: #666; 
-  
+
   @media (max-width: 640px) { 
     order: 2; 
     font-size: 14px;
@@ -324,7 +350,7 @@ const DimTitle = styled.div`
   font-weight: 800; 
   color: #222; 
   text-align: center; 
-  
+
   @media (max-width: 640px) { 
     order: 1; 
     margin-bottom: 6px; 
@@ -351,37 +377,42 @@ const Center = styled.div`
 const Pill = styled.button`
   appearance: none;
   border: 2px solid ${p => (p.$active ? "#2b3993" : "#d7d7d7")};
-  background: ${p => (p.$active ? "#2b3993" : "white")};
+  background: ${p => (p.$active ? "linear-gradient(135deg, #2b3993 0%, #667eea 100%)" : "white")};
   color: ${p => (p.$active ? "white" : "#222")};
   font-size: 18px; 
   font-weight: 800;
   border-radius: 999px; 
   padding: 10px 16px;
   cursor: pointer; 
-  transition: all .15s ease;
-  box-shadow: ${p => (p.$active ? "0 4px 10px rgba(43,57,147,.25)" : "0 2px 4px rgba(0,0,0,.05)")};
+  transition: all .3s ease;
+  box-shadow: ${p => (p.$active ? "0 4px 16px rgba(43,57,147,.25)" : "0 2px 8px rgba(0,0,0,.05)")};
+  min-width: 44px;
   min-height: 44px;
   
   &:hover { 
-    transform: translateY(-1px);
-    box-shadow: ${p => (p.$active ? "0 6px 14px rgba(43,57,147,.3)" : "0 4px 8px rgba(0,0,0,.1)")};
+    transform: translateY(-2px);
+    box-shadow: ${p => (p.$active ? "0 6px 20px rgba(43,57,147,.35)" : "0 4px 12px rgba(0,0,0,.1)")};
   }
   
   &:active { 
     transform: translateY(0); 
   }
-  
+
   @media (max-width: 640px) { 
-    width: 100%; 
-    font-size: 16px;
-    padding: 8px 14px;
-    min-height: 40px;
+    width: 100%;
+    margin: 0 20px;
   }
 
   @media (max-width: 480px) {
+    font-size: 16px;
+    padding: 8px 14px;
+    margin: 0 16px;
+  }
+
+  @media (max-width: 320px) {
     font-size: 15px;
     padding: 8px 12px;
-    min-height: 38px;
+    margin: 0 12px;
   }
 `;
 
@@ -390,7 +421,6 @@ const Hint = styled.p`
   color: #777; 
   margin-top: 8px; 
   margin-bottom: 24px; 
-  font-weight: 500;
 
   @media (max-width: 480px) {
     font-size: 14px;
@@ -406,41 +436,45 @@ const ButtonRow = styled.div`
 
   @media (max-width: 480px) {
     gap: 12px;
+    flex-direction: column;
+    align-items: center;
   }
 `;
 
 const Button = styled.button`
-  background: rgba(30,31,19,0.9);
+  background: linear-gradient(135deg, rgba(30,31,19,0.9) 0%, rgba(43,57,147,0.9) 100%);
   color: white; 
   font-size: 18px; 
   padding: 12px 26px;
-  border: 3px solid #f5fbf2; 
+  border: 3px solid rgba(43, 57, 147, 0.2); 
   border-radius: 999px;
   cursor: pointer; 
-  transition: all .2s;
-  min-height: 44px;
+  transition: all .3s ease;
   font-weight: 600;
+  box-shadow: 0 4px 16px rgba(43, 57, 147, 0.2);
+  min-height: 48px;
   
   &:hover { 
-    transform: scale(1.03); 
-    background: rgba(30,31,19,1);
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(43, 57, 147, 0.3);
   }
   
   &:disabled { 
     opacity: .55; 
     cursor: not-allowed; 
+    transform: none;
   }
 
   @media (max-width: 480px) {
     font-size: 16px;
-    padding: 10px 20px;
+    padding: 12px 24px;
     width: 100%;
     max-width: 200px;
   }
 `;
 
 const ErrorMessage = styled.div`
-  background: #fee; 
+  background: linear-gradient(135deg, #fee 0%, #fdd 100%); 
   border: 1px solid #fcc; 
   border-radius: 8px;
   color: #c33; 
@@ -456,7 +490,7 @@ const ErrorMessage = styled.div`
 `;
 
 const SuccessMessage = styled.div`
-  background: #efe; 
+  background: linear-gradient(135deg, #efe 0%, #dfd 100%); 
   border: 1px solid #cfc; 
   border-radius: 8px;
   color: #363; 
@@ -520,7 +554,7 @@ export default function TestStep1() {
       setError("請完成四個維度的選擇（外向/內向、直覺/實感、思考/情感、知覺/判斷）。");
       return;
     }
-
+  
     setLoading(true);
     try {
       console.log("Saving MBTI data:", { mbti, encoded });

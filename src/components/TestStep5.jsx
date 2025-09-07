@@ -19,20 +19,12 @@ const Container = styled.div`
   background: #e8e8e8;
   font-family: "Noto Sans TC", sans-serif;
   padding-top: 10px;
-
-  @media (max-width: 768px) {
-    padding-top: 8px;
-  }
-
-  @media (max-width: 480px) {
-    padding-top: 6px;
-  }
 `;
 
 const Header = styled.header`
   width: 100%;
   height: 70px;
-  background: white;
+  background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -41,16 +33,18 @@ const Header = styled.header`
   top: 0;
   left: 0;
   z-index: 10;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(43, 57, 147, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
     height: 60px;
     padding: 0 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 12px rgba(43, 57, 147, 0.06);
   }
 
   @media (max-width: 480px) {
-    height: 56px;
+    height: 55px;
     padding: 0 12px;
   }
 `;
@@ -62,19 +56,22 @@ const Logo = styled.div`
   display: flex;
   align-items: center;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  text-shadow: 0 2px 4px rgba(43, 57, 147, 0.1);
   
   &:hover { 
-    transform: scale(1.05); 
+    transform: scale(1.05);
+    color: #1e2a6b;
   }
 
   img {
     height: 68px;
     margin-right: 8px;
+    filter: drop-shadow(0 2px 4px rgba(43, 57, 147, 0.1));
   }
 
   @media (max-width: 768px) {
-    font-size: 28px;
+    font-size: 24px;
     
     img {
       height: 48px;
@@ -83,7 +80,7 @@ const Logo = styled.div`
   }
 
   @media (max-width: 480px) {
-    font-size: 24px;
+    font-size: 20px;
     
     img {
       height: 40px;
@@ -98,10 +95,12 @@ const Nav = styled.nav`
   font-size: 26px;
   font-weight: bold;
   color: black;
-
+  
   div {
     cursor: pointer;
-    transition: color 0.3s ease, transform 0.2s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 8px 0;
 
     &:hover {
       color: #2b3993;
@@ -111,6 +110,26 @@ const Nav = styled.nav`
     &:active {
       transform: translateY(1px);
     }
+
+    &:hover::after {
+      width: 100%;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #2b3993, #667eea);
+      transition: width 0.3s ease;
+    }
+  }
+
+  @media (max-width: 900px) {
+    gap: 20px;
+    font-size: 20px;
   }
 
   @media (max-width: 768px) {
@@ -124,16 +143,19 @@ const Nav = styled.nav`
 `;
 
 const AvatarImg = styled.img`
-  width: 50px;
-  height: 50px;
+  width: 50px; 
+  height: 50px; 
   border-radius: 50%;
-  object-fit: cover;
+  object-fit: cover; 
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-
-  &:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  border: 2px solid rgba(43, 57, 147, 0.1);
+  box-shadow: 0 4px 12px rgba(43, 57, 147, 0.1);
+  
+  &:hover { 
+    transform: scale(1.08); 
+    box-shadow: 0 8px 20px rgba(43, 57, 147, 0.2);
+    border-color: rgba(43, 57, 147, 0.3);
   }
 
   @media (max-width: 768px) {
@@ -155,7 +177,7 @@ const RightSection = styled.div`
   margin-right: 40px;
 
   @media (max-width: 768px) {
-    gap: 20px;
+    gap: 16px;
     margin-right: 0;
   }
 
@@ -164,47 +186,51 @@ const RightSection = styled.div`
   }
 `;
 
-const StepIndicatorWrapper = styled.div`
-  margin-top: 120px;
+const StepIndicatorWrapper = styled.div` 
+  margin-top: 120px; 
 
   @media (max-width: 768px) {
-    margin-top: 100px;
+    margin-top: 80px;
   }
 
   @media (max-width: 480px) {
-    margin-top: 80px;
+    margin-top: 75px;
   }
 `;
 
 const Main = styled.div`
-  max-width: 960px;
-  margin: 40px auto;
+  max-width: 960px; 
+  margin: 40px auto; 
   padding: 60px;
-  background: white;
-  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%); 
+  border-radius: 24px; 
   text-align: center;
   animation: ${fadeInUp} 0.8s ease-out;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px solid rgba(43, 57, 147, 0.1);
+  box-shadow: 0 8px 32px rgba(43, 57, 147, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(10px);
 
   @media (max-width: 768px) {
-    margin: 24px 16px;
+    margin: 20px 16px;
     padding: 40px 24px;
-    border-radius: 16px;
+    border-radius: 20px;
   }
 
   @media (max-width: 480px) {
-    margin: 20px 12px;
+    margin: 16px 12px;
     padding: 32px 16px;
-    border-radius: 12px;
+    border-radius: 16px;
   }
 `;
 
-const BigTitle = styled.h2`
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 40px;
-  color: #2b3993;
-  text-shadow: 0 1px 3px rgba(43, 57, 147, 0.1);
+const BigTitle = styled.h2` 
+  font-size: 32px; 
+  font-weight: bold; 
+  margin-bottom: 40px; 
+  background: linear-gradient(135deg, #2b3993 0%, #667eea 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 4px rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
     font-size: 26px;
@@ -214,17 +240,15 @@ const BigTitle = styled.h2`
   @media (max-width: 480px) {
     font-size: 22px;
     margin-bottom: 24px;
-    line-height: 1.3;
   }
 `;
 
 const Paragraph = styled.p`
-  font-size: 20px;
-  line-height: 1.8;
-  color: #333;
-  margin-bottom: 48px;
+  font-size: 20px; 
+  line-height: 1.8; 
+  color: #333; 
+  margin-bottom: 48px; 
   white-space: pre-line;
-  font-weight: 400;
 
   @media (max-width: 768px) {
     font-size: 18px;
@@ -239,14 +263,14 @@ const Paragraph = styled.p`
   }
 `;
 
-const ButtonGroup = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  margin-bottom: 24px;
+const ButtonGroup = styled.div` 
+  display: flex; 
+  justify-content: center; 
+  gap: 40px; 
+  margin-bottom: 24px; 
 
   @media (max-width: 768px) {
-    gap: 24px;
+    gap: 20px;
     margin-bottom: 20px;
   }
 
@@ -259,29 +283,30 @@ const ButtonGroup = styled.div`
 `;
 
 const Button = styled.button`
-  font-size: 20px;
+  font-size: 20px; 
   padding: 14px 36px;
-  border: 3px solid #3f3e66;
+  border: 3px solid rgba(43, 57, 147, 0.2); 
   border-radius: 999px;
-  background-color: rgba(30,31,19,0.8);
+  background: linear-gradient(135deg, rgba(30,31,19,0.9) 0%, rgba(43,57,147,0.9) 100%); 
   color: white;
-  cursor: pointer;
+  cursor: pointer; 
   transition: all 0.3s ease;
   font-weight: 600;
-  min-height: 44px;
+  box-shadow: 0 4px 16px rgba(43, 57, 147, 0.2);
 
-  &:hover {
+  &:hover { 
     transform: scale(1.05);
-    background-color: rgba(30,31,19,1);
+    box-shadow: 0 6px 20px rgba(43, 57, 147, 0.3);
   }
 
-  &:active {
+  &:active { 
     transform: scale(0.95);
   }
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  &:disabled { 
+    opacity: 0.6; 
+    cursor: not-allowed; 
+    transform: none;
   }
 
   @media (max-width: 768px) {
@@ -299,7 +324,7 @@ const Button = styled.button`
 
 const DebugButton = styled(Button)`
   display: none;
-  background-color: #999;
+  background: linear-gradient(135deg, #999 0%, #777 100%); 
   border-color: #777;
 `;
 
@@ -354,7 +379,7 @@ export default function TestStep5() {
       console.log("Saving final assessment data:", finalData);
       await saveAssessment(finalData);
       
-      // 導向匹配頁
+      // 導向媒合頁
       navigate("/matching");
     } catch (e) {
       console.error("Save final assessment failed:", e);
