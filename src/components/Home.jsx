@@ -23,7 +23,7 @@ const Container = styled.div`
 const Header = styled.header`
   width: 100%;
   height: 70px;
-  background: white;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -31,11 +31,14 @@ const Header = styled.header`
   position: fixed;
   top: 0;
   z-index: 10;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(43, 57, 147, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
     height: 60px;
     padding: 0 16px;
+    box-shadow: 0 2px 12px rgba(43, 57, 147, 0.06);
   }
 
   @media (max-width: 480px) {
@@ -50,10 +53,19 @@ const Logo = styled.div`
   color: #2b3993;
   display: flex;
   align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 2px 4px rgba(43, 57, 147, 0.1);
+
+  &:hover {
+    transform: scale(1.05);
+    color: #1e2a6b;
+  }
 
   img {
     height: 68px;
     margin-right: 8px;
+    filter: drop-shadow(0 2px 4px rgba(43, 57, 147, 0.1));
   }
 
   @media (max-width: 768px) {
@@ -81,12 +93,41 @@ const Nav = styled.nav`
   font-size: 26px;
   font-weight: bold;
   color: black;
+
   div {
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 8px 0;
+
     &:hover {
       color: #2b3993;
+      transform: translateY(-2px);
     }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    &:hover::after {
+      width: 100%;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #2b3993, #667eea);
+      transition: width 0.3s ease;
+    }
+  }
+
+  @media (max-width: 900px) {
+    gap: 20px;
+    font-size: 20px;
   }
 
   @media (max-width: 768px) {
@@ -103,9 +144,14 @@ const AvatarImg = styled.img`
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(43, 57, 147, 0.1);
+  box-shadow: 0 4px 12px rgba(43, 57, 147, 0.1);
+
   &:hover {
-    transform: scale(1.1);
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px rgba(43, 57, 147, 0.2);
+    border-color: rgba(43, 57, 147, 0.3);
   }
 
   @media (max-width: 768px) {
@@ -183,23 +229,19 @@ const HeroSection = styled.section`
 
   @media (max-width: 768px) {
     background-size: 120%;
-    background-position: center top;
-    padding: 120px 24px 0;
-    text-align: center;
-    align-items: center;
+    background-position: center 20%;
+    padding: 120px 0 0 32px;
+    gap: 20px;
     justify-content: center;
+    text-align: center;
   }
 
   @media (max-width: 480px) {
     background-size: 140%;
-    background-position: center 20%;
-    padding: 100px 16px 0;
-    height: 90vh;
-  }
-
-  @media (max-width: 320px) {
-    background-size: 160%;
     background-position: center 30%;
+    padding: 100px 16px 0;
+    gap: 16px;
+    min-height: 90vh;
   }
 `;
 
@@ -216,12 +258,11 @@ const Title = styled.h1`
   @media (max-width: 768px) {
     font-size: 64px;
     letter-spacing: -1px;
-    margin-bottom: 16px;
   }
 
   @media (max-width: 480px) {
     font-size: 48px;
-    margin-bottom: 12px;
+    letter-spacing: 0;
   }
 
   @media (max-width: 320px) {
@@ -243,19 +284,21 @@ const Subtitle = styled.p`
   text-shadow: 0 2px 10px rgba(90, 108, 125, 0.15);
 
   @media (max-width: 768px) {
-    font-size: 24px;
-    margin-top: 0;
-    margin-bottom: 24px;
+    font-size: 28px;
+    margin-top: -60px;
     letter-spacing: 0.5px;
   }
 
   @media (max-width: 480px) {
-    font-size: 20px;
-    margin-bottom: 20px;
+    font-size: 22px;
+    margin-top: -40px;
+    letter-spacing: 0;
+    line-height: 1.3;
   }
 
   @media (max-width: 320px) {
     font-size: 18px;
+    margin-top: -30px;
   }
 `;
 
@@ -318,17 +361,19 @@ const StartButton = styled.button`
   }
 
   @media (max-width: 768px) {
-    font-size: 20px;
-    padding: 16px 32px;
-    border-radius: 40px;
-    margin-top: 20px;
+    font-size: 22px;
+    padding: 16px 36px;
+    border-radius: 50px;
+    margin-top: 24px;
   }
 
   @media (max-width: 480px) {
     font-size: 18px;
     padding: 14px 28px;
+    border-radius: 40px;
+    margin-top: 20px;
     width: 100%;
-    max-width: 200px;
+    max-width: 240px;
   }
 `;
 
@@ -341,26 +386,13 @@ const HeroContent = styled.div`
   max-width: 800px;
 
   @media (max-width: 768px) {
-    max-width: 100%;
     align-items: center;
+    max-width: 100%;
+    gap: 16px;
   }
-`;
 
-const HeroHighlight = styled.span`
-  color: #667eea;
-  font-weight: 700;
-  position: relative;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 2px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 2px;
-    opacity: 0.6;
+  @media (max-width: 480px) {
+    gap: 12px;
   }
 `;
 
@@ -371,79 +403,15 @@ const ButtonGroup = styled.div`
   align-items: center;
 
   @media (max-width: 768px) {
-    flex-direction: column;
+    justify-content: center;
     gap: 16px;
-  }
-`;
-
-const SecondaryButton = styled.button`
-  font-size: 24px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #667eea;
-  border: 2px solid rgba(103, 126, 234, 0.3);
-  padding: 16px 32px;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-weight: 500;
-  font-family: "Noto Sans TC", sans-serif;
-  letter-spacing: 0.5px;
-  backdrop-filter: blur(15px);
-  box-shadow: 
-    0 4px 16px rgba(103, 126, 234, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.05);
-  
-  &:hover {
-    background: #667eea;
-    color: white;
-    border-color: #667eea;
-    transform: translateY(-2px);
-    box-shadow: 
-      0 8px 24px rgba(103, 126, 234, 0.25),
-      0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  @media (max-width: 768px) {
-    font-size: 18px;
-    padding: 12px 24px;
+    margin-top: 16px;
   }
 
   @media (max-width: 480px) {
-    display: none;
-  }
-`;
-
-const FeatureBadge = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(15px);
-  padding: 12px 20px;
-  border-radius: 25px;
-  font-size: 16px;
-  color: #4a5568;
-  font-weight: 500;
-  font-family: "Noto Sans TC", sans-serif;
-  border: 1px solid rgba(103, 126, 234, 0.2);
-  box-shadow: 
-    0 4px 16px rgba(103, 126, 234, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.05);
-  margin-top: 20px;
-  width: fit-content;
-  
-  &::before {
-    content: '✨';
-    font-size: 18px;
-  }
-
-  @media (max-width: 768px) {
-    font-size: 14px;
-    padding: 10px 16px;
-  }
-
-  @media (max-width: 480px) {
-    display: none;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
   }
 `;
 
@@ -484,11 +452,11 @@ const CardSection = styled.section`
   }
 
   @media (max-width: 768px) {
-    padding: 80px 40px 60px;
+    padding: 80px 32px 60px;
   }
 
   @media (max-width: 480px) {
-    padding: 60px 20px 40px;
+    padding: 60px 16px 40px;
   }
 `;
 
@@ -507,8 +475,9 @@ const SectionTitle = styled.h2`
   }
 
   @media (max-width: 480px) {
-    font-size: 28px;
+    font-size: 26px;
     margin-bottom: 16px;
+    line-height: 1.3;
   }
 `;
 
@@ -523,13 +492,14 @@ const SectionSubtitle = styled.p`
   position: relative;
 
   @media (max-width: 768px) {
-    font-size: 18px;
+    font-size: 17px;
     margin-bottom: 40px;
   }
 
   @media (max-width: 480px) {
-    font-size: 16px;
+    font-size: 15px;
     margin-bottom: 32px;
+    line-height: 1.5;
   }
 `;
 
@@ -555,8 +525,8 @@ const ScrollContainer = styled.div`
   scroll-snap-type: x mandatory;
 
   @media (max-width: 768px) {
-    gap: 20px;
-    padding: 20px 10px;
+    gap: 24px;
+    padding: 24px 12px;
   }
 
   @media (max-width: 480px) {
@@ -606,38 +576,6 @@ const ScrollCard = styled.div`
     }
   }
 
-  &:nth-child(1) {
-    background: linear-gradient(135deg, rgba(255, 182, 193, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);
-    
-    &:hover {
-      background: linear-gradient(135deg, rgba(255, 182, 193, 0.12) 0%, rgba(255, 255, 255, 0.98) 100%);
-    }
-  }
-  
-  &:nth-child(2) {
-    background: linear-gradient(135deg, rgba(147, 197, 253, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);
-    
-    &:hover {
-      background: linear-gradient(135deg, rgba(147, 197, 253, 0.12) 0%, rgba(255, 255, 255, 0.98) 100%);
-    }
-  }
-  
-  &:nth-child(3) {
-    background: linear-gradient(135deg, rgba(196, 181, 253, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);
-    
-    &:hover {
-      background: linear-gradient(135deg, rgba(196, 181, 253, 0.12) 0%, rgba(255, 255, 255, 0.98) 100%);
-    }
-  }
-  
-  &:nth-child(4) {
-    background: linear-gradient(135deg, rgba(167, 243, 208, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);
-    
-    &:hover {
-      background: linear-gradient(135deg, rgba(167, 243, 208, 0.12) 0%, rgba(255, 255, 255, 0.98) 100%);
-    }
-  }
-
   @media (max-width: 768px) {
     flex: 0 0 280px;
     padding: 24px 20px;
@@ -666,11 +604,11 @@ const CardImageContainer = styled.div`
   justify-content: center;
 
   @media (max-width: 768px) {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
 
   @media (max-width: 480px) {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 `;
 
@@ -752,13 +690,13 @@ const CardTitle = styled.h3`
   }
 
   @media (max-width: 768px) {
-    font-size: 24px;
-    margin-bottom: 14px;
+    font-size: 22px;
+    margin-bottom: 12px;
   }
 
   @media (max-width: 480px) {
-    font-size: 20px;
-    margin-bottom: 12px;
+    font-size: 18px;
+    margin-bottom: 10px;
   }
 `;
 
@@ -770,7 +708,7 @@ const CardFeature = styled.div`
   }
 
   @media (max-width: 480px) {
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
 `;
 
@@ -789,7 +727,7 @@ const FeatureLabel = styled.div`
 
   @media (max-width: 480px) {
     font-size: 14px;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
   }
 `;
 
@@ -821,10 +759,12 @@ const CardDivider = styled.div`
 
   @media (max-width: 768px) {
     margin: 16px auto;
+    width: 50px;
   }
 
   @media (max-width: 480px) {
-    margin: 14px auto;
+    margin: 12px auto;
+    width: 40px;
   }
 `;
 
@@ -883,13 +823,13 @@ const CarouselButton = styled.button`
   @media (max-width: 768px) {
     width: 44px;
     height: 44px;
-    font-size: 20px;
+    font-size: 18px;
   }
 
   @media (max-width: 480px) {
     width: 40px;
     height: 40px;
-    font-size: 18px;
+    font-size: 16px;
   }
 `;
 
@@ -931,11 +871,11 @@ const ServiceIntroSection = styled.section`
   }
 
   @media (max-width: 768px) {
-    padding: 60px 40px 80px;
+    padding: 60px 32px 80px;
   }
 
   @media (max-width: 480px) {
-    padding: 40px 20px 60px;
+    padding: 40px 16px 60px;
   }
 `;
 
@@ -954,8 +894,8 @@ const ServiceSectionTitle = styled.h2`
   }
 
   @media (max-width: 480px) {
-    font-size: 28px;
-    margin-bottom: 16px;
+    font-size: 26px;
+    margin-bottom: 14px;
   }
 `;
 
@@ -980,6 +920,7 @@ const ServiceSubtitle = styled.p`
   @media (max-width: 480px) {
     font-size: 15px;
     margin-bottom: 32px;
+    line-height: 1.5;
   }
 `;
 
@@ -1047,10 +988,21 @@ const TimelineCenterLine = styled.div`
   }
 
   @media (max-width: 768px) {
-    left: 20px;
-    margin-left: 0;
+    width: 3px;
     top: 60px;
     bottom: 60px;
+    
+    &::before, &::after {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    left: 20px;
+    margin-left: 0;
+    top: 40px;
+    bottom: 40px;
   }
 `;
 
@@ -1078,15 +1030,23 @@ const TimelineItem = styled.div`
   }
 
   @media (max-width: 768px) {
-    width: 100%;
-    left: 0 !important;
-    text-align: left !important;
-    padding: 15px 20px 15px 60px !important;
+    padding: 12px 32px;
     margin-bottom: 40px;
+    
+    &:nth-child(odd) {
+      padding-right: 60px;
+    }
+    
+    &:nth-child(even) {
+      padding-left: 60px;
+    }
   }
 
   @media (max-width: 480px) {
-    padding: 12px 16px 12px 50px !important;
+    width: 100%;
+    left: 0 !important;
+    text-align: left !important;
+    padding: 8px 16px 8px 50px !important;
     margin-bottom: 32px;
   }
 `;
@@ -1127,18 +1087,25 @@ const TimelineNumber = styled.div`
   }
 
   @media (max-width: 768px) {
-    left: -25px !important;
-    right: auto !important;
     width: 40px;
     height: 40px;
     font-size: 16px;
+    
+    ${TimelineItem}:nth-child(odd) & {
+      right: -20px;
+    }
+    
+    ${TimelineItem}:nth-child(even) & {
+      left: -20px;
+    }
   }
 
   @media (max-width: 480px) {
     width: 36px;
     height: 36px;
     font-size: 14px;
-    left: -18px !important;
+    left: 2px !important;
+    right: auto !important;
   }
 `;
 
@@ -1155,6 +1122,7 @@ const TimelineContent = styled.div`
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.4);
+  
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -1208,6 +1176,8 @@ const TimelineContent = styled.div`
   @media (max-width: 480px) {
     padding: 20px 16px;
     border-radius: 12px;
+    text-align: left !important;
+    align-items: flex-start !important;
   }
 `;
 
@@ -1233,7 +1203,9 @@ const TimelineTitle = styled.h3`
   @media (max-width: 480px) {
     font-size: 16px;
     margin-bottom: 10px;
-    gap: 10px;
+    gap: 8px;
+    justify-content: flex-start;
+    text-align: left;
   }
 `;
 
@@ -1248,13 +1220,14 @@ const TimelineText = styled.p`
   text-align: center;
 
   @media (max-width: 768px) {
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.6;
   }
 
   @media (max-width: 480px) {
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.5;
+    text-align: left;
   }
 `;
 
@@ -1285,7 +1258,6 @@ const TimelineIcon = styled.div`
   @media (max-width: 768px) {
     width: 32px;
     height: 32px;
-    border-radius: 10px;
     
     svg {
       width: 20px;
@@ -1296,7 +1268,6 @@ const TimelineIcon = styled.div`
   @media (max-width: 480px) {
     width: 28px;
     height: 28px;
-    border-radius: 8px;
     
     svg {
       width: 18px;
@@ -1314,13 +1285,14 @@ const AboutSection = styled.section`
 
   @media (max-width: 768px) {
     padding: 60px 40px;
-    flex-direction: column;
     gap: 40px;
+    flex-direction: column;
+    text-align: center;
   }
 
   @media (max-width: 480px) {
     padding: 40px 20px;
-    gap: 32px;
+    gap: 24px;
   }
 `;
 
@@ -1336,6 +1308,7 @@ const AboutImage = styled.img`
   }
 
   @media (max-width: 480px) {
+    max-width: 300px;
     border-radius: 16px;
   }
 `;
@@ -1344,7 +1317,7 @@ const AboutContent = styled.div`
   flex: 1;
 
   @media (max-width: 768px) {
-    text-align: center;
+    max-width: 100%;
   }
 `;
 
@@ -1408,6 +1381,7 @@ const Footer = styled.footer`
 const FooterLinks = styled.div`
   display: flex;
   gap: 32px;
+  
   div {
     cursor: pointer;
     transition: opacity 0.3s ease;
@@ -1417,13 +1391,13 @@ const FooterLinks = styled.div`
   }
 
   @media (max-width: 768px) {
+    gap: 20px;
     justify-content: center;
-    gap: 24px;
   }
 
   @media (max-width: 480px) {
     gap: 16px;
-    flex-wrap: wrap;
+    flex-direction: column;
   }
 `;
 

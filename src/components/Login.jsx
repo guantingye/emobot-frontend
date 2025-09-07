@@ -13,21 +13,16 @@ const Container = styled.div`
   background-size: cover;
   background-position: center;
   font-family: "Noto Sans TC", sans-serif;
-  position: relative;
   overflow: hidden;
+  position: relative;
 
   @media (max-width: 768px) {
     background-size: 120%;
-    background-position: center top;
+    background-position: center 20%;
   }
 
   @media (max-width: 480px) {
     background-size: 140%;
-    background-position: center 20%;
-  }
-
-  @media (max-width: 320px) {
-    background-size: 160%;
     background-position: center 30%;
   }
 `;
@@ -35,7 +30,7 @@ const Container = styled.div`
 const Header = styled.header`
   width: 100%;
   height: 70px;
-  background: white;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -43,11 +38,14 @@ const Header = styled.header`
   position: fixed;
   top: 0;
   z-index: 10;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(43, 57, 147, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
     height: 60px;
     padding: 0 16px;
+    box-shadow: 0 2px 12px rgba(43, 57, 147, 0.06);
   }
 
   @media (max-width: 480px) {
@@ -62,10 +60,19 @@ const Logo = styled.div`
   color: #2b3993;
   display: flex;
   align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 2px 4px rgba(43, 57, 147, 0.1);
+
+  &:hover {
+    transform: scale(1.05);
+    color: #1e2a6b;
+  }
 
   img {
     height: 68px;
     margin-right: 8px;
+    filter: drop-shadow(0 2px 4px rgba(43, 57, 147, 0.1));
   }
 
   @media (max-width: 768px) {
@@ -93,12 +100,41 @@ const Nav = styled.nav`
   font-size: 26px;
   font-weight: bold;
   color: black;
+
   div {
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 8px 0;
+
     &:hover {
       color: #2b3993;
+      transform: translateY(-2px);
     }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    &:hover::after {
+      width: 100%;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #2b3993, #667eea);
+      transition: width 0.3s ease;
+    }
+  }
+
+  @media (max-width: 900px) {
+    gap: 20px;
+    font-size: 20px;
   }
 
   @media (max-width: 768px) {
@@ -115,9 +151,14 @@ const AvatarImg = styled.img`
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(43, 57, 147, 0.1);
+  box-shadow: 0 4px 12px rgba(43, 57, 147, 0.1);
+
   &:hover {
-    transform: scale(1.1);
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px rgba(43, 57, 147, 0.2);
+    border-color: rgba(43, 57, 147, 0.3);
   }
 
   @media (max-width: 768px) {
@@ -149,19 +190,23 @@ const RightSection = styled.div`
 
 const LoginCard = styled.div`
   width: 400px;
-  background: rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(12px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+  backdrop-filter: blur(20px);
   border-radius: 24px;
   padding: 40px;
   position: absolute;
   top: 50%;
   right: 80px;
   transform: translateY(-50%);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 
+    0 20px 60px rgba(43, 57, 147, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 
   @media (max-width: 1024px) {
     right: 40px;
-    width: 350px;
+    width: 360px;
   }
 
   @media (max-width: 768px) {
@@ -171,14 +216,14 @@ const LoginCard = styled.div`
     transform: none;
     width: 90%;
     max-width: 400px;
-    margin: 100px auto 20px;
+    margin: 100px auto 0;
     padding: 32px 24px;
     border-radius: 20px;
   }
 
   @media (max-width: 480px) {
     width: 95%;
-    margin: 80px auto 16px;
+    margin: 80px auto 0;
     padding: 24px 20px;
     border-radius: 16px;
   }
@@ -190,6 +235,10 @@ const Title = styled.h2`
   color: #333;
   margin-bottom: 30px;
   text-align: left;
+  background: linear-gradient(135deg, #2b3993 0%, #667eea 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 4px rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
     font-size: 32px;
@@ -221,6 +270,7 @@ const Label = styled.label`
   font-family: "Gilroy-Medium";
   display: block;
   margin-bottom: 8px;
+  font-weight: 600;
 
   @media (max-width: 480px) {
     font-size: 15px;
@@ -231,19 +281,21 @@ const Label = styled.label`
 const Input = styled.input`
   width: 100%;
   padding: 16px;
-  border: 2px solid ${props => props.hasError ? '#e74c3c' : 'rgba(255, 255, 255, 0.8)'};
+  border: 2px solid ${props => props.hasError ? '#e74c3c' : 'rgba(43, 57, 147, 0.15)'};
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.9);
   font-size: 16px;
   font-family: "Poppins";
   transition: all 0.3s ease;
   box-sizing: border-box;
+  backdrop-filter: blur(10px);
 
   &:focus {
     outline: none;
     border-color: #2b3993;
     background: white;
-    box-shadow: 0 0 0 3px rgba(43, 57, 147, 0.1);
+    box-shadow: 0 0 0 4px rgba(43, 57, 147, 0.1), 0 4px 12px rgba(43, 57, 147, 0.15);
+    transform: translateY(-1px);
   }
 
   &::placeholder {
@@ -262,6 +314,7 @@ const HelperText = styled.div`
   color: #666;
   margin-top: 6px;
   font-family: "Gilroy-Medium";
+  line-height: 1.4;
 
   @media (max-width: 480px) {
     font-size: 13px;
@@ -274,6 +327,7 @@ const ErrorText = styled.div`
   color: #e74c3c;
   margin-top: 6px;
   font-family: "Gilroy-Medium";
+  line-height: 1.4;
 
   @media (max-width: 480px) {
     font-size: 13px;
@@ -292,17 +346,40 @@ const SignInButton = styled.button`
   font-size: 18px;
   cursor: pointer;
   margin-top: 16px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(43, 57, 147, 0.3);
+  transition: all 0.4s ease;
+  box-shadow: 0 8px 25px rgba(43, 57, 147, 0.3);
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%
+    );
+    transition: left 0.6s ease;
+  }
 
   &:hover {
     background: linear-gradient(135deg, #2b3993, #1e2a6b);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(43, 57, 147, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(43, 57, 147, 0.4);
+
+    &::before {
+      left: 100%;
+    }
   }
 
   &:active {
-    transform: translateY(0);
+    transform: translateY(-1px);
   }
 
   &:disabled {
@@ -310,23 +387,26 @@ const SignInButton = styled.button`
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+
+    &::before {
+      display: none;
+    }
   }
 
   &.success {
     background: linear-gradient(135deg, #27ae60, #2ecc71);
-    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+    box-shadow: 0 8px 25px rgba(46, 204, 113, 0.3);
   }
 
   &.error {
     background: linear-gradient(135deg, #e74c3c, #c0392b);
-    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
   }
 
   @media (max-width: 480px) {
     padding: 16px;
     font-size: 16px;
     border-radius: 10px;
-    margin-top: 12px;
   }
 `;
 
@@ -349,7 +429,6 @@ const StatusMessage = styled.div`
   @media (max-width: 480px) {
     font-size: 13px;
     margin-top: 10px;
-    min-height: 18px;
   }
 `;
 
@@ -448,7 +527,7 @@ export default function Login() {
     }
   };
 
-  // Enter 鍵提交
+  // Enter鍵提交
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !loading) {
       handleSignIn();
