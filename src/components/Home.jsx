@@ -177,7 +177,8 @@ const RightSection = styled.div`
   }
 
   @media (max-width: 480px) {
-    gap: 4px;
+    gap: 12px;
+    margin-right: 0;
   }
 `;
 
