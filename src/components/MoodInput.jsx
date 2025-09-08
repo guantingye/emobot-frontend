@@ -1063,8 +1063,8 @@ const InputArea = styled.div`
   /* 平板版調整 */
   @media (max-width: 1024px) and (min-width: 769px) {
     bottom: 28px;
-    padding: 8px 12px;
-    border-radius: 12px;
+    padding: 4px 8px;
+    border-radius: 8px;
   }
 
   /* 手機版：統一居中布局 */
@@ -1076,22 +1076,22 @@ const InputArea = styled.div`
     width: 95%;
     max-width: none;
     min-width: auto;
-    padding: 10px 14px;
-    border-radius: 10px;
+    padding: 6px 10px;
+    border-radius: 16px;
   }
 
   @media (max-width: 480px) {
     bottom: 14px;
     width: 96%;
-    padding: 8px 10px;
-    border-radius: 8px;
+    padding: 4px 6px;
+    border-radius: 4px;
   }
 
   @media (max-width: 320px) {
     bottom: 12px;
     width: 98%;
-    padding: 6px 8px;
-    border-radius: 6px;
+    padding: 2px 4px;
+    border-radius: 2px;
   }
 `;
 
