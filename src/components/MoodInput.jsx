@@ -778,6 +778,26 @@ const ChatBox = styled.div`
   }
 `;
 
+const renderEmphasis = (text = "") => {
+  if (!text) return null;
+  const parts = text.split(/(\*\*[^*]+\*\*|『[^』]+?』|【[^】]+?】|《[^》]+?》|〈[^〉]+?〉)/g);
+  return parts.map((seg, i) => {
+    if (!seg) return null;
+
+    // **markdown 粗體**
+    if (/^\*\*[^*]+\*\*$/.test(seg)) {
+      return <strong key={i}>{seg.slice(2, -2)}</strong>;
+    }
+
+    // 全形括號強調 → 粗體
+    if (/^『.*』$/.test(seg) || /^【.*】$/.test(seg) || /^《.*》$/.test(seg) || /^〈.*〉$/.test(seg)) {
+      return <strong key={i}>{seg.slice(1, -1).trim()}</strong>;
+    }
+
+    return <React.Fragment key={i}>{seg}</React.Fragment>;
+  });
+};
+
 /* ================= 對話泡泡優化 ================ */
 const BubbleWrapper = styled.div`
   display: flex;
@@ -1523,43 +1543,16 @@ const HighlightText = styled.span`
 
 /* ================= 底部說明優化 ================ */
 const Disclaimer = styled.div`
-  position: fixed;
-  bottom: 4px;
-  left: ${p => p.isVideoMode ? '70%' : '50%'};
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 1440px;
-  font-size: 12px;
-  color: #666;
-  text-align: center;
-  padding: 4px 8px;
-  z-index: 100;
-  transition: left 0.3s ease;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(5px);
-  border-radius: 8px;
+  position:fixed;bottom:4px;left:${p=>p.isVideoMode?'70%':'50%'};transform:translateX(-50%);width:90%;max-width:1440px;font-size:12px;color:#666;text-align:center;padding:4px 8px;z-index:100;transition:left .3s ease;
 
-  /* 手機版：統一居中 */
   @media (max-width: 768px) {
     position: fixed;
-    bottom: 2px;
+    bottom: 4px;
     left: 50%;
     transform: translateX(-50%);
     width: 95%;
-    font-size: 11px;
-    padding: 3px 6px;
-    border-radius: 6px;
-  }
-
-  @media (max-width: 480px) {
     font-size: 10px;
     padding: 2px 4px;
-    border-radius: 4px;
-  }
-
-  @media (max-width: 320px) {
-    font-size: 9px;
-    padding: 1px 3px;
   }
 `;
 
