@@ -162,6 +162,7 @@ const AvatarImg = styled.img`
   @media (max-width: 480px) {
     width: 36px;
     height: 36px;
+    margin-right: -10px;
   }
 `;
 
@@ -169,6 +170,7 @@ const RightSection = styled.div`
   display: flex;
   align-items: center;
   gap: 30px;
+  margin-left: auto;
   margin-right: 40px;
 
   @media (max-width: 768px) {
@@ -178,7 +180,6 @@ const RightSection = styled.div`
 
   @media (max-width: 480px) {
     gap: 12px;
-    margin-right: 0;
   }
 `;
 
