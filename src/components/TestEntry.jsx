@@ -239,6 +239,7 @@ const AvatarImg = styled.img`
   @media (max-width: 480px) {
     width: 36px;
     height: 36px;
+    margin-right: +15px;
   }
 `;
 
