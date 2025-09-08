@@ -1547,7 +1547,7 @@ const Disclaimer = styled.div`
 
   @media (max-width: 768px) {
     position: fixed;
-    bottom: 4px;
+    bottom: 2px;
     left: 50%;
     transform: translateX(-50%);
     width: 95%;
