@@ -9,148 +9,608 @@ import introVideo from "../assets/demo_video_2.mov";
 import secondVideo from "../assets/demo_video_3.mov";
 import { sendChatMessage } from "../api/client"; 
 
-/* ================= Commons & Styles (響應式優化) ================ */
-const float = keyframes`0%{transform:translateY(0)}50%{transform:translateY(-4px)}100%{transform:translateY(0)}`;
-const fadeIn = keyframes`from{opacity:0}to{opacity:1}`;
-const fadeInDown = keyframes`from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}`;
-const slideInLTR = keyframes`from{opacity:0;transform:translateX(-50px)}to{opacity:1;transform:translateX(0)}`;
-const fadeInBubble = keyframes`from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}`;
-const FadeWrapper = styled.div`display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1;animation:${fadeIn} 1s ease-out forwards;`;
-const pulse = keyframes`0%{box-shadow:0 0 0 0 rgba(122,194,221,.4)}70%{box-shadow:0 0 0 10px rgba(122,194,221,0)}100%{box-shadow:0 0 0 0 rgba(122,194,221,0)}`;
-const recording = keyframes`0%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.8}100%{transform:scale(1);opacity:1}`;
+/* ================= 動畫定義 ================ */
+const float = keyframes`
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0px); }
+`;
 
-const Container = styled.div`
-  display:flex;flex-direction:column;width:100vw;height:100vh;
-  background:linear-gradient(135deg,#f5f7fa 0%,#eef1f5 100%);font-family:'Noto Sans TC',sans-serif;
-  position:relative;overflow:hidden;
+const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
 
-  @media (max-width: 768px) {
-    overflow-y: auto;
+const fadeInDown = keyframes`
+  from { 
+    opacity: 0; 
+    transform: translateY(-30px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
   }
 `;
 
-const Header = styled.header`
-  position:fixed;top:0;left:0;right:0;height:80px;display:flex;align-items:center;justify-content:space-between;
-  padding:0 24px;background:rgba(255,255,255,.8);backdrop-filter:blur(10px);
-  border-bottom:1px solid rgba(0,0,0,.05);z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.04);
-  animation:${fadeInDown} .8s ease-out both;animation-delay:.3s;
+const slideInLTR = keyframes`
+  from { 
+    opacity: 0; 
+    transform: translateX(-40px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+`;
 
+const fadeInBubble = keyframes`
+  from { 
+    opacity: 0; 
+    transform: scale(0.95) translateY(10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1) translateY(0); 
+  }
+`;
+
+const pulse = keyframes`
+  0% { 
+    box-shadow: 0 0 0 0 rgba(122, 194, 221, 0.4); 
+  }
+  70% { 
+    box-shadow: 0 0 0 10px rgba(122, 194, 221, 0); 
+  }
+  100% { 
+    box-shadow: 0 0 0 0 rgba(122, 194, 221, 0); 
+  }
+`;
+
+const recording = keyframes`
+  0% { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+  50% { 
+    transform: scale(1.1); 
+    opacity: 0.8; 
+  }
+  100% { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+`;
+
+const shimmer = keyframes`
+  0% { 
+    background-position: -100% 0; 
+  }
+  100% { 
+    background-position: 100% 0; 
+  }
+`;
+
+/* ================= 主要容器 ================ */
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #eef1f5 100%);
+  font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
+  overflow: hidden;
+
+  /* 桌面版優化 */
+  @media (min-width: 1025px) {
+    background-size: cover;
+    background-position: center;
+  }
+
+  /* 平板版調整 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    background-size: 120%;
+    background-position: center 20%;
+  }
+
+  /* 手機版調整 */
   @media (max-width: 768px) {
-    height: 70px;
-    padding: 0 15px;
+    overflow-y: auto;
+    background-size: 140%;
+    background-position: center 30%;
+  }
+
+  @media (max-width: 480px) {
+    background-size: 150%;
+    background-position: center 35%;
+  }
+
+  @media (max-width: 320px) {
+    background-size: 160%;
+    background-position: center 40%;
+  }
+`;
+
+/* ================= 標題列優化 ================ */
+const Header = styled.header`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(43, 57, 147, 0.1);
+  box-shadow: 
+    0 4px 20px rgba(43, 57, 147, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  z-index: 100;
+  animation: ${fadeInDown} 0.8s ease-out both;
+  animation-delay: 0.3s;
+
+  /* 平板版 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    height: 60px;
+    padding: 0 16px;
+  }
+
+  /* 手機版 */
+  @media (max-width: 768px) {
+    height: 55px;
+    padding: 0 12px;
+  }
+
+  @media (max-width: 480px) {
+    height: 50px;
+    padding: 0 10px;
+  }
+
+  @media (max-width: 320px) {
+    height: 48px;
+    padding: 0 8px;
   }
 `;
 
 const BackButton = styled.button`
-  background:transparent;color:#2e2f5e;display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;
-  font-weight:600;font-size:16px;border:1px solid rgba(46,47,94,.2);cursor:pointer;transition:.2s;
-  &:hover{background:rgba(46,47,94,.05);transform:translateX(-2px)} &:active{transform:scale(.98)}
+  background: transparent;
+  color: #2e2f5e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  border: 1px solid rgba(46, 47, 94, 0.2);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+    transition: left 0.6s ease;
+  }
+
+  &:hover {
+    background: rgba(46, 47, 94, 0.05);
+    transform: translateX(-2px) scale(1.02);
+    box-shadow: 0 4px 12px rgba(46, 47, 94, 0.15);
+    
+    &:before {
+      left: 100%;
+    }
+  }
+
+  &:active {
+    transform: translateX(-1px) scale(0.98);
+  }
+
+  /* 響應式調整 */
   @media (max-width: 768px) {
     font-size: 14px;
-    padding: 8px 12px;
+    padding: 10px 16px;
     gap: 6px;
+    border-radius: 10px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 13px;
+    padding: 8px 12px;
+    gap: 4px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 12px;
+    padding: 6px 10px;
   }
 `;
 
 const ModeSelect = styled.div`
-  background:rgba(255,255,255,.9);padding:6px;border-radius:14px;display:flex;gap:4px;box-shadow:0 4px 20px rgba(0,0,0,.06);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 6px;
+  border-radius: 14px;
+  display: flex;
+  gap: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(10px);
 
   @media (max-width: 768px) {
     padding: 4px;
     gap: 2px;
+    border-radius: 12px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 3px;
+    border-radius: 10px;
+  }
+
+  @media (max-width: 320px) {
+    display: none; /* 極小螢幕隱藏模式選擇 */
   }
 `;
 
 const ModeButton = styled.button`
-  padding:8px 20px;border-radius:10px;font-weight:600;font-size:15px;
-  background:${p=>p.active?'linear-gradient(45deg,#2e2f5e,#5a5b9f)':'transparent'};
-  color:${p=>p.active?'#fff':'#555'};border:none;transition:.2s;
-  &:hover{background:${p=>p.active?'linear-gradient(45deg,#2e2f5e,#5a5b9f)':'rgba(0,0,0,.05)'};}
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  background: ${p => p.active ? 'linear-gradient(45deg, #2e2f5e, #5a5b9f)' : 'transparent'};
+  color: ${p => p.active ? '#fff' : '#555'};
+  border: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
 
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: ${p => p.active ? '0' : '-100%'};
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+    transition: left 0.6s ease;
+  }
+
+  &:hover {
+    background: ${p => p.active ? 'linear-gradient(45deg, #2e2f5e, #5a5b9f)' : 'rgba(0, 0, 0, 0.05)'};
+    transform: translateY(-1px);
+    
+    &:before {
+      left: 100%;
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  /* 響應式調整 */
   @media (max-width: 768px) {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 480px) {
     padding: 6px 12px;
     font-size: 13px;
+    border-radius: 6px;
   }
 `;
 
-const AvatarContainer = styled.div`display:flex;align-items:center;gap:12px;`;
+/* ================= 頭像區域優化 ================ */
+const AvatarContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  @media (max-width: 768px) {
+    gap: 8px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 6px;
+  }
+`;
 
 const BotAvatar = styled.div`
-  width:42px;height:42px;border-radius:50%;
-  background:${p=>p.bg || 'linear-gradient(45deg,#7AC2DD,#5A8CF2)'};display:flex;align-items:center;justify-content:center;
-  color:#fff;font-weight:bold;font-size:18px;box-shadow:0 4px 10px rgba(90,140,242,.3);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: ${p => p.bg || 'linear-gradient(45deg, #7AC2DD, #5A8CF2)'};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: bold;
+  font-size: 20px;
+  box-shadow: 0 4px 12px rgba(90, 140, 242, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(90, 140, 242, 0.4);
+  }
+
+  /* 響應式調整 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
 
   @media (max-width: 768px) {
     width: 36px;
     height: 36px;
-    font-size: 16px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 480px) {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  @media (max-width: 320px) {
+    width: 28px;
+    height: 28px;
+    font-size: 10px;
   }
 `;
 
-const BotInfo = styled.div`display:flex;flex-direction:column;`;
+const BotInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  
+  @media (max-width: 480px) {
+    display: none; /* 小螢幕隱藏文字信息 */
+  }
+`;
 
 const BotName = styled.span`
-  font-weight:700;font-size:16px;
+  font-weight: 700;
+  font-size: 16px;
+  color: #2e2f5e;
 
   @media (max-width: 768px) {
     font-size: 14px;
   }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+  }
 `;
 
 const BotStatus = styled.span`
-  font-size:13px;color:#65B741;
+  font-size: 13px;
+  color: #65B741;
 
   @media (max-width: 768px) {
     font-size: 11px;
   }
-`;
 
-const Layout = styled.div`
-  flex:1;display:flex;padding:100px 40px 120px;box-sizing:border-box;overflow:hidden;margin-top:0;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    padding: 80px 15px 140px;
-    overflow-y: auto;
+  @media (max-width: 480px) {
+    font-size: 10px;
   }
 `;
 
-const VideoColumn = styled.div`
-  position:relative;top:60px;width:45%;max-width:520px;display:${p=>p.show?'block':'none'};padding-right:30px;
+/* ================= 主要布局區域 ================ */
+const Layout = styled.div`
+  flex: 1;
+  display: flex;
+  padding: 100px 40px 140px;
+  box-sizing: border-box;
+  overflow: hidden;
+  gap: 30px;
 
+  /* 平板版調整 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    padding: 80px 24px 120px;
+    gap: 20px;
+  }
+
+  /* 手機版：垂直布局 */
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 70px 16px 160px;
+    overflow-y: auto;
+    gap: 16px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 60px 12px 180px;
+    gap: 12px;
+  }
+
+  @media (max-width: 320px) {
+    padding: 56px 8px 200px;
+    gap: 8px;
+  }
+`;
+
+/* ================= 影片區域優化 ================ */
+const VideoColumn = styled.div`
+  position: relative;
+  top: 60px;
+  width: 45%;
+  max-width: 520px;
+  display: ${p => p.show ? 'block' : 'none'};
+  padding-right: 30px;
+
+  /* 平板版調整 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    width: 40%;
+    top: 40px;
+    padding-right: 20px;
+  }
+
+  /* 手機版：全寬度 */
   @media (max-width: 768px) {
     width: 100%;
     max-width: 100%;
     top: 0;
     padding-right: 0;
     margin-bottom: 20px;
-    display: ${p=>p.show?'block':'none'};
+    order: 1; /* 影片在上方 */
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 320px) {
+    margin-bottom: 12px;
   }
 `;
 
+const DemoContainer = styled.div`
+  position: relative;
+  width: 100%;
+  height: 85vh;
+  max-height: 700px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+
+  /* 平板版調整 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    height: 70vh;
+    max-height: 500px;
+    border-radius: 16px;
+  }
+
+  /* 手機版調整 */
+  @media (max-width: 768px) {
+    height: 250px;
+    max-height: 300px;
+    border-radius: 12px;
+  }
+
+  @media (max-width: 480px) {
+    height: 200px;
+    max-height: 250px;
+    border-radius: 10px;
+  }
+
+  @media (max-width: 320px) {
+    height: 180px;
+    max-height: 200px;
+    border-radius: 8px;
+  }
+`;
+
+const DemoVideo = styled.video`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 1.2s ease-in-out;
+  opacity: ${p => p.visible ? 1 : 0};
+`;
+
+const FallbackImage = styled.img`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 1.2s ease-in-out;
+  opacity: ${p => p.visible ? 1 : 0};
+`;
+
+/* ================= 對話區域優化 ================ */
 const ChatColumn = styled.div`
-  flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative;scroll-behavior:smooth;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+  scroll-behavior: smooth;
 
   @media (max-width: 768px) {
     flex: none;
     height: auto;
     min-height: 400px;
+    order: 2; /* 對話在下方 */
+  }
+
+  @media (max-width: 480px) {
+    min-height: 350px;
+  }
+
+  @media (max-width: 320px) {
+    min-height: 300px;
+  }
+`;
+
+/* ================= 歡迎與描述區域 ================ */
+const FadeWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  animation: ${fadeIn} 1s ease-out forwards;
+  padding: 20px;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+  }
+
+  @media (max-width: 320px) {
+    padding: 8px;
   }
 `;
 
 const Description = styled.div`
-  margin:auto;text-align:center;max-width:600px;animation:${fadeIn} 1s ease-out forwards;
+  margin: auto;
+  text-align: center;
+  max-width: 600px;
+  animation: ${fadeIn} 1s ease-out forwards;
 
   @media (max-width: 768px) {
     max-width: 100%;
-    padding: 0 10px;
   }
 `;
 
 const Title = styled.h1`
-  font-size:46px;font-weight:800;margin-bottom:16px;
-  background:linear-gradient(45deg,#2e2f5e 30%,#5A8CF2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2;
+  font-size: 42px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  background: linear-gradient(45deg, #2e2f5e 30%, #5A8CF2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  /* 響應式字體調整 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    font-size: 36px;
+    margin-bottom: 14px;
+  }
 
   @media (max-width: 768px) {
     font-size: 32px;
@@ -158,12 +618,28 @@ const Title = styled.h1`
   }
 
   @media (max-width: 480px) {
-    font-size: 24px;
+    font-size: 26px;
+    margin-bottom: 10px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 22px;
+    margin-bottom: 8px;
   }
 `;
 
 const Subtitle = styled.p`
-  font-size:22px;color:#666;line-height:1.7;opacity:0;animation:${fadeIn} 1s ease-out .5s forwards;
+  font-size: 22px;
+  color: #666;
+  line-height: 1.7;
+  opacity: 0;
+  animation: ${fadeIn} 1s ease-out 0.5s forwards;
+
+  /* 響應式字體調整 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    font-size: 20px;
+    line-height: 1.6;
+  }
 
   @media (max-width: 768px) {
     font-size: 18px;
@@ -172,123 +648,406 @@ const Subtitle = styled.p`
 
   @media (max-width: 480px) {
     font-size: 16px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 14px;
+    line-height: 1.4;
   }
 `;
 
+/* ================= 對話內容區域 ================ */
 const IntroBar = styled.div`
-  margin:0 auto 24px;padding:16px 24px;background:#fff8e1;border-left:4px solid #7AC2DD;border-radius:12px;
-  box-shadow:0 8px 20px rgba(0,0,0,.06);font-size:15px;line-height:1.5;animation:${fadeInDown} .4s ease-out, ${float} 4s ease-in-out 1s infinite;
-  max-width:600px;white-space:pre-wrap;text-align:center;
+  margin: 0 auto 24px;
+  padding: 16px 24px;
+  background: #fff8e1;
+  border-left: 4px solid #7AC2DD;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  font-size: 15px;
+  line-height: 1.5;
+  animation: ${fadeInDown} 0.4s ease-out, ${float} 4s ease-in-out 1s infinite;
+  max-width: 600px;
+  white-space: pre-wrap;
+  text-align: center;
 
   @media (max-width: 768px) {
     margin: 0 auto 20px;
     padding: 12px 16px;
     font-size: 14px;
+    border-radius: 10px;
+  }
+
+  @media (max-width: 480px) {
+    margin: 0 auto 16px;
+    padding: 10px 12px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 320px) {
+    margin: 0 auto 12px;
+    padding: 8px 10px;
+    font-size: 12px;
+    border-radius: 6px;
   }
 `;
 
 const DateDivider = styled.div`
-  text-align:center;margin:20px 0;position:relative;&:before{content:"";position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.1);z-index:-1}
+  text-align: center;
+  margin: 20px 0;
+  position: relative;
+
+  &:before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: -1;
+  }
 
   @media (max-width: 768px) {
-    margin: 15px 0;
+    margin: 16px 0;
+  }
+
+  @media (max-width: 480px) {
+    margin: 12px 0;
+  }
+
+  @media (max-width: 320px) {
+    margin: 10px 0;
   }
 `;
 
 const DateLabel = styled.span`
-  background:#f0f4f8;padding:4px 12px;border-radius:20px;font-size:13px;color:#666;box-shadow:0 2px 4px rgba(0,0,0,.05);
+  background: #f0f4f8;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #666;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
   @media (max-width: 768px) {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 16px;
+  }
+
+  @media (max-width: 480px) {
     font-size: 11px;
-    padding: 3px 8px;
+    padding: 2px 8px;
+    border-radius: 14px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 12px;
   }
 `;
 
 const ChatBox = styled.div`
-  display:flex;flex-direction:column;gap:16px;padding-right:10px;padding-bottom:20px;overflow-y:auto;animation:${slideInLTR} .4s ease-out both;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-right: 10px;
+  padding-bottom: 20px;
+  overflow-y: auto;
+  animation: ${slideInLTR} 0.4s ease-out both;
 
   @media (max-width: 768px) {
     gap: 12px;
     padding-right: 5px;
-    padding-bottom: 15px;
+    padding-bottom: 16px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 10px;
+    padding-right: 3px;
+    padding-bottom: 12px;
+  }
+
+  @media (max-width: 320px) {
+    gap: 8px;
+    padding-right: 2px;
+    padding-bottom: 10px;
   }
 `;
 
+/* ================= 對話泡泡優化 ================ */
 const BubbleWrapper = styled.div`
-  display:flex;flex-direction:column;align-items:${p=>p.sender==='user'?'flex-end':'flex-start'};max-width:85%;align-self:${p=>p.sender==='user'?'flex-end':'flex-start'};
+  display: flex;
+  flex-direction: column;
+  align-items: ${p => p.sender === 'user' ? 'flex-end' : 'flex-start'};
+  max-width: 85%;
+  align-self: ${p => p.sender === 'user' ? 'flex-end' : 'flex-start'};
 
   @media (max-width: 768px) {
     max-width: 90%;
   }
+
+  @media (max-width: 480px) {
+    max-width: 95%;
+  }
 `;
 
 const BubbleHeader = styled.div`
-  font-size:12px;color:#888;margin-bottom:4px;padding:0 12px;display:flex;align-items:center;gap:6px;
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 4px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 
   @media (max-width: 768px) {
+    font-size: 11px;
+    padding: 0 10px;
+    gap: 4px;
+  }
+
+  @media (max-width: 480px) {
     font-size: 10px;
     padding: 0 8px;
-    gap: 4px;
+    gap: 3px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 9px;
+    padding: 0 6px;
+    gap: 2px;
   }
 `;
 
 const SenderAvatar = styled.div`
-  width:24px;height:24px;border-radius:50%;
-  background:${p=>p.sender==='user'?'#5A8CF2':'linear-gradient(135deg,#7AC2DD,#5A8CF2)'};
-  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: ${p => p.sender === 'user' ? '#5A8CF2' : 'linear-gradient(135deg, #7AC2DD, #5A8CF2)'};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: bold;
+  font-size: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   @media (max-width: 768px) {
     width: 20px;
     height: 20px;
+    font-size: 9px;
+  }
+
+  @media (max-width: 480px) {
+    width: 18px;
+    height: 18px;
     font-size: 8px;
+  }
+
+  @media (max-width: 320px) {
+    width: 16px;
+    height: 16px;
+    font-size: 7px;
   }
 `;
 
 const ChatBubble = styled.div`
-  background:${p=>p.sender==='user'?'linear-gradient(135deg,#5A8CF2,#7A72E0)':'white'};
-  color:${p=>p.sender==='user'?'white':'#333'};padding:14px 20px;border-radius:${p=>p.sender==='user'?'18px 18px 4px 18px':'18px 18px 18px 4px'};
-  max-width:100%;box-shadow:${p=>p.sender==='user'?'0 4px 12px rgba(90,140,242,.2)':'0 4px 12px rgba(0,0,0,.08)'};
-  white-space:pre-wrap;animation:${fadeInBubble} .3s ease-out;line-height:1.5;font-size:15px;
+  background: ${p => p.sender === 'user' 
+    ? 'linear-gradient(135deg, #5A8CF2, #7A72E0)' 
+    : 'white'};
+  color: ${p => p.sender === 'user' ? 'white' : '#333'};
+  padding: 14px 20px;
+  border-radius: ${p => p.sender === 'user' 
+    ? '18px 18px 4px 18px' 
+    : '18px 18px 18px 4px'};
+  max-width: 100%;
+  box-shadow: ${p => p.sender === 'user' 
+    ? '0 4px 12px rgba(90, 140, 242, 0.2)' 
+    : '0 4px 12px rgba(0, 0, 0, 0.08)'};
+  white-space: pre-wrap;
+  animation: ${fadeInBubble} 0.3s ease-out;
+  line-height: 1.5;
+  font-size: 15px;
+  position: relative;
+  overflow: hidden;
 
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: ${p => p.sender === 'user' 
+      ? 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%)'
+      : 'linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.02) 50%, transparent 100%)'};
+    transition: left 0.6s ease;
+  }
+
+  &:hover:before {
+    left: 100%;
+  }
+
+  /* 響應式調整 */
   @media (max-width: 768px) {
     padding: 12px 16px;
     font-size: 14px;
-    border-radius: ${p=>p.sender==='user'?'16px 16px 4px 16px':'16px 16px 16px 4px'};
+    border-radius: ${p => p.sender === 'user' 
+      ? '16px 16px 4px 16px' 
+      : '16px 16px 16px 4px'};
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: ${p => p.sender === 'user' 
+      ? '14px 14px 4px 14px' 
+      : '14px 14px 14px 4px'};
+  }
+
+  @media (max-width: 320px) {
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: ${p => p.sender === 'user' 
+      ? '12px 12px 3px 12px' 
+      : '12px 12px 12px 3px'};
   }
 `;
 
 const MessageTime = styled.span`
-  font-size:11px;color:#999;
+  font-size: 11px;
+  color: #999;
 
   @media (max-width: 768px) {
+    font-size: 10px;
+  }
+
+  @media (max-width: 480px) {
     font-size: 9px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 8px;
   }
 `;
 
+/* ================= 輸入中動畫 ================ */
 const TypingBubble = styled(ChatBubble)`
-  width:60px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;gap:4px;
+  width: 60px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 
   @media (max-width: 768px) {
     width: 50px;
     height: 28px;
+    gap: 3px;
+  }
+
+  @media (max-width: 480px) {
+    width: 45px;
+    height: 26px;
+    gap: 2px;
+  }
+
+  @media (max-width: 320px) {
+    width: 40px;
+    height: 24px;
+    gap: 2px;
   }
 `;
 
 const TypingDot = styled.div`
-  width:8px;height:8px;background:#888;border-radius:50%;opacity:.8;animation:${p=>keyframes`0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}`} ${p=>p.delay}s infinite ease-in-out;
+  width: 8px;
+  height: 8px;
+  background: #888;
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: ${p => keyframes`
+    0%, 100% { 
+      transform: translateY(0); 
+      opacity: 0.8; 
+    }
+    50% { 
+      transform: translateY(-4px); 
+      opacity: 1; 
+    }
+  `} ${p => p.delay}s infinite ease-in-out;
 
   @media (max-width: 768px) {
     width: 6px;
     height: 6px;
   }
+
+  @media (max-width: 480px) {
+    width: 5px;
+    height: 5px;
+  }
+
+  @media (max-width: 320px) {
+    width: 4px;
+    height: 4px;
+  }
 `;
 
+/* ================= 輸入區域大幅優化 ================ */
 const InputArea = styled.div`
-  position:fixed;bottom:35px;left:${p=>p.isVideoMode?'70%':'50%'};transform:translateX(-50%);
-  width:${p=>p.isVideoMode?'50%':'90%'};max-width:${p=>p.isVideoMode?'none':'1440px'};
-  background:${p=>p.disabled?'rgba(240,240,240,.9)':'rgba(255,255,255,.95)'};border-radius:16px;display:flex;align-items:center;padding:6px 8px;
-  backdrop-filter:blur(10px);box-shadow:0 10px 25px rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.05);z-index:100;transition:.3s;
+  position: fixed;
+  bottom: 35px;
+  left: ${p => p.isVideoMode ? '70%' : '50%'};
+  transform: translateX(-50%);
+  width: ${p => p.isVideoMode ? '50%' : '90%'};
+  max-width: ${p => p.isVideoMode ? 'none' : '1440px'};
+  min-width: 320px;
+  background: ${p => p.disabled 
+    ? 'rgba(240, 240, 240, 0.95)' 
+    : 'rgba(255, 255, 255, 0.98)'};
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  backdrop-filter: blur(15px);
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.08),
+    0 4px 16px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  z-index: 100;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
+  &:hover {
+    box-shadow: 
+      0 12px 48px rgba(0, 0, 0, 0.12),
+      0 6px 20px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transform: translateX(-50%) translateY(-2px);
+  }
+
+  &:focus-within {
+    box-shadow: 
+      0 0 0 4px rgba(43, 57, 147, 0.1),
+      0 12px 48px rgba(43, 57, 147, 0.15),
+      0 6px 20px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transform: translateX(-50%) translateY(-1px);
+    border-color: rgba(43, 57, 147, 0.3);
+  }
+
+  /* 平板版調整 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    bottom: 30px;
+    padding: 10px 14px;
+    border-radius: 14px;
+  }
+
+  /* 手機版：統一居中布局 */
   @media (max-width: 768px) {
     position: fixed;
     bottom: 20px;
@@ -296,73 +1055,294 @@ const InputArea = styled.div`
     transform: translateX(-50%);
     width: 95%;
     max-width: none;
-    padding: 8px 12px;
+    min-width: auto;
+    padding: 12px 16px;
     border-radius: 12px;
+  }
+
+  @media (max-width: 480px) {
+    bottom: 16px;
+    width: 96%;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  @media (max-width: 320px) {
+    bottom: 12px;
+    width: 98%;
+    padding: 8px 10px;
+    border-radius: 8px;
   }
 `;
 
 const InputField = styled.input`
-  flex:1;font-size:16px;background:transparent;border:none;outline:none;padding:14px 20px;
-  color:${p=>p.disabled?'#999':'#333'};cursor:${p=>p.disabled?'not-allowed':'text'};
-  &::placeholder{color:${p=>p.disabled?'#aaa':'#999'}}
+  flex: 1;
+  font-size: 16px;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 14px 20px;
+  color: ${p => p.disabled ? '#999' : '#333'};
+  cursor: ${p => p.disabled ? 'not-allowed' : 'text'};
+  font-family: inherit;
+  line-height: 1.5;
+  
+  &::placeholder {
+    color: ${p => p.disabled ? '#aaa' : '#999'};
+    font-style: italic;
+    transition: color 0.3s ease;
+  }
 
+  &:focus::placeholder {
+    color: transparent;
+  }
+
+  /* 響應式調整 */
   @media (max-width: 768px) {
-    padding: 12px 15px;
+    padding: 12px 16px;
     font-size: 15px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 320px) {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  /* 防止手機端縮放 */
+  @media (max-width: 768px) {
+    font-size: 16px; /* 防止 iOS Safari 縮放 */
   }
 `;
 
 const InputButtons = styled.div`
-  display:flex;align-items:center;gap:12px;padding-right:8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 8px;
 
   @media (max-width: 768px) {
     gap: 8px;
     padding-right: 4px;
   }
+
+  @media (max-width: 480px) {
+    gap: 6px;
+    padding-right: 2px;
+  }
+
+  @media (max-width: 320px) {
+    gap: 4px;
+    padding-right: 0;
+  }
 `;
 
+/* ================= 按鈕優化 ================ */
 const ActionButton = styled.button`
-  width:40px;height:40px;background:${p=>p.isRecording?'rgba(234,84,85,.1)':'transparent'};border-radius:50%;border:none;
-  color:${p=>p.isRecording?'#EA5455':'#888'};font-size:20px;display:flex;align-items:center;justify-content:center;
-  cursor:${p=>p.disabled?'not-allowed':'pointer'};transition:.2s;animation:${p=>p.isRecording?recording:'none'} 1.5s infinite;opacity:${p=>p.disabled?.5:1};
-  &:hover{background:${p=>p.disabled?'transparent':'rgba(0,0,0,.05)'};color:${p=>p.isRecording?'#EA5455':'#555'}}
+  width: 44px; /* 符合最小觸控尺寸 */
+  height: 44px;
+  background: ${p => p.isRecording 
+    ? 'rgba(234, 84, 85, 0.1)' 
+    : 'transparent'};
+  border-radius: 50%;
+  border: none;
+  color: ${p => p.isRecording ? '#EA5455' : '#888'};
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ${p => p.disabled ? 'not-allowed' : 'pointer'};
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: ${p => p.isRecording ? recording : 'none'} 1.5s infinite;
+  opacity: ${p => p.disabled ? 0.5 : 1};
+  position: relative;
+  overflow: hidden;
 
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+    transition: left 0.6s ease;
+  }
+
+  &:hover {
+    background: ${p => p.disabled 
+      ? 'transparent' 
+      : p.isRecording 
+        ? 'rgba(234, 84, 85, 0.2)' 
+        : 'rgba(0, 0, 0, 0.05)'};
+    color: ${p => p.isRecording ? '#EA5455' : '#555'};
+    transform: ${p => p.disabled ? 'none' : 'scale(1.05)'};
+    
+    &:before {
+      left: 100%;
+    }
+  }
+
+  &:active {
+    transform: ${p => p.disabled ? 'none' : 'scale(0.95)'};
+  }
+
+  /* 響應式調整 */
   @media (max-width: 768px) {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  @media (max-width: 480px) {
     width: 36px;
     height: 36px;
-    font-size: 18px;
+    font-size: 16px;
+  }
+
+  @media (max-width: 320px) {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
   }
 `;
 
 const SendButton = styled.button`
-  width:48px;height:48px;background:${p=>p.disabled?'#ccc':'linear-gradient(135deg,#7AC2DD,#5A8CF2)'};
-  border-radius:50%;border:none;color:white;font-size:20px;display:flex;align-items:center;justify-content:center;
-  cursor:${p=>p.disabled?'not-allowed':'pointer'};transition:.2s;animation:${p=>p.active&&!p.disabled?pulse:'none'} 1.5s infinite;opacity:${p=>p.disabled?.7:1};
-  &:hover{transform:${p=>p.disabled?'none':'scale(1.05)'};box-shadow:${p=>p.disabled?'none':'0 4px 12px rgba(122,194,221,.4)'}}
-  &:active{transform:${p=>p.disabled?'none':'scale(.95)'}}
+  width: 50px; /* 稍大於最小觸控尺寸 */
+  height: 50px;
+  background: ${p => p.disabled 
+    ? '#ccc' 
+    : 'linear-gradient(135deg, #7AC2DD, #5A8CF2)'};
+  border-radius: 50%;
+  border: none;
+  color: white;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ${p => p.disabled ? 'not-allowed' : 'pointer'};
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: ${p => p.active && !p.disabled ? pulse : 'none'} 1.5s infinite;
+  opacity: ${p => p.disabled ? 0.7 : 1};
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(122, 194, 221, 0.3);
 
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+    transition: left 0.6s ease;
+  }
+
+  &:hover {
+    transform: ${p => p.disabled ? 'none' : 'scale(1.05) translateY(-1px)'};
+    box-shadow: ${p => p.disabled 
+      ? 'none' 
+      : '0 6px 20px rgba(122, 194, 221, 0.4), 0 2px 8px rgba(0, 0, 0, 0.1)'};
+      
+    &:before {
+      left: 100%;
+    }
+  }
+
+  &:active {
+    transform: ${p => p.disabled ? 'none' : 'scale(0.95) translateY(0)'};
+  }
+
+  /* 響應式調整 */
   @media (max-width: 768px) {
-    width: 44px;
-    height: 44px;
+    width: 46px;
+    height: 46px;
+    font-size: 20px;
+  }
+
+  @media (max-width: 480px) {
+    width: 42px;
+    height: 42px;
     font-size: 18px;
   }
-`;
 
-const StatusMessage = styled.div`
-  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;
-  padding:8px 16px;border-radius:20px;font-size:14px;z-index:101;animation:${fadeInDown} .3s ease-out;
-
-  @media (max-width: 768px) {
-    bottom: 80px;
-    font-size: 12px;
-    padding: 6px 12px;
+  @media (max-width: 320px) {
+    width: 38px;
+    height: 38px;
+    font-size: 16px;
   }
 `;
 
+/* ================= 狀態提示優化 ================ */
+const StatusMessage = styled.div`
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 24px;
+  font-size: 14px;
+  z-index: 101;
+  animation: ${fadeInDown} 0.3s ease-out;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  max-width: 90%;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    bottom: 90px;
+    font-size: 13px;
+    padding: 10px 16px;
+    border-radius: 20px;
+  }
+
+  @media (max-width: 480px) {
+    bottom: 80px;
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 16px;
+  }
+
+  @media (max-width: 320px) {
+    bottom: 70px;
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: 14px;
+  }
+`;
+
+/* ================= 歡迎動畫優化 ================ */
 const WelcomeAnimation = styled.div`
-  position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.9);
-  display:flex;justify-content:center;align-items:center;font-size:80px;font-weight:bold;color:#2b3993;z-index:200;
-  opacity:${p=>p.visible?1:0};visibility:${p=>p.visible?'visible':'hidden'};transition:.5s;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 80px;
+  font-weight: bold;
+  color: #2b3993;
+  z-index: 200;
+  opacity: ${p => p.visible ? 1 : 0};
+  visibility: ${p => p.visible ? 'visible' : 'hidden'};
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  text-shadow: 0 4px 8px rgba(43, 57, 147, 0.2);
+
+  /* 響應式調整 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    font-size: 64px;
+  }
 
   @media (max-width: 768px) {
     font-size: 48px;
@@ -371,25 +1351,76 @@ const WelcomeAnimation = styled.div`
   @media (max-width: 480px) {
     font-size: 36px;
   }
+
+  @media (max-width: 320px) {
+    font-size: 28px;
+  }
 `;
 
-const fadeInStagger = keyframes`from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}`;
+const fadeInStagger = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
 
 const IntroTextOverlay = styled.div`
-  position:absolute;top:0;left:0;width:100%;height:100%;
-  background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(248,250,252,.95));backdrop-filter:blur(8px);
-  display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding:200px 40px 40px;text-align:center;z-index:200;
-  opacity:${p=>p.visible?1:0};visibility:${p=>p.visible?'visible':'hidden'};transition:opacity .6s cubic-bezier(.4,0,.2,1),visibility .6s;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95));
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 200px 40px 40px;
+  text-align: center;
+  z-index: 200;
+  opacity: ${p => p.visible ? 1 : 0};
+  visibility: ${p => p.visible ? 'visible' : 'hidden'};
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+
+  /* 響應式調整 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    padding: 160px 32px 32px;
+  }
 
   @media (max-width: 768px) {
     padding: 120px 20px 20px;
     justify-content: center;
   }
+
+  @media (max-width: 480px) {
+    padding: 100px 16px 16px;
+  }
+
+  @media (max-width: 320px) {
+    padding: 80px 12px 12px;
+  }
 `;
 
 const TipHeader = styled.h2`
-  font-size:38px;font-weight:700;background:linear-gradient(45deg,#2e2f5e 30%,#5A8CF2 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px;animation:${fadeInStagger} .8s ease-out;
+  font-size: 38px;
+  font-weight: 700;
+  background: linear-gradient(45deg, #2e2f5e 30%, #5A8CF2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 16px;
+  animation: ${fadeInStagger} 0.8s ease-out;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  /* 響應式調整 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    font-size: 32px;
+    margin-bottom: 14px;
+  }
 
   @media (max-width: 768px) {
     font-size: 28px;
@@ -397,13 +1428,35 @@ const TipHeader = styled.h2`
   }
 
   @media (max-width: 480px) {
-    font-size: 22px;
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 20px;
+    margin-bottom: 8px;
   }
 `;
 
 const IntroContent = styled.div`
-  max-width:680px;width:100%;padding:32px;background:rgba(255,255,255,.8);border-radius:20px;border:1px solid rgba(255,255,255,.3);
-  box-shadow:0 8px 32px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.5);animation:${fadeInStagger} .8s ease-out .4s both;
+  max-width: 680px;
+  width: 100%;
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  animation: ${fadeInStagger} 0.8s ease-out 0.4s both;
+  backdrop-filter: blur(8px);
+
+  /* 響應式調整 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    padding: 28px;
+    border-radius: 18px;
+  }
 
   @media (max-width: 768px) {
     padding: 24px 20px;
@@ -411,12 +1464,28 @@ const IntroContent = styled.div`
   }
 
   @media (max-width: 480px) {
-    padding: 20px 15px;
+    padding: 20px 16px;
+    border-radius: 14px;
+  }
+
+  @media (max-width: 320px) {
+    padding: 16px 12px;
+    border-radius: 12px;
   }
 `;
 
 const IntroText = styled.p`
-  font-size:23px;color:#4a5568;line-height:1.8;margin:0;font-weight:400;
+  font-size: 23px;
+  color: #4a5568;
+  line-height: 1.8;
+  margin: 0;
+  font-weight: 400;
+
+  /* 響應式調整 */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    font-size: 20px;
+    line-height: 1.7;
+  }
 
   @media (max-width: 768px) {
     font-size: 18px;
@@ -425,61 +1494,81 @@ const IntroText = styled.p`
 
   @media (max-width: 480px) {
     font-size: 16px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 14px;
+    line-height: 1.4;
   }
 `;
 
 const HighlightText = styled.span`
-  color:#2e2f5e;font-weight:600;position:relative;
-  &::before{content:'';position:absolute;bottom:2px;left:0;right:0;height:2px;background:linear-gradient(90deg,#7AC2DD,#5A8CF2);opacity:.3;border-radius:1px;}
+  color: #2e2f5e;
+  font-weight: 600;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #7AC2DD, #5A8CF2);
+    opacity: 0.3;
+    border-radius: 1px;
+  }
 `;
 
+/* ================= 底部說明優化 ================ */
 const Disclaimer = styled.div`
-  position:fixed;bottom:4px;left:${p=>p.isVideoMode?'70%':'50%'};transform:translateX(-50%);width:90%;max-width:1440px;font-size:12px;color:#666;text-align:center;padding:4px 8px;z-index:100;transition:left .3s ease;
+  position: fixed;
+  bottom: 4px;
+  left: ${p => p.isVideoMode ? '70%' : '50%'};
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1440px;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  padding: 4px 8px;
+  z-index: 100;
+  transition: left 0.3s ease;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(5px);
+  border-radius: 8px;
 
+  /* 手機版：統一居中 */
   @media (max-width: 768px) {
     position: fixed;
-    bottom: 4px;
+    bottom: 2px;
     left: 50%;
     transform: translateX(-50%);
     width: 95%;
+    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: 6px;
+  }
+
+  @media (max-width: 480px) {
     font-size: 10px;
     padding: 2px 4px;
+    border-radius: 4px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 9px;
+    padding: 1px 3px;
   }
 `;
 
-const FallbackImage = styled.img`
-  position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;border-radius:20px;transition:opacity 1.2s;opacity:${p=>p.visible?1:0};
-
-  @media (max-width: 768px) {
-    border-radius: 12px;
-  }
-`;
-
-const DemoContainer = styled.div`
-  position:relative;width:105%;height:91vh;max-height:90vh;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    height: 250px;
-    max-height: 300px;
-  }
-`;
-
-const DemoVideo = styled.video`
-  position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;border-radius:20px;
-  transition:opacity 1.2s ease-in-out;opacity:${p=>p.visible?1:0};
-
-  @media (max-width: 768px) {
-    border-radius: 12px;
-  }
-`;
-
-/* ================= Bot 動態映射 ================= */
+/* ================= Bot 配置映射 ================ */
 const BOT_MAP = {
   empathy: {
     name: "Lumi",
     letter: "L",
-    avatarBg: "linear-gradient(45deg,#FFB6C1,#FF8FB1)",
+    avatarBg: "linear-gradient(45deg, #FFB6C1, #FF8FB1)",
     tagline: "Lumi — 用溫柔與共感陪你說說話。",
     subtitle: "溫暖陪伴、情緒承接與安撫，讓你被好好地聽見與理解。",
     system: "你是Lumi，同理型AI。以溫柔、非評判、短句的反映傾聽與情緒標記來回應。優先肯認、共感與陪伴。",
@@ -487,7 +1576,7 @@ const BOT_MAP = {
   insight: {
     name: "Solin",
     letter: "S",
-    avatarBg: "linear-gradient(45deg,#7AC2DD,#5A8CF2)",
+    avatarBg: "linear-gradient(45deg, #7AC2DD, #5A8CF2)",
     tagline: "Solin — 一起澄清、看見新的可能。",
     subtitle: "以溫柔的提問與澄清，協助梳理線索、找出關鍵與洞見。",
     system: "你是Solin，洞察型AI。以蘇格拉底式提問、澄清與澄清，幫助使用者澄清想法，維持中性、尊重、結構化。",
@@ -495,7 +1584,7 @@ const BOT_MAP = {
   solution: {
     name: "Niko",
     letter: "N",
-    avatarBg: "linear-gradient(45deg,#7AC2DD,#5A8CF2)",
+    avatarBg: "linear-gradient(45deg, #7AC2DD, #5A8CF2)",
     tagline: "Niko — 一起做點能改變的事。",
     subtitle: "聚焦可行步驟與微目標，協助把感受轉成行動與支持。",
     system: "你是Niko，解決型AI。以務實、具體的建議與分步行動為主，給出小目標、工具與下一步，語氣鼓勵但不強迫。",
@@ -503,7 +1592,7 @@ const BOT_MAP = {
   cognitive: {
     name: "Clara",
     letter: "C",
-    avatarBg: "linear-gradient(45deg,#8D8DF2,#5A5B9F)",
+    avatarBg: "linear-gradient(45deg, #8D8DF2, #5A5B9F)",
     tagline: "Clara — 一起練習看見思緒的樣子。",
     subtitle: "以認知重建、想法檢核、替代想法等，幫你和腦內小劇場溫柔同桌。",
     system: "你是Clara，認知型AI。以CBT語氣協助辨識自動想法、認知偏誤與替代想法，提供簡短表格式步驟與練習。",
@@ -530,7 +1619,7 @@ export default function MoodInput() {
   const selectedBotType = (localStorage.getItem("selectedBotType") || "solution");
   const bot = BOT_MAP[selectedBotType] || BOT_MAP.solution;
   const selectedBotImage = localStorage.getItem("selectedBotImage") || botTemp;
-  const nickname = (JSON.parse(localStorage.getItem("user")||"{}").nickname) || "你";
+  const nickname = (JSON.parse(localStorage.getItem("user") || "{}").nickname) || "你";
 
   // API呼叫函數
   const API_BASE =
@@ -580,15 +1669,17 @@ export default function MoodInput() {
     return () => clearTimeout(welcomeTimer);
   }, []);
 
-  // 自動捲到最底
+  // 自動滾到最底
   useEffect(() => {
-    if (chatBoxRef.current) chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+    if (chatBoxRef.current) {
+      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+    }
   }, [messages, isTyping]);
 
   useEffect(() => {
     if (playIntroVideo && videoRef.current) {
       videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(()=>{});
+      videoRef.current.play().catch(() => {});
     }
   }, [playIntroVideo]);
 
@@ -599,12 +1690,22 @@ export default function MoodInput() {
   };
 
   const startConversation = async () => {
-    const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-    const first = { sender: "ai", content: `嗨 ${nickname}，我是 ${bot.name}。今天想從哪裡開始呢？`, timestamp: now };
+    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const first = { 
+      sender: "ai", 
+      content: `嗨 ${nickname}，我是 ${bot.name}。今天想從哪裡開始呢？`, 
+      timestamp: now 
+    };
     setMessages([first]);
     setChatStarted(true);
     if (mode === "video") setPlayIntroVideo(true);
-    await apiSend({ botType: selectedBotType, mode, message: first.content, history: [{role:"assistant",content:first.content}], demo: true });
+    await apiSend({ 
+      botType: selectedBotType, 
+      mode, 
+      message: first.content, 
+      history: [{ role: "assistant", content: first.content }], 
+      demo: true 
+    });
   };
 
   useEffect(() => {
@@ -621,19 +1722,31 @@ export default function MoodInput() {
   const handleSend = async () => {
     if (!inputValue.trim() && !isRecording) return;
 
-    if (!chatStarted) { await startConversation(); return; }
+    if (!chatStarted) { 
+      await startConversation(); 
+      return; 
+    }
 
-    const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     let userMsgText = inputValue;
     if (isRecording) userMsgText = "[語音訊息]";
-    setMessages(prev => [...prev, { sender: "user", content: userMsgText, timestamp: now }]);
+    
+    setMessages(prev => [...prev, { 
+      sender: "user", 
+      content: userMsgText, 
+      timestamp: now 
+    }]);
     setInputValue("");
     setInputDisabled(true);
     setIsTyping(true);
     if (isRecording) setIsRecording(false);
 
-    const history = [...messages, { sender: "user", content: userMsgText, timestamp: now }].map(m => ({
+    const history = [...messages, { 
+      sender: "user", 
+      content: userMsgText, 
+      timestamp: now 
+    }].map(m => ({
       role: m.sender === "user" ? "user" : "assistant",
       content: m.content
     }));
@@ -642,8 +1755,12 @@ export default function MoodInput() {
       const result = await sendChatMessage(userMsgText, selectedBotType, mode, history);
       
       if (result?.ok && result.reply) {
-        const replyTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-        setMessages(prev => [...prev, { sender: "ai", content: result.reply, timestamp: replyTime }]);
+        const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        setMessages(prev => [...prev, { 
+          sender: "ai", 
+          content: result.reply, 
+          timestamp: replyTime 
+        }]);
         
         if (mode === "video") {
           setIsSecondVideo(true);
@@ -654,13 +1771,17 @@ export default function MoodInput() {
       }
     } catch (error) {
       console.error("Chat API failed:", error);
-      const replyTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const fallbackReply = mode === "video"
         ? "我在這裡，先一起做個小小的深呼吸。想和我說說剛剛最在意的一件事嗎？"
         : "收到，讓我們一步一步來。想先從今天最困擾你的情境開始聊聊嗎？";
-      setMessages(prev => [...prev, { sender: "ai", content: fallbackReply, timestamp: replyTime }]);
+      setMessages(prev => [...prev, { 
+        sender: "ai", 
+        content: fallbackReply, 
+        timestamp: replyTime 
+      }]);
     }
-  
+
     setIsTyping(false);
     setInputDisabled(false);
   };
@@ -675,19 +1796,29 @@ export default function MoodInput() {
     } else {
       setIsRecording(true);
       showStatus("正在錄製語音... 再次點擊結束錄製");
-      navigator.mediaDevices?.getUserMedia?.({ audio: true }).then(()=>{}).catch(err=>{
-        console.error("無法取得麥克風權限:", err);
-        setIsRecording(false);
-        showStatus("無法取得麥克風權限");
-      });
+      navigator.mediaDevices?.getUserMedia?.({ audio: true })
+        .then(() => {})
+        .catch(err => {
+          console.error("無法取得麥克風權限:", err);
+          setIsRecording(false);
+          showStatus("無法取得麥克風權限");
+        });
     }
   };
 
-  const today = new Date().toLocaleDateString('zh-TW', {year:'numeric',month:'long',day:'numeric',weekday:'long'});
+  const today = new Date().toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long'
+  });
 
   return (
     <Container>
-      <WelcomeAnimation visible={showWelcome}>Welcome Emobot+</WelcomeAnimation>
+      <WelcomeAnimation visible={showWelcome}>
+        Welcome Emobot+
+      </WelcomeAnimation>
+      
       <IntroTextOverlay visible={showIntroText}>
         <TipHeader>溫馨提示</TipHeader>
         <IntroContent>
@@ -702,12 +1833,25 @@ export default function MoodInput() {
       </IntroTextOverlay>
 
       <Header>
-        <BackButton onClick={() => navigate("/dashboard")}><FiChevronLeft size={18} />{chatStarted ? '離開對話' : '離開'}</BackButton>
+        <BackButton onClick={() => navigate("/dashboard")}>
+          <FiChevronLeft size={18} />
+          {chatStarted ? '離開對話' : '離開'}
+        </BackButton>
 
         {!chatStarted && (
           <ModeSelect>
-            <ModeButton active={mode==="text"} onClick={()=>setMode("text")}>文字模式</ModeButton>
-            <ModeButton active={mode==="video"} onClick={()=>setMode("video")}>影像模式</ModeButton>
+            <ModeButton 
+              active={mode === "text"} 
+              onClick={() => setMode("text")}
+            >
+              文字模式
+            </ModeButton>
+            <ModeButton 
+              active={mode === "video"} 
+              onClick={() => setMode("video")}
+            >
+              影像模式
+            </ModeButton>
           </ModeSelect>
         )}
 
@@ -726,9 +1870,21 @@ export default function MoodInput() {
         {mode === "video" && (
           <VideoColumn show={true}>
             <DemoContainer>
-              <FallbackImage src={selectedBotImage} visible={!playIntroVideo} />
-              <DemoVideo ref={videoRef} src={isSecondVideo ? secondVideo : introVideo} visible={playIntroVideo}
-                onEnded={() => { setPlayIntroVideo(false); try{ videoRef.current.pause(); }catch{} }} />
+              <FallbackImage 
+                src={selectedBotImage} 
+                visible={!playIntroVideo} 
+              />
+              <DemoVideo 
+                ref={videoRef} 
+                src={isSecondVideo ? secondVideo : introVideo} 
+                visible={playIntroVideo}
+                onEnded={() => { 
+                  setPlayIntroVideo(false); 
+                  try { 
+                    videoRef.current.pause(); 
+                  } catch {} 
+                }} 
+              />
             </DemoContainer>
           </VideoColumn>
         )}
@@ -744,7 +1900,9 @@ export default function MoodInput() {
           ) : (
             <>
               <IntroBar>{bot.tagline}</IntroBar>
-              <DateDivider><DateLabel>{today}</DateLabel></DateDivider>
+              <DateDivider>
+                <DateLabel>{today}</DateLabel>
+              </DateDivider>
               <ChatBox ref={chatBoxRef}>
                 {messages.map((m, i) => (
                   <BubbleWrapper key={i} sender={m.sender}>
@@ -752,7 +1910,8 @@ export default function MoodInput() {
                       <SenderAvatar sender={m.sender}>
                         {m.sender === "user" ? (nickname?.[0] || "你") : bot.letter}
                       </SenderAvatar>
-                      {m.sender === "user" ? nickname : `${bot.name} AI`} <MessageTime>{m.timestamp}</MessageTime>
+                      {m.sender === "user" ? nickname : `${bot.name} AI`} 
+                      <MessageTime>{m.timestamp}</MessageTime>
                     </BubbleHeader>
                     <ChatBubble sender={m.sender}>{m.content}</ChatBubble>
                   </BubbleWrapper>
@@ -764,7 +1923,9 @@ export default function MoodInput() {
                       {bot.name} 正在輸入...
                     </BubbleHeader>
                     <TypingBubble>
-                      <TypingDot delay={.4} /><TypingDot delay={.6} /><TypingDot delay={.8} />
+                      <TypingDot delay={0.4} />
+                      <TypingDot delay={0.6} />
+                      <TypingDot delay={0.8} />
                     </TypingBubble>
                   </BubbleWrapper>
                 )}
@@ -778,19 +1939,39 @@ export default function MoodInput() {
 
       <InputArea disabled={inputDisabled} isVideoMode={mode === "video"}>
         <InputField
-          placeholder={inputDisabled ? "請等待回覆..." : isRecording ? "正在錄製語音..." : "將你的心情寫在這裡吧！"}
+          placeholder={
+            inputDisabled 
+              ? "請等待回覆..." 
+              : isRecording 
+                ? "正在錄製語音..." 
+                : "將你的心情寫在這裡吧！"
+          }
           value={inputValue}
           onChange={e => setInputValue(e.target.value)}
           onKeyDown={e => e.key === "Enter" && !inputDisabled && handleSend()}
           disabled={inputDisabled || isRecording}
         />
         <InputButtons>
-          <ActionButton onClick={handleVoiceButton} disabled={inputDisabled} isRecording={isRecording}><FiMic /></ActionButton>
-          <SendButton onClick={handleSend} active={inputValue.trim().length > 0 || isRecording} disabled={inputDisabled && !isRecording}><IoSend /></SendButton>
+          <ActionButton 
+            onClick={handleVoiceButton} 
+            disabled={inputDisabled} 
+            isRecording={isRecording}
+          >
+            <FiMic />
+          </ActionButton>
+          <SendButton 
+            onClick={handleSend} 
+            active={inputValue.trim().length > 0 || isRecording} 
+            disabled={inputDisabled && !isRecording}
+          >
+            <IoSend />
+          </SendButton>
         </InputButtons>
       </InputArea>
 
-      <Disclaimer isVideoMode={mode === "video"}>AI夥伴無法取代心理診斷與治療，如需進一步協助，請尋求專業資源。</Disclaimer>
+      <Disclaimer isVideoMode={mode === "video"}>
+        AI夥伴無法取代心理診斷與治療，如需進一步協助，請尋求專業資源。
+      </Disclaimer>
     </Container>
   );
 }

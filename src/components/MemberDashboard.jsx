@@ -233,22 +233,23 @@ const UserInfo = styled.div`
 `;
 
 const UserName = styled.p`
-  font-size: 38px;
+  font-size: 30px;
   font-weight: bold;
   color: #333;
-  margin-bottom: 8px;
+  margin-bottom: 20px;
 
   span {
     color: #2b3993;
   }
 
   @media (max-width: 768px) {
-    font-size: 28px;
-    margin-bottom: 6px;
+    font-size: 24px;
+    margin-bottom: 16px;
   }
 
   @media (max-width: 480px) {
-    font-size: 24px;
+    font-size: 20px;
+    margin-bottom: 12px;
   }
 `;
 
