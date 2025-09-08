@@ -1029,10 +1029,10 @@ const InputArea = styled.div`
   background: ${p => p.disabled 
     ? 'rgba(240, 240, 240, 0.95)' 
     : 'rgba(255, 255, 255, 0.98)'};
-  border-radius: 16px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 6px 10px;
   backdrop-filter: blur(15px);
   box-shadow: 
     0 10px 40px rgba(0, 0, 0, 0.08),
@@ -1062,36 +1062,36 @@ const InputArea = styled.div`
 
   /* 平板版調整 */
   @media (max-width: 1024px) and (min-width: 769px) {
-    bottom: 30px;
-    padding: 10px 14px;
-    border-radius: 14px;
+    bottom: 28px;
+    padding: 8px 12px;
+    border-radius: 12px;
   }
 
   /* 手機版：統一居中布局 */
   @media (max-width: 768px) {
     position: fixed;
-    bottom: 20px;
+    bottom: 18px;
     left: 50%;
     transform: translateX(-50%);
     width: 95%;
     max-width: none;
     min-width: auto;
-    padding: 12px 16px;
-    border-radius: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
   }
 
   @media (max-width: 480px) {
-    bottom: 16px;
+    bottom: 14px;
     width: 96%;
-    padding: 10px 12px;
-    border-radius: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
   }
 
   @media (max-width: 320px) {
     bottom: 12px;
     width: 98%;
-    padding: 8px 10px;
-    border-radius: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
   }
 `;
 
@@ -1547,7 +1547,7 @@ const Disclaimer = styled.div`
 
   @media (max-width: 768px) {
     position: fixed;
-    bottom: 2px;
+    bottom: 1px;
     left: 50%;
     transform: translateX(-50%);
     width: 95%;
