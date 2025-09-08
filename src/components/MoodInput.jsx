@@ -1146,17 +1146,17 @@ const InputButtons = styled.div`
   padding-right: 8px;
 
   @media (max-width: 768px) {
-    gap: 8px;
-    padding-right: 4px;
-  }
-
-  @media (max-width: 480px) {
     gap: 6px;
     padding-right: 2px;
   }
 
-  @media (max-width: 320px) {
+  @media (max-width: 480px) {
     gap: 4px;
+    padding-right: 1px;
+  }
+
+  @media (max-width: 320px) {
+    gap: 2px;
     padding-right: 0;
   }
 `;
