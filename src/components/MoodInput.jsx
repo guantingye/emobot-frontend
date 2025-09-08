@@ -1119,17 +1119,17 @@ const InputField = styled.input`
 
   /* 響應式調整 */
   @media (max-width: 768px) {
-    padding: 8px 12px;
+    padding: 6px 10px;
     font-size: 15px;
   }
 
   @media (max-width: 480px) {
-    padding: 6px 8px;
+    padding: 4px 6px;
     font-size: 14px;
   }
 
   @media (max-width: 320px) {
-    padding: 4px 6px;
+    padding: 2px 4px;
     font-size: 13px;
   }
 
