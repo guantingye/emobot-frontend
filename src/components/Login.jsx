@@ -521,7 +521,23 @@ export default function Login() {
       }, 1000);
     } catch (e) {
       console.error("Login error:", e);
-      setStatus({ type: "error", message: e.message || "登入失敗，請稍後再試" });
+      
+      // ★ 新增：針對不同錯誤類型提供更明確的訊息
+      let errorMessage = "登入失敗，請稍後再試";
+      
+      if (e.message.includes("未被授權") || e.message.includes("403")) {
+        errorMessage = "此 PID 未被授權使用系統，請聯繫管理員確認您的參與資格";
+      } else if (e.message.includes("網路") || e.message.includes("連線")) {
+        errorMessage = "網路連線問題，請檢查網路連接後重試";
+      } else if (e.message.includes("伺服器")) {
+        errorMessage = "伺服器暫時無法使用，請稍後再試或聯繫技術支援";
+      } else if (e.message.includes("格式")) {
+        errorMessage = "PID 格式不正確，請確認格式為：手機末三碼+英文姓氏開頭一碼";
+      } else if (e.message.includes("此 PID 未被授權")) {
+        errorMessage = "您輸入的 PID 未被授權使用本系統。請確認：\n1. PID 格式正確（例：123A）\n2. 已獲得研究人員的使用許可\n3. 如有疑問請聯繫研究團隊";
+      }
+      
+      setStatus({ type: "error", message: errorMessage });
     } finally {
       setLoading(false);
     }

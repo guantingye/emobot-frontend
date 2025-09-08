@@ -12,6 +12,27 @@ import MatchResult from "./components/MatchResult";
 import Home from "./components/Home";
 import Login from "./components/Login";
 
+// ★ 導入新的管理員組件
+import AdminDashboard from './components/AdminDashboard';
+import AdminLogin from './components/AdminLogin';
+
+// 簡單的路由保護組件
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  return token ? children : <Navigate to="/login" replace />;
+};
+
+// 管理員路由保護組件
+const AdminProtectedRoute = ({ children }) => {
+  const isAdmin = localStorage.getItem('isAdmin');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  // 可以根據需要調整管理員判斷邏輯
+  const isAdminUser = isAdmin === 'true' || ['ADMIN', '000A', '999Z'].includes(user.pid);
+  
+  return isAdminUser ? children : <Navigate to="/admin-login" replace />;
+};
+
 function App() {
   return (
     <Router>
@@ -35,6 +56,17 @@ function App() {
         {/* 其他功能頁 */}
         <Route path="/mood" element={<MoodInput />} />
         <Route path="/dashboard" element={<MemberDashboard />} />
+
+        {/* ★ 管理員相關路由 */}
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route 
+            path="/admin" 
+            element={
+              <AdminProtectedRoute>
+                <AdminDashboard />
+              </AdminProtectedRoute>
+            } 
+        />
 
         {/* 萬用 fallback：請務必放在最後 */}
         <Route path="*" element={<Home />} />
