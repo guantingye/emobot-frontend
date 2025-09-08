@@ -169,15 +169,20 @@ const RightSection = styled.div`
   display: flex;
   align-items: center;
   gap: 30px;
-  margin-right: 40px;
+  margin-right: 20px;  // 桌面版往左移一點
+
+  @media (max-width: 1024px) {
+    margin-right: 15px;  // 中等螢幕再往左一點
+  }
 
   @media (max-width: 768px) {
     gap: 16px;
-    margin-right: 0;
+    margin-right: 8px;   // 平板版留一點空間
   }
 
   @media (max-width: 480px) {
     gap: 12px;
+    margin-right: 4px;   // 手機版留很少空間
   }
 `;
 
