@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import MoodInput from "./components/MoodInput";
 import MemberDashboard from "./components/MemberDashboard";
 import TestEntry from "./components/TestEntry";
@@ -59,14 +59,14 @@ function App() {
 
         {/* ★ 管理員相關路由 */}
         <Route path="/admin-login" element={<AdminLogin />} />
-        <Route 
+          <Route 
             path="/admin" 
             element={
               <AdminProtectedRoute>
                 <AdminDashboard />
               </AdminProtectedRoute>
             } 
-        />
+          />
 
         {/* 萬用 fallback：請務必放在最後 */}
         <Route path="*" element={<Home />} />

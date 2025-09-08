@@ -1,4 +1,4 @@
-// src/components/AdminDashboard.jsx
+// src/components/AdminDashboard.jsx - 修復版本
 import React, { useState, useEffect } from 'react';
 import { 
   getAllowedPids, 
@@ -80,9 +80,9 @@ const AdminDashboard = () => {
     }
   };
 
-  // 刪除 PID
+  // ★ 修復：使用 window.confirm 而不是直接 confirm
   const handleDeletePid = async (pidId) => {
-    if (!confirm('確定要刪除此 PID 嗎？')) return;
+    if (!window.confirm('確定要刪除此 PID 嗎？')) return;
 
     try {
       await deleteAllowedPid(pidId);
