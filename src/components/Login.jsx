@@ -207,7 +207,7 @@ const LoginCard = styled.div`
 
   @media (max-width: 1024px) {
     right: 40px;
-    width: 360px;
+    width: 340px;
   }
 
   @media (max-width: 768px) {
@@ -216,16 +216,16 @@ const LoginCard = styled.div`
     right: auto;
     transform: none;
     width: 90%;
-    max-width: 400px;
+    max-width: 360px;
     margin: 100px auto 0;
-    padding: 32px 24px;
+    padding: 28px 20px;
     border-radius: 20px;
   }
 
   @media (max-width: 480px) {
     width: 95%;
     margin: 80px auto 0;
-    padding: 24px 20px;
+    padding: 20px 16px;
     border-radius: 16px;
   }
 `;
