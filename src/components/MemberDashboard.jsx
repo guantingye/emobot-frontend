@@ -26,7 +26,7 @@ const Container = styled.div`
 const Header = styled.header`
   width: 100%;
   height: 70px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -36,7 +36,7 @@ const Header = styled.header`
   left: 0;
   z-index: 10;
   box-shadow: 0 4px 20px rgba(43, 57, 147, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-  backdrop-filter: blur(15px);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
@@ -1071,7 +1071,7 @@ const MemberDashboard = () => {
       <Container>
         <Header>
           <Logo onClick={() => navigate("/Home")}>
-            <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
+            <img src={logoIcon} alt="logo" />
             Emobot+
           </Logo>
           <RightSection>
@@ -1096,7 +1096,7 @@ const MemberDashboard = () => {
     <Container>
       <Header>
         <Logo onClick={() => navigate("/Home")}>
-          <img src={logoIcon} alt="logo" style={{ height: "68px", marginRight: "8px" }} />
+          <img src={logoIcon} alt="logo" />
           Emobot+
         </Logo>
         <RightSection>

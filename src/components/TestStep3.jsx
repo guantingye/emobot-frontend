@@ -218,15 +218,22 @@ const Main = styled.div`
   backdrop-filter: blur(10px);
 
   @media (max-width: 768px) {
-    margin: 20px 16px 0;
-    padding: 32px 24px;
+    margin: 20px 8px 0;
+    padding: 24px 16px;
     border-radius: 16px;
+    max-width: none;
   }
 
   @media (max-width: 480px) {
-    margin: 16px 12px 0;
-    padding: 24px 16px;
+    margin: 16px 6px 0;
+    padding: 20px 12px;
     border-radius: 12px;
+  }
+
+  @media (max-width: 320px) {
+    margin: 12px 4px 0;
+    padding: 16px 8px;
+    border-radius: 10px;
   }
 `;
 
@@ -241,13 +248,18 @@ const Title = styled.h2`
   text-shadow: 0 2px 4px rgba(43, 57, 147, 0.1);
 
   @media (max-width: 768px) {
-    font-size: 28px;
-    margin-bottom: 24px;
+    font-size: 24px;
+    margin-bottom: 20px;
   }
 
   @media (max-width: 480px) {
-    font-size: 24px;
-    margin-bottom: 20px;
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 18px;
+    margin-bottom: 14px;
   }
 `;
 
@@ -265,15 +277,21 @@ const Subtitle = styled.p`
   box-shadow: 0 2px 8px rgba(43, 57, 147, 0.05);
 
   @media (max-width: 768px) {
-    font-size: 15px;
-    padding: 10px 16px;
-    margin: 0 auto 24px;
-  }
-
-  @media (max-width: 480px) {
     font-size: 14px;
     padding: 8px 12px;
     margin: 0 auto 20px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+    padding: 6px 8px;
+    margin: 0 auto 16px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 11px;
+    padding: 4px 6px;
+    margin: 0 auto 12px;
   }
 `;
 
@@ -284,11 +302,15 @@ const QuestionList = styled.ul`
   text-align: left;
 
   @media (max-width: 768px) {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   @media (max-width: 480px) {
-    font-size: 16px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 12px;
   }
 `;
 
@@ -298,12 +320,17 @@ const QuestionItem = styled.li`
   padding: 0 8px;
 
   @media (max-width: 768px) {
-    margin-bottom: 48px;
+    margin-bottom: 32px;
     padding: 0 4px;
   }
 
   @media (max-width: 480px) {
-    margin-bottom: 36px;
+    margin-bottom: 24px;
+    padding: 0 2px;
+  }
+
+  @media (max-width: 320px) {
+    margin-bottom: 20px;
     padding: 0;
   }
 `;
@@ -316,15 +343,20 @@ const ScaleWrapper = styled.div`
   margin-top: 48px;
 
   @media (max-width: 768px) {
-    gap: 12px;
-    margin-top: 32px;
+    gap: 8px;
+    margin-top: 24px;
     flex-wrap: wrap;
   }
 
   @media (max-width: 480px) {
-    gap: 8px;
-    margin-top: 24px;
+    gap: 4px;
+    margin-top: 16px;
     flex-direction: column;
+  }
+
+  @media (max-width: 320px) {
+    gap: 2px;
+    margin-top: 12px;
   }
 `;
 
@@ -369,13 +401,18 @@ background: ${(props) =>
   }
 
   @media (max-width: 768px) {
-    width: ${(props) => Math.max(props.size - 8, 32)}px;
-    height: ${(props) => Math.max(props.size - 8, 32)}px;
+    width: ${(props) => Math.max(props.size - 10, 24)}px;
+    height: ${(props) => Math.max(props.size - 10, 24)}px;
   }
 
   @media (max-width: 480px) {
-    width: ${(props) => Math.max(props.size - 12, 28)}px;
-    height: ${(props) => Math.max(props.size - 12, 28)}px;
+    width: ${(props) => Math.max(props.size - 14, 20)}px;
+    height: ${(props) => Math.max(props.size - 14, 20)}px;
+  }
+
+  @media (max-width: 320px) {
+    width: ${(props) => Math.max(props.size - 18, 18)}px;
+    height: ${(props) => Math.max(props.size - 18, 18)}px;
   }
 `;
 
@@ -387,14 +424,19 @@ const Label = styled.span`
   font-weight: 600;
 
   @media (max-width: 768px) {
-    font-size: 16px;
+    font-size: 14px;
     width: 50px;
   }
 
   @media (max-width: 480px) {
-    font-size: 14px;
+    font-size: 12px;
     width: 100%;
     margin: 4px 0;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 10px;
+    margin: 2px 0;
   }
 `;
 
@@ -405,13 +447,18 @@ const CircleRow = styled.div`
   gap: 18px;
 
   @media (max-width: 768px) {
-    gap: 12px;
+    gap: 8px;
   }
 
   @media (max-width: 480px) {
-    gap: 8px;
+    gap: 4px;
     order: 2;
     margin: 8px 0;
+  }
+
+  @media (max-width: 320px) {
+    gap: 2px;
+    margin: 4px 0;
   }
 `;
 
@@ -422,15 +469,20 @@ const ButtonGroup = styled.div`
   gap: 40px;
 
   @media (max-width: 768px) {
-    gap: 20px;
-    margin-top: 32px;
+    gap: 16px;
+    margin-top: 24px;
   }
 
   @media (max-width: 480px) {
     flex-direction: column;
     align-items: center;
-    gap: 16px;
-    margin-top: 24px;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 320px) {
+    gap: 8px;
+    margin-top: 16px;
   }
 `;
 
@@ -458,15 +510,21 @@ const Button = styled.button`
   }
 
   @media (max-width: 768px) {
-    font-size: 20px;
-    padding: 14px 32px;
+    font-size: 18px;
+    padding: 12px 24px;
   }
 
   @media (max-width: 480px) {
-    font-size: 18px;
-    padding: 12px 28px;
+    font-size: 16px;
+    padding: 10px 20px;
     width: 100%;
-    max-width: 200px;
+    max-width: 180px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 14px;
+    padding: 8px 16px;
+    max-width: 160px;
   }
 `;
 
