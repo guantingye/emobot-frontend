@@ -1124,21 +1124,21 @@ const InputArea = styled.div`
     width: 94%;
     max-width: none;
     min-width: auto;
-    padding: 4px 6px;
+    padding: 8px 12px;
     border-radius: 14px;
   }
 
   @media (max-width: 480px) {
     bottom: 12px;
     width: 96%;
-    padding: 3px 5px;
+    padding: 10px 16px;
     border-radius: 12px;
   }
 
   @media (max-width: 320px) {
     bottom: 10px;
     width: 98%;
-    padding: 2px 4px;
+    padding: 12px 18px;
     border-radius: 10px;
   }
 `;
@@ -1167,17 +1167,17 @@ const InputField = styled.input`
 
   /* 響應式調整 - 更緊湊的內距 */
   @media (max-width: 768px) {
-    padding: 10px 12px;
+    padding: 12px 16px;
     font-size: 15px;
   }
 
   @media (max-width: 480px) {
-    padding: 8px 10px;
+    padding: 14px 18px;
     font-size: 14px;
   }
 
   @media (max-width: 320px) {
-    padding: 6px 8px;
+    padding: 16px 20px;
     font-size: 13px;
   }
 
@@ -1194,17 +1194,17 @@ const InputButtons = styled.div`
   padding-right: 8px;
 
   @media (max-width: 768px) {
-    gap: 6px;
+    gap: 10px;
     padding-right: 4px;
   }
 
   @media (max-width: 480px) {
-    gap: 4px;
+    gap: 12px;
     padding-right: 2px;
   }
 
   @media (max-width: 320px) {
-    gap: 3px;
+    gap: 14px;
     padding-right: 1px;
   }
 `;
@@ -1261,8 +1261,8 @@ const ActionButton = styled.button`
 
   /* 響應式調整 - 更小的按鈕 */
   @media (max-width: 768px) {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     font-size: 16px;
   }
 
@@ -1328,8 +1328,8 @@ const SendButton = styled.button`
 
   /* 響應式調整 - 更小的發送按鈕 */
   @media (max-width: 768px) {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     font-size: 18px;
   }
 
