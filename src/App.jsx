@@ -11,6 +11,7 @@ import MatchingProgress from "./components/MatchingProgress";
 import MatchResult from "./components/MatchResult";
 import Home from "./components/Home";
 import Login from "./components/Login";
+import MoodTrail from "./components/MoodTrail"; 
 
 // ★ 導入新的管理員組件
 import AdminDashboard from './components/AdminDashboard';
@@ -56,6 +57,7 @@ function App() {
         {/* 其他功能頁 */}
         <Route path="/mood" element={<MoodInput />} />
         <Route path="/dashboard" element={<MemberDashboard />} />
+        <Route path="/mood-trail" element={<MoodTrail />} />
 
         {/* ★ 管理員相關路由 */}
         <Route path="/admin-login" element={<AdminLogin />} />
@@ -68,7 +70,7 @@ function App() {
             } 
           />
 
-        {/* 萬用 fallback：請務必放在最後 */}
+        {/* 萬用 fallback：請務必放在最後 */} 
         <Route path="*" element={<Home />} />
       </Routes>
     </Router>

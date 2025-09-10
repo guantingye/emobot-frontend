@@ -423,6 +423,7 @@ const FlipButton = styled.button`
 const AICard = styled.div`
   width: 591px;
   height: 572px;
+  position: relative; 
   background: linear-gradient(0deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
     linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
   border: 2.58px solid #d0d0d0;
@@ -732,6 +733,26 @@ const ErrorText = styled.div`
   @media (max-width: 480px) {
     font-size: 14px;
   }
+`;
+
+const TopRightLink = styled.button`
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid #d0d0d0;
+  border-radius: 999px;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  color: #2b3993;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(43,57,147,0.12);
+  transition: all .2s ease;
+
+  &:hover { transform: translateY(-1px); background: #f6f7ff; }
+  &:active { transform: translateY(0); }
 `;
 
 // RadarChartSVG 組件保持不變，但添加響應式支持
@@ -1129,6 +1150,9 @@ const MemberDashboard = () => {
 
             <RightColumn>
               <AICard data-aos="fade-up" data-aos-delay="200">
+                <TopRightLink onClick={() => navigate("/mood-trail")}>
+                  查看心情足跡
+                </TopRightLink>
                 <AIDescription>
                   你目前選擇的AI夥伴是：<span>{chosenBotName}</span>
                 </AIDescription>
