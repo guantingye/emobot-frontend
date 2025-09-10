@@ -351,7 +351,8 @@ const ScaleWrapper = styled.div`
   @media (max-width: 480px) {
     gap: 4px;
     margin-top: 16px;
-    flex-direction: column;
+    flex-wrap: nowrap;                 /* 手機維持左右佈局 */
+    justify-content: space-between;    /* 小字靠外側，圓點在中間 */
   }
 
   @media (max-width: 320px) {
@@ -418,10 +419,11 @@ background: ${(props) =>
 
 const Label = styled.span`
   font-size: 18px;
-  color: ${(props) => (props.side === "left" ? "#6A4C93" : "#3AA87A")};
+  color: ${(p) => (p.side === "left" ? "#6A4C93" : "#3AA87A")};
   width: 60px;
-  text-align: center;
+  text-align: ${(p) => (p.side === "left" ? "right" : "left")};
   font-weight: 600;
+  flex: 0 0 auto;
 
   @media (max-width: 768px) {
     font-size: 14px;
@@ -430,13 +432,13 @@ const Label = styled.span`
 
   @media (max-width: 480px) {
     font-size: 12px;
-    width: 100%;
-    margin: 4px 0;
+    width: 56px;
+    margin: 0;
   }
 
   @media (max-width: 320px) {
     font-size: 10px;
-    margin: 2px 0;
+    width: 52px;
   }
 `;
 
@@ -447,18 +449,16 @@ const CircleRow = styled.div`
   gap: 18px;
 
   @media (max-width: 768px) {
-    gap: 8px;
+    gap: 6px;
   }
 
   @media (max-width: 480px) {
-    gap: 4px;
-    order: 2;
-    margin: 8px 0;
+    gap: 3px;
+    margin: 0; /* 取消原本為了縱向佈局設的多餘 margin/order */
   }
 
   @media (max-width: 320px) {
     gap: 2px;
-    margin: 4px 0;
   }
 `;
 
@@ -632,7 +632,7 @@ export default function TestStep3() {
                   {[1, 2, 3, 4, 5].map((n, idx) => (
                     <Circle
                       key={n}
-                      size={48 + Math.abs(2 - idx) * 6}
+                      size={42 + Math.abs(2 - idx) * 5}
                       index={idx}
                       selected={answers[i] === n}
                       onClick={() => handleSelect(i, n)}

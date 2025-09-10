@@ -351,7 +351,9 @@ const ScaleWrapper = styled.div`
   @media (max-width: 480px) {
     gap: 4px;
     margin-top: 16px;
-    flex-direction: column;
+    /* 關鍵：手機也維持左右佈局 */
+    flex-wrap: nowrap;
+    justify-content: space-between;
   }
 
   @media (max-width: 320px) {
@@ -418,10 +420,11 @@ background: ${(props) =>
 
 const Label = styled.span`
   font-size: 18px;
-  color: ${(props) => (props.side === "left" ? "#6A4C93" : "#3AA87A")};
+  color: ${(p) => (p.side === "left" ? "#6A4C93" : "#3AA87A")};
   width: 60px;
-  text-align: center;
+  text-align: ${(p) => (p.side === "left" ? "right" : "left")};
   font-weight: 600;
+  flex: 0 0 auto;
 
   @media (max-width: 768px) {
     font-size: 14px;
@@ -430,13 +433,13 @@ const Label = styled.span`
 
   @media (max-width: 480px) {
     font-size: 12px;
-    width: 100%;
-    margin: 4px 0;
+    width: 56px;   /* 不再滿寬，避免換行到上/下方 */
+    margin: 0;
   }
 
   @media (max-width: 320px) {
     font-size: 10px;
-    margin: 2px 0;
+    width: 52px;
   }
 `;
 
@@ -452,13 +455,12 @@ const CircleRow = styled.div`
 
   @media (max-width: 480px) {
     gap: 4px;
-    order: 2;
-    margin: 8px 0;
+    /* 關鍵：移除原本的 order 與額外 margin，讓圓點置中位於兩個 Label 之間 */
+    margin: 0;
   }
 
   @media (max-width: 320px) {
     gap: 2px;
-    margin: 4px 0;
   }
 `;
 
@@ -634,7 +636,7 @@ export default function TestStep2() {
                   {[1, 2, 3, 4, 5, 6, 7].map((n, idx) => (
                     <Circle
                       key={n}
-                      size={48 + Math.abs(4 - n) * 4}
+                      size={42 + Math.abs(4 - n) * 4}
                       index={idx}
                       selected={answers[i] === n}
                       onClick={() => handleSelect(i, n)}
