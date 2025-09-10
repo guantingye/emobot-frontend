@@ -1,4 +1,3 @@
-// src/components/TestStep1.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
@@ -186,7 +185,6 @@ const AvatarImg = styled.img`
   @media (max-width: 480px) {
     width: 36px;
     height: 36px;
-    margin-right: +15px;
   }
 `;
 
@@ -287,28 +285,25 @@ const Subtitle = styled.p`
 const Grid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
-  gap: 18px;
+  gap: 24px;
   max-width: 720px;
-  margin: 0 auto 12px;
+  margin: 0 auto 24px;
 
   @media (max-width: 768px) {
-    gap: 14px;
+    gap: 20px;
     max-width: 100%;
   }
 
   @media (max-width: 480px) {
-    gap: 12px;
+    gap: 16px;
   }
 `;
 
-const Group = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 160px 1fr;
-  align-items: center; 
-  gap: 12px;
-  padding: 16px 18px;
+// 重新設計的 MBTI 維度容器
+const DimensionContainer = styled.div`
   border: 1.5px solid rgba(43, 57, 147, 0.15);
-  border-radius: 14px;
+  border-radius: 16px;
+  padding: 24px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%);
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(43, 57, 147, 0.05);
@@ -320,100 +315,139 @@ const Group = styled.div`
   }
 
   @media (max-width: 640px) { 
-    grid-template-columns: 1fr; 
-    text-align: center; 
-    padding: 14px 16px;
+    padding: 20px 16px;
   }
 
   @media (max-width: 480px) {
-    padding: 12px 14px;
-    border-radius: 10px;
-    gap: 8px;
+    padding: 16px 12px;
+    border-radius: 12px;
   }
 `;
 
-const DimLabel = styled.div` 
-  font-size: 16px; 
-  color: #666; 
+const DimensionTitle = styled.h3`
+  font-size: 20px;
+  font-weight: 800;
+  color: #2b3993;
+  text-align: center;
+  margin-bottom: 20px;
 
-  @media (max-width: 640px) { 
-    order: 2; 
-    font-size: 14px;
+  @media (max-width: 640px) {
+    font-size: 18px;
+    margin-bottom: 16px;
   }
 
   @media (max-width: 480px) {
-    font-size: 13px;
-  }
-`;
-
-const DimTitle = styled.div` 
-  font-size: 18px; 
-  font-weight: 800; 
-  color: #222; 
-  text-align: center; 
-
-  @media (max-width: 640px) { 
-    order: 1; 
-    margin-bottom: 6px; 
     font-size: 16px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 15px;
-    margin-bottom: 4px;
+    margin-bottom: 12px;
   }
 `;
 
-const Center = styled.div` 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  gap: 10px; 
+const OptionsContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
 
   @media (max-width: 480px) {
-    gap: 8px;
+    gap: 12px;
   }
 `;
 
-const Pill = styled.button`
+const OptionGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+
+  @media (max-width: 640px) {
+    width: 100%;
+    max-width: 200px;
+  }
+`;
+
+const OptionButton = styled.button`
   appearance: none;
   border: 2px solid ${p => (p.$active ? "#2b3993" : "#d7d7d7")};
   background: ${p => (p.$active ? "linear-gradient(135deg, #2b3993 0%, #667eea 100%)" : "white")};
   color: ${p => (p.$active ? "white" : "#222")};
-  font-size: 18px; 
+  font-size: 24px;
   font-weight: 800;
-  border-radius: 999px; 
-  padding: 10px 16px;
-  cursor: pointer; 
+  border-radius: 999px;
+  padding: 16px 20px;
+  cursor: pointer;
   transition: all .3s ease;
   box-shadow: ${p => (p.$active ? "0 4px 16px rgba(43,57,147,.25)" : "0 2px 8px rgba(0,0,0,.05)")};
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 80px;
+  min-height: 60px;
+  margin-bottom: 12px;
   
-  &:hover { 
+  &:hover {
     transform: translateY(-2px);
     box-shadow: ${p => (p.$active ? "0 6px 20px rgba(43,57,147,.35)" : "0 4px 12px rgba(0,0,0,.1)")};
   }
   
-  &:active { 
-    transform: translateY(0); 
+  &:active {
+    transform: translateY(0);
   }
 
-  @media (max-width: 640px) { 
+  @media (max-width: 640px) {
+    font-size: 20px;
+    padding: 14px 18px;
+    min-width: 70px;
+    min-height: 50px;
     width: 100%;
-    margin: 0 20px;
+    max-width: 120px;
   }
 
   @media (max-width: 480px) {
-    font-size: 16px;
-    padding: 8px 14px;
-    margin: 0 16px;
+    font-size: 18px;
+    padding: 12px 16px;
+    min-width: 60px;
+    min-height: 45px;
+    max-width: 100px;
+  }
+`;
+
+const OptionLabel = styled.div`
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  line-height: 1.3;
+  max-width: 120px;
+
+  @media (max-width: 640px) {
+    font-size: 13px;
+    max-width: 100px;
   }
 
-  @media (max-width: 320px) {
-    font-size: 15px;
-    padding: 8px 12px;
-    margin: 0 12px;
+  @media (max-width: 480px) {
+    font-size: 12px;
+    max-width: 90px;
+  }
+`;
+
+const VersusText = styled.div`
+  font-size: 18px;
+  color: #888;
+  font-weight: 600;
+  align-self: center;
+  margin-top: 20px;
+
+  @media (max-width: 640px) {
+    margin-top: 0;
+    margin: 8px 0;
+    font-size: 16px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 14px;
   }
 `;
 
@@ -506,22 +540,37 @@ const SuccessMessage = styled.div`
   }
 `;
 
-// 子元件：二擇一
-function PairSelector({ title, left, right, value, onChange }) {
+// 子元件：二擇一選項
+function DimensionSelector({ title, left, right, value, onChange }) {
   return (
-    <Group role="group" aria-label={title}>
-      <DimLabel>{left.desc}</DimLabel>
-      <Center><DimTitle>{title}</DimTitle></Center>
-      <DimLabel style={{ textAlign: "center" }}>{right.desc}</DimLabel>
-
-      <Pill aria-pressed={value === left.letter} $active={value === left.letter} onClick={() => onChange(left.letter)}>
-        {left.letter}
-      </Pill>
-      <div />
-      <Pill aria-pressed={value === right.letter} $active={value === right.letter} onClick={() => onChange(right.letter)}>
-        {right.letter}
-      </Pill>
-    </Group>
+    <DimensionContainer role="group" aria-label={title}>
+      <DimensionTitle>{title}</DimensionTitle>
+      <OptionsContainer>
+        <OptionGroup>
+          <OptionButton 
+            aria-pressed={value === left.letter} 
+            $active={value === left.letter} 
+            onClick={() => onChange(left.letter)}
+          >
+            {left.letter}
+          </OptionButton>
+          <OptionLabel>{left.desc}</OptionLabel>
+        </OptionGroup>
+        
+        <VersusText>vs</VersusText>
+        
+        <OptionGroup>
+          <OptionButton 
+            aria-pressed={value === right.letter} 
+            $active={value === right.letter} 
+            onClick={() => onChange(right.letter)}
+          >
+            {right.letter}
+          </OptionButton>
+          <OptionLabel>{right.desc}</OptionLabel>
+        </OptionGroup>
+      </OptionsContainer>
+    </DimensionContainer>
   );
 }
 
@@ -604,31 +653,31 @@ export default function TestStep1() {
             <Subtitle>請在每個維度中選擇最符合自己的傾向</Subtitle>
 
             <Grid>
-              <PairSelector
+              <DimensionSelector
                 title="外向 vs 內向"
-                left={{ letter: "E", desc: " Extraversion" }}
-                right={{ letter: "I", desc: " Introversion" }}
+                left={{ letter: "E", desc: "Extraversion" }}
+                right={{ letter: "I", desc: "Introversion" }}
                 value={EorI}
                 onChange={setEorI}
               />
-              <PairSelector
+              <DimensionSelector
                 title="直覺 vs 實感"
-                left={{ letter: "N", desc: " iNtuition" }}
-                right={{ letter: "S", desc: " Sensing" }}
+                left={{ letter: "N", desc: "iNtuition" }}
+                right={{ letter: "S", desc: "Sensing" }}
                 value={NorS}
                 onChange={setNorS}
               />
-              <PairSelector
+              <DimensionSelector
                 title="思考 vs 情感"
-                left={{ letter: "T", desc: " Thinking" }}
-                right={{ letter: "F", desc: " Feeling" }}
+                left={{ letter: "T", desc: "Thinking" }}
+                right={{ letter: "F", desc: "Feeling" }}
                 value={TorF}
                 onChange={setTorF}
               />
-              <PairSelector
+              <DimensionSelector
                 title="知覺 vs 判斷"
-                left={{ letter: "P", desc: " Perceiving" }}
-                right={{ letter: "J", desc: " Judging" }}
+                left={{ letter: "P", desc: "Perceiving" }}
+                right={{ letter: "J", desc: "Judging" }}
                 value={PorJ}
                 onChange={setPorJ}
               />
