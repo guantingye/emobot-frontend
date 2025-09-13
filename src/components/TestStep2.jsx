@@ -636,7 +636,7 @@ export default function TestStep2() {
                   {[1, 2, 3, 4, 5, 6, 7].map((n, idx) => (
                     <Circle
                       key={n}
-                      size={42 + Math.abs(4 - n) * 4}
+                      size={42 + Math.abs(4 - n) * 3}
                       index={idx}
                       selected={answers[i] === n}
                       onClick={() => handleSelect(i, n)}
