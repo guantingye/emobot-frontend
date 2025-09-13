@@ -5,11 +5,10 @@ import { useNavigate } from "react-router-dom";
 import botTemp from "../assets/bot_temp.png";
 import { IoSend } from "react-icons/io5";
 import { FiChevronLeft, FiMic } from "react-icons/fi";
-import introVideo from "../assets/demo_video_2.mov";
-import secondVideo from "../assets/demo_video_3.mov";
 import { sendChatMessage } from "../api/client"; 
+import heygenService from "../services/heygenService";
 
-/* ================= 動畫定義 ================ */
+// 動畫定義
 const float = keyframes`
   0% { transform: translateY(0px); }
   50% { transform: translateY(-6px); }
@@ -90,13 +89,18 @@ const shimmer = keyframes`
   }
 `;
 
-const gradientShift = keyframes`
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+const fadeInStagger = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 `;
 
-/* ================= 主要容器 ================ */
+// 主要容器
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -107,37 +111,12 @@ const Container = styled.div`
   position: relative;
   overflow: hidden;
 
-  /* 桌面版優化 */
-  @media (min-width: 1025px) {
-    background-size: cover;
-    background-position: center;
-  }
-
-  /* 平板版調整 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    background-size: 120%;
-    background-position: center 20%;
-  }
-
-  /* 手機版調整 */
   @media (max-width: 768px) {
     overflow-y: auto;
-    background-size: 140%;
-    background-position: center 30%;
-  }
-
-  @media (max-width: 480px) {
-    background-size: 150%;
-    background-position: center 35%;
-  }
-
-  @media (max-width: 320px) {
-    background-size: 160%;
-    background-position: center 40%;
   }
 `;
 
-/* ================= 標題列優化 ================ */
+// 標題列
 const Header = styled.header`
   position: fixed;
   top: 0;
@@ -158,26 +137,9 @@ const Header = styled.header`
   animation: ${fadeInDown} 0.8s ease-out both;
   animation-delay: 0.3s;
 
-  /* 平板版 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    height: 60px;
-    padding: 0 16px;
-  }
-
-  /* 手機版 */
   @media (max-width: 768px) {
     height: 55px;
     padding: 0 12px;
-  }
-
-  @media (max-width: 480px) {
-    height: 50px;
-    padding: 0 10px;
-  }
-
-  @media (max-width: 320px) {
-    height: 48px;
-    padding: 0 8px;
   }
 `;
 
@@ -194,52 +156,16 @@ const BackButton = styled.button`
   border: 1px solid rgba(46, 47, 94, 0.2);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-
-  &:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
-    transition: left 0.6s ease;
-  }
 
   &:hover {
     background: rgba(46, 47, 94, 0.05);
     transform: translateX(-2px) scale(1.02);
     box-shadow: 0 4px 12px rgba(46, 47, 94, 0.15);
-    
-    &:before {
-      left: 100%;
-    }
   }
 
-  &:active {
-    transform: translateX(-1px) scale(0.98);
-  }
-
-  /* 響應式調整 */
   @media (max-width: 768px) {
     font-size: 14px;
     padding: 8px 14px;
-    gap: 6px;
-    border-radius: 10px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 12px;
-    padding: 6px 10px;
-    gap: 4px;
-    border-radius: 8px;
-  }
-
-  @media (max-width: 320px) {
-    font-size: 11px;
-    padding: 4px 8px;
   }
 `;
 
@@ -255,16 +181,6 @@ const ModeSelect = styled.div`
   @media (max-width: 768px) {
     padding: 4px;
     gap: 2px;
-    border-radius: 12px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 3px;
-    border-radius: 10px;
-  }
-
-  @media (max-width: 320px) {
-    display: none; /* 極小螢幕隱藏模式選擇 */
   }
 `;
 
@@ -278,48 +194,19 @@ const ModeButton = styled.button`
   border: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
-
-  &:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: ${p => p.active ? '0' : '-100%'};
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
-    transition: left 0.6s ease;
-  }
 
   &:hover {
     background: ${p => p.active ? 'linear-gradient(45deg, #2e2f5e, #5a5b9f)' : 'rgba(0, 0, 0, 0.05)'};
     transform: translateY(-1px);
-    
-    &:before {
-      left: 100%;
-    }
   }
 
-  &:active {
-    transform: translateY(0) scale(0.98);
-  }
-
-  /* 響應式調整 */
   @media (max-width: 768px) {
     padding: 6px 12px;
     font-size: 13px;
-    border-radius: 8px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 4px 8px;
-    font-size: 12px;
-    border-radius: 6px;
   }
 `;
 
-/* ================= 頭像區域優化 ================ */
+// 頭像區域
 const AvatarContainer = styled.div`
   display: flex;
   align-items: center;
@@ -327,10 +214,6 @@ const AvatarContainer = styled.div`
 
   @media (max-width: 768px) {
     gap: 8px;
-  }
-
-  @media (max-width: 480px) {
-    gap: 6px;
   }
 `;
 
@@ -353,29 +236,10 @@ const BotAvatar = styled.div`
     box-shadow: 0 6px 16px rgba(90, 140, 242, 0.4);
   }
 
-  /* 響應式調整 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
-  }
-
   @media (max-width: 768px) {
     width: 34px;
     height: 34px;
     font-size: 14px;
-  }
-
-  @media (max-width: 480px) {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-  }
-
-  @media (max-width: 320px) {
-    width: 24px;
-    height: 24px;
-    font-size: 10px;
   }
 `;
 
@@ -384,7 +248,7 @@ const BotInfo = styled.div`
   flex-direction: column;
   
   @media (max-width: 480px) {
-    display: none; /* 小螢幕隱藏文字信息 */
+    display: none;
   }
 `;
 
@@ -396,10 +260,6 @@ const BotName = styled.span`
   @media (max-width: 768px) {
     font-size: 14px;
   }
-
-  @media (max-width: 480px) {
-    font-size: 12px;
-  }
 `;
 
 const BotStatus = styled.span`
@@ -409,13 +269,9 @@ const BotStatus = styled.span`
   @media (max-width: 768px) {
     font-size: 11px;
   }
-
-  @media (max-width: 480px) {
-    font-size: 10px;
-  }
 `;
 
-/* ================= 主要布局區域 ================ */
+// 主要布局
 const Layout = styled.div`
   flex: 1;
   display: flex;
@@ -424,32 +280,15 @@ const Layout = styled.div`
   overflow: hidden;
   gap: 30px;
 
-  /* 平板版調整 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    padding: 80px 24px 120px;
-    gap: 20px;
-  }
-
-  /* 手機版：垂直布局 */
   @media (max-width: 768px) {
     flex-direction: column;
     padding: 70px 16px 150px;
     overflow-y: auto;
     gap: 16px;
   }
-
-  @media (max-width: 480px) {
-    padding: 60px 12px 160px;
-    gap: 12px;
-  }
-
-  @media (max-width: 320px) {
-    padding: 56px 8px 180px;
-    gap: 8px;
-  }
 `;
 
-/* ================= 影片區域優化 ================ */
+// 影片區域
 const VideoColumn = styled.div`
   position: relative;
   top: 60px;
@@ -458,29 +297,13 @@ const VideoColumn = styled.div`
   display: ${p => p.show ? 'block' : 'none'};
   padding-right: 30px;
 
-  /* 平板版調整 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    width: 40%;
-    top: 40px;
-    padding-right: 20px;
-  }
-
-  /* 手機版：全寬度 */
   @media (max-width: 768px) {
     width: 100%;
     max-width: 100%;
     top: 0;
     padding-right: 0;
     margin-bottom: 20px;
-    order: 1; /* 影片在上方 */
-  }
-
-  @media (max-width: 480px) {
-    margin-bottom: 16px;
-  }
-
-  @media (max-width: 320px) {
-    margin-bottom: 12px;
+    order: 1;
   }
 `;
 
@@ -492,43 +315,25 @@ const DemoContainer = styled.div`
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  background: #000;
 
-  /* 平板版調整 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    height: 70vh;
-    max-height: 500px;
-    border-radius: 16px;
-  }
-
-  /* 手機版調整 */
   @media (max-width: 768px) {
     height: 220px;
     max-height: 250px;
     border-radius: 12px;
   }
-
-  @media (max-width: 480px) {
-    height: 180px;
-    max-height: 200px;
-    border-radius: 10px;
-  }
-
-  @media (max-width: 320px) {
-    height: 150px;
-    max-height: 170px;
-    border-radius: 8px;
-  }
 `;
 
-const DemoVideo = styled.video`
+const StreamVideo = styled.video`
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  transition: opacity 1.2s ease-in-out;
+  object-fit: cover;
+  display: ${p => p.visible ? 'block' : 'none'};
   opacity: ${p => p.visible ? 1 : 0};
+  transition: opacity 0.6s ease;
 `;
 
 const FallbackImage = styled.img`
@@ -537,12 +342,28 @@ const FallbackImage = styled.img`
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  transition: opacity 1.2s ease-in-out;
+  object-fit: cover;
+  display: ${p => p.visible ? 'block' : 'none'};
   opacity: ${p => p.visible ? 1 : 0};
+  transition: opacity 0.6s ease;
 `;
 
-/* ================= 對話區域優化 ================ */
+const LoadingOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: ${p => p.visible ? 'flex' : 'none'};
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+  backdrop-filter: blur(10px);
+`;
+
+// 對話區域
 const ChatColumn = styled.div`
   flex: 1;
   display: flex;
@@ -555,19 +376,10 @@ const ChatColumn = styled.div`
     flex: none;
     height: auto;
     min-height: 350px;
-    order: 2; /* 對話在下方 */
-  }
-
-  @media (max-width: 480px) {
-    min-height: 300px;
-  }
-
-  @media (max-width: 320px) {
-    min-height: 250px;
+    order: 2;
   }
 `;
 
-/* ================= 歡迎與描述區域 ================ */
 const FadeWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -577,18 +389,6 @@ const FadeWrapper = styled.div`
   animation: ${fadeIn} 1s ease-out forwards;
   padding: 20px;
   text-align: center;
-
-  @media (max-width: 768px) {
-    padding: 16px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 12px;
-  }
-
-  @media (max-width: 320px) {
-    padding: 8px;
-  }
 `;
 
 const Description = styled.div`
@@ -596,10 +396,6 @@ const Description = styled.div`
   text-align: center;
   max-width: 600px;
   animation: ${fadeIn} 1s ease-out forwards;
-
-  @media (max-width: 768px) {
-    max-width: 100%;
-  }
 `;
 
 const Title = styled.h1`
@@ -610,27 +406,9 @@ const Title = styled.h1`
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1.2;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-  /* 響應式字體調整 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    font-size: 36px;
-    margin-bottom: 14px;
-  }
 
   @media (max-width: 768px) {
     font-size: 30px;
-    margin-bottom: 12px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 24px;
-    margin-bottom: 10px;
-  }
-
-  @media (max-width: 320px) {
-    font-size: 20px;
-    margin-bottom: 8px;
   }
 `;
 
@@ -641,29 +419,11 @@ const Subtitle = styled.p`
   opacity: 0;
   animation: ${fadeIn} 1s ease-out 0.5s forwards;
 
-  /* 響應式字體調整 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    font-size: 20px;
-    line-height: 1.6;
-  }
-
   @media (max-width: 768px) {
     font-size: 17px;
-    line-height: 1.6;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 15px;
-    line-height: 1.5;
-  }
-
-  @media (max-width: 320px) {
-    font-size: 13px;
-    line-height: 1.4;
   }
 `;
 
-/* ================= 新增設計感強化的 IntroBar ================ */
 const IntroBar = styled.div`
   margin: 0 auto 24px;
   padding: 20px 28px;
@@ -672,58 +432,22 @@ const IntroBar = styled.div`
   border-radius: 16px;
   box-shadow: 
     0 8px 32px rgba(122, 194, 221, 0.12),
-    0 4px 16px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    0 4px 16px rgba(0, 0, 0, 0.04);
   font-size: 16px;
   font-weight: 600;
   line-height: 1.6;
-  animation: ${fadeInDown} 0.6s ease-out, ${float} 4s ease-in-out 1s infinite;
+  animation: ${fadeInDown} 0.6s ease-out;
   max-width: 600px;
-  white-space: pre-wrap;
   text-align: center;
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(8px);
   color: #2e2f5e;
-
-  &:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
-    transition: left 0.8s ease;
-  }
-
-  &:hover:before {
-    left: 100%;
-  }
 
   @media (max-width: 768px) {
     margin: 0 auto 18px;
     padding: 16px 20px;
     font-size: 14px;
-    border-radius: 12px;
-  }
-
-  @media (max-width: 480px) {
-    margin: 0 auto 14px;
-    padding: 12px 16px;
-    font-size: 13px;
-    border-radius: 10px;
-  }
-
-  @media (max-width: 320px) {
-    margin: 0 auto 10px;
-    padding: 10px 12px;
-    font-size: 12px;
-    border-radius: 8px;
   }
 `;
 
-/* ================= 對話內容區域 ================ */
 const DateDivider = styled.div`
   text-align: center;
   margin: 20px 0;
@@ -739,18 +463,6 @@ const DateDivider = styled.div`
     background: rgba(0, 0, 0, 0.1);
     z-index: -1;
   }
-
-  @media (max-width: 768px) {
-    margin: 16px 0;
-  }
-
-  @media (max-width: 480px) {
-    margin: 12px 0;
-  }
-
-  @media (max-width: 320px) {
-    margin: 10px 0;
-  }
 `;
 
 const DateLabel = styled.span`
@@ -760,24 +472,6 @@ const DateLabel = styled.span`
   font-size: 13px;
   color: #666;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-
-  @media (max-width: 768px) {
-    font-size: 12px;
-    padding: 3px 10px;
-    border-radius: 16px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 14px;
-  }
-
-  @media (max-width: 320px) {
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 12px;
-  }
 `;
 
 const ChatBox = styled.div`
@@ -792,75 +486,16 @@ const ChatBox = styled.div`
   @media (max-width: 768px) {
     gap: 12px;
     padding-right: 5px;
-    padding-bottom: 16px;
-  }
-
-  @media (max-width: 480px) {
-    gap: 10px;
-    padding-right: 3px;
-    padding-bottom: 12px;
-  }
-
-  @media (max-width: 320px) {
-    gap: 8px;
-    padding-right: 2px;
-    padding-bottom: 10px;
   }
 `;
 
-/* ================= 改進的文字強調處理 ================ */
-const renderEmphasis = (text = "") => {
-  if (!text) return null;
-  
-  // 處理多種強調格式：***text***, **text**, 『text』, 「text」, 《text》, 〈text〉
-  const parts = text.split(/(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|『[^』]+』|「[^」]+」|《[^》]+》|〈[^〉]+〉)/g);
-  
-  return parts.map((seg, i) => {
-    if (!seg) return null;
-
-    // ***三星號強調*** → 粗體 + 特殊樣式
-    if (/^\*\*\*[^*]+\*\*\*$/.test(seg)) {
-      return (
-        <strong key={i} style={{ 
-          color: '#2e2f5e', 
-          fontWeight: '700',
-          textShadow: '0 1px 2px rgba(46, 47, 94, 0.1)',
-          letterSpacing: '0.5px'
-        }}>
-          {seg.slice(3, -3)}
-        </strong>
-      );
-    }
-
-    // **雙星號強調** → 粗體
-    if (/^\*\*[^*]+\*\*$/.test(seg)) {
-      return <strong key={i} style={{ fontWeight: '600' }}>{seg.slice(2, -2)}</strong>;
-    }
-
-    // 全形括號強調 → 粗體
-    if (/^『.*』$/.test(seg) || /^「.*」$/.test(seg) || /^《.*》$/.test(seg) || /^〈.*〉$/.test(seg)) {
-      return <strong key={i} style={{ fontWeight: '600' }}>{seg.slice(1, -1).trim()}</strong>;
-    }
-
-    return <React.Fragment key={i}>{seg}</React.Fragment>;
-  });
-};
-
-/* ================= 對話泡泡優化 ================ */
+// 訊息泡泡
 const BubbleWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: ${p => p.sender === 'user' ? 'flex-end' : 'flex-start'};
   max-width: 85%;
   align-self: ${p => p.sender === 'user' ? 'flex-end' : 'flex-start'};
-
-  @media (max-width: 768px) {
-    max-width: 90%;
-  }
-
-  @media (max-width: 480px) {
-    max-width: 95%;
-  }
 `;
 
 const BubbleHeader = styled.div`
@@ -871,24 +506,6 @@ const BubbleHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
-
-  @media (max-width: 768px) {
-    font-size: 11px;
-    padding: 0 8px;
-    gap: 4px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 10px;
-    padding: 0 6px;
-    gap: 3px;
-  }
-
-  @media (max-width: 320px) {
-    font-size: 9px;
-    padding: 0 4px;
-    gap: 2px;
-  }
 `;
 
 const SenderAvatar = styled.div`
@@ -903,24 +520,6 @@ const SenderAvatar = styled.div`
   font-weight: bold;
   font-size: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-  @media (max-width: 768px) {
-    width: 18px;
-    height: 18px;
-    font-size: 8px;
-  }
-
-  @media (max-width: 480px) {
-    width: 16px;
-    height: 16px;
-    font-size: 7px;
-  }
-
-  @media (max-width: 320px) {
-    width: 14px;
-    height: 14px;
-    font-size: 6px;
-  }
 `;
 
 const ChatBubble = styled.div`
@@ -940,70 +539,19 @@ const ChatBubble = styled.div`
   animation: ${fadeInBubble} 0.3s ease-out;
   line-height: 1.5;
   font-size: 15px;
-  position: relative;
-  overflow: hidden;
 
-  &:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: ${p => p.sender === 'user' 
-      ? 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%)'
-      : 'linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.02) 50%, transparent 100%)'};
-    transition: left 0.6s ease;
-  }
-
-  &:hover:before {
-    left: 100%;
-  }
-
-  /* 響應式調整 - 更小的尺寸 */
   @media (max-width: 768px) {
     padding: 10px 14px;
     font-size: 13px;
-    border-radius: ${p => p.sender === 'user' 
-      ? '14px 14px 4px 14px' 
-      : '14px 14px 14px 4px'};
-  }
-
-  @media (max-width: 480px) {
-    padding: 8px 12px;
-    font-size: 12px;
-    border-radius: ${p => p.sender === 'user' 
-      ? '12px 12px 3px 12px' 
-      : '12px 12px 12px 3px'};
-  }
-
-  @media (max-width: 320px) {
-    padding: 6px 10px;
-    font-size: 11px;
-    border-radius: ${p => p.sender === 'user' 
-      ? '10px 10px 3px 10px' 
-      : '10px 10px 10px 3px'};
   }
 `;
 
 const MessageTime = styled.span`
   font-size: 11px;
   color: #999;
-
-  @media (max-width: 768px) {
-    font-size: 10px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 9px;
-  }
-
-  @media (max-width: 320px) {
-    font-size: 8px;
-  }
 `;
 
-/* ================= 輸入中動畫 ================ */
+// 輸入中動畫
 const TypingBubble = styled(ChatBubble)`
   width: 60px;
   height: 32px;
@@ -1012,24 +560,6 @@ const TypingBubble = styled(ChatBubble)`
   align-items: center;
   justify-content: center;
   gap: 4px;
-
-  @media (max-width: 768px) {
-    width: 50px;
-    height: 28px;
-    gap: 3px;
-  }
-
-  @media (max-width: 480px) {
-    width: 44px;
-    height: 24px;
-    gap: 2px;
-  }
-
-  @media (max-width: 320px) {
-    width: 38px;
-    height: 22px;
-    gap: 2px;
-  }
 `;
 
 const TypingDot = styled.div`
@@ -1038,34 +568,11 @@ const TypingDot = styled.div`
   background: #888;
   border-radius: 50%;
   opacity: 0.8;
-  animation: ${p => keyframes`
-    0%, 100% { 
-      transform: translateY(0); 
-      opacity: 0.8; 
-    }
-    50% { 
-      transform: translateY(-4px); 
-      opacity: 1; 
-    }
-  `} ${p => p.delay}s infinite ease-in-out;
-
-  @media (max-width: 768px) {
-    width: 6px;
-    height: 6px;
-  }
-
-  @media (max-width: 480px) {
-    width: 5px;
-    height: 5px;
-  }
-
-  @media (max-width: 320px) {
-    width: 4px;
-    height: 4px;
-  }
+  animation: ${float} 1.4s ease-in-out infinite;
+  animation-delay: ${p => p.delay}s;
 `;
 
-/* ================= 輸入區域大幅優化 ================ */
+// 輸入區域
 const InputArea = styled.div`
   position: fixed;
   bottom: 35px;
@@ -1084,8 +591,7 @@ const InputArea = styled.div`
   backdrop-filter: blur(15px);
   box-shadow: 
     0 10px 40px rgba(0, 0, 0, 0.08),
-    0 4px 16px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    0 4px 16px rgba(0, 0, 0, 0.04);
   border: 1px solid rgba(0, 0, 0, 0.05);
   z-index: 100;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1093,29 +599,10 @@ const InputArea = styled.div`
   &:hover {
     box-shadow: 
       0 12px 48px rgba(0, 0, 0, 0.12),
-      0 6px 20px rgba(0, 0, 0, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      0 6px 20px rgba(0, 0, 0, 0.06);
     transform: translateX(-50%) translateY(-2px);
   }
 
-  &:focus-within {
-    box-shadow: 
-      0 0 0 4px rgba(43, 57, 147, 0.1),
-      0 12px 48px rgba(43, 57, 147, 0.15),
-      0 6px 20px rgba(0, 0, 0, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    transform: translateX(-50%) translateY(-1px);
-    border-color: rgba(43, 57, 147, 0.3);
-  }
-
-  /* 平板版調整 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    bottom: 28px;
-    padding: 4px 8px;
-    border-radius: 12px;
-  }
-
-  /* 手機版：統一居中布局，更緊湊的設計 */
   @media (max-width: 768px) {
     position: fixed;
     bottom: 16px;
@@ -1123,23 +610,7 @@ const InputArea = styled.div`
     transform: translateX(-50%);
     width: 94%;
     max-width: none;
-    min-width: auto;
     padding: 4px 8px;
-    border-radius: 14px;
-  }
-
-  @media (max-width: 480px) {
-    bottom: 12px;
-    width: 96%;
-    padding: 3px 6px;
-    border-radius: 12px;
-  }
-
-  @media (max-width: 320px) {
-    bottom: 10px;
-    width: 98%;
-    padding: 2px 4px;
-    border-radius: 10px;
   }
 `;
 
@@ -1158,32 +629,11 @@ const InputField = styled.input`
   &::placeholder {
     color: ${p => p.disabled ? '#aaa' : '#999'};
     font-style: italic;
-    transition: color 0.3s ease;
   }
 
-  &:focus::placeholder {
-    color: transparent;
-  }
-
-  /* 響應式調整 - 更緊湊的內距 */
   @media (max-width: 768px) {
     padding: 8px 12px;
     font-size: 15px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 6px 10px;
-    font-size: 14px;
-  }
-
-  @media (max-width: 320px) {
-    padding: 4px 8px;
-    font-size: 13px;
-  }
-
-  /* 防止手機端縮放 */
-  @media (max-width: 768px) {
-    font-size: 16px; /* 防止 iOS Safari 縮放 */
   }
 `;
 
@@ -1197,21 +647,10 @@ const InputButtons = styled.div`
     gap: 6px;
     padding-right: 4px;
   }
-
-  @media (max-width: 480px) {
-    gap: 4px;
-    padding-right: 2px;
-  }
-
-  @media (max-width: 320px) {
-    gap: 14px;
-    padding-right: 1px;
-  }
 `;
 
-/* ================= 按鈕優化 - 更小的響應式尺寸 ================ */
 const ActionButton = styled.button`
-  width: 44px; /* 符合最小觸控尺寸 */
+  width: 44px;
   height: 44px;
   background: ${p => p.isRecording 
     ? 'rgba(234, 84, 85, 0.1)' 
@@ -1227,19 +666,6 @@ const ActionButton = styled.button`
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   animation: ${p => p.isRecording ? recording : 'none'} 1.5s infinite;
   opacity: ${p => p.disabled ? 0.5 : 1};
-  position: relative;
-  overflow: hidden;
-
-  &:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
-    transition: left 0.6s ease;
-  }
 
   &:hover {
     background: ${p => p.disabled 
@@ -1247,40 +673,18 @@ const ActionButton = styled.button`
       : p.isRecording 
         ? 'rgba(234, 84, 85, 0.2)' 
         : 'rgba(0, 0, 0, 0.05)'};
-    color: ${p => p.isRecording ? '#EA5455' : '#555'};
     transform: ${p => p.disabled ? 'none' : 'scale(1.05)'};
-    
-    &:before {
-      left: 100%;
-    }
   }
 
-  &:active {
-    transform: ${p => p.disabled ? 'none' : 'scale(0.95)'};
-  }
-
-  /* 響應式調整 - 更小的按鈕 */
   @media (max-width: 768px) {
     width: 32px;
     height: 32px;
     font-size: 14px;
   }
-
-  @media (max-width: 480px) {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-  }
-
-  @media (max-width: 320px) {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-  }
 `;
 
 const SendButton = styled.button`
-  width: 50px; /* 稍大於最小觸控尺寸 */
+  width: 50px;
   height: 50px;
   background: ${p => p.disabled 
     ? '#ccc' 
@@ -1296,57 +700,23 @@ const SendButton = styled.button`
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   animation: ${p => p.active && !p.disabled ? pulse : 'none'} 1.5s infinite;
   opacity: ${p => p.disabled ? 0.7 : 1};
-  position: relative;
-  overflow: hidden;
   box-shadow: 0 4px 12px rgba(122, 194, 221, 0.3);
-
-  &:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
-    transition: left 0.6s ease;
-  }
 
   &:hover {
     transform: ${p => p.disabled ? 'none' : 'scale(1.05) translateY(-1px)'};
     box-shadow: ${p => p.disabled 
       ? 'none' 
-      : '0 6px 20px rgba(122, 194, 221, 0.4), 0 2px 8px rgba(0, 0, 0, 0.1)'};
-      
-    &:before {
-      left: 100%;
-    }
+      : '0 6px 20px rgba(122, 194, 221, 0.4)'};
   }
 
-  &:active {
-    transform: ${p => p.disabled ? 'none' : 'scale(0.95) translateY(0)'};
-  }
-
-  /* 響應式調整 - 更小的發送按鈕 */
   @media (max-width: 768px) {
     width: 36px;
     height: 36px;
     font-size: 16px;
   }
-
-  @media (max-width: 480px) {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
-  }
-
-  @media (max-width: 320px) {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-  }
 `;
 
-/* ================= 狀態提示優化 ================ */
+// 狀態提示
 const StatusMessage = styled.div`
   position: fixed;
   bottom: 100px;
@@ -1361,32 +731,9 @@ const StatusMessage = styled.div`
   animation: ${fadeInDown} 0.3s ease-out;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  max-width: 90%;
-  text-align: center;
-
-  @media (max-width: 768px) {
-    bottom: 80px;
-    font-size: 13px;
-    padding: 10px 16px;
-    border-radius: 20px;
-  }
-
-  @media (max-width: 480px) {
-    bottom: 70px;
-    font-size: 12px;
-    padding: 8px 12px;
-    border-radius: 16px;
-  }
-
-  @media (max-width: 320px) {
-    bottom: 60px;
-    font-size: 11px;
-    padding: 6px 10px;
-    border-radius: 14px;
-  }
 `;
 
-/* ================= 歡迎動畫優化 ================ */
+// 歡迎動畫
 const WelcomeAnimation = styled.div`
   position: absolute;
   top: 0;
@@ -1405,34 +752,9 @@ const WelcomeAnimation = styled.div`
   opacity: ${p => p.visible ? 1 : 0};
   visibility: ${p => p.visible ? 'visible' : 'hidden'};
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  text-shadow: 0 4px 8px rgba(43, 57, 147, 0.2);
-
-  /* 響應式調整 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    font-size: 64px;
-  }
 
   @media (max-width: 768px) {
     font-size: 48px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 36px;
-  }
-
-  @media (max-width: 320px) {
-    font-size: 28px;
-  }
-`;
-
-const fadeInStagger = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 `;
 
@@ -1455,22 +777,9 @@ const IntroTextOverlay = styled.div`
   visibility: ${p => p.visible ? 'visible' : 'hidden'};
   transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
 
-  /* 響應式調整 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    padding: 160px 32px 32px;
-  }
-
   @media (max-width: 768px) {
     padding: 120px 20px 20px;
     justify-content: center;
-  }
-
-  @media (max-width: 480px) {
-    padding: 100px 16px 16px;
-  }
-
-  @media (max-width: 320px) {
-    padding: 80px 12px 12px;
   }
 `;
 
@@ -1482,27 +791,9 @@ const TipHeader = styled.h2`
   -webkit-text-fill-color: transparent;
   margin-bottom: 16px;
   animation: ${fadeInStagger} 0.8s ease-out;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-  /* 響應式調整 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    font-size: 32px;
-    margin-bottom: 14px;
-  }
 
   @media (max-width: 768px) {
     font-size: 28px;
-    margin-bottom: 12px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 24px;
-    margin-bottom: 10px;
-  }
-
-  @media (max-width: 320px) {
-    font-size: 20px;
-    margin-bottom: 8px;
   }
 `;
 
@@ -1515,30 +806,13 @@ const IntroContent = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.1),
-    0 4px 16px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    0 4px 16px rgba(0, 0, 0, 0.04);
   animation: ${fadeInStagger} 0.8s ease-out 0.4s both;
   backdrop-filter: blur(8px);
-
-  /* 響應式調整 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    padding: 28px;
-    border-radius: 18px;
-  }
 
   @media (max-width: 768px) {
     padding: 24px 20px;
     border-radius: 16px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 20px 16px;
-    border-radius: 14px;
-  }
-
-  @media (max-width: 320px) {
-    padding: 16px 12px;
-    border-radius: 12px;
   }
 `;
 
@@ -1549,25 +823,9 @@ const IntroText = styled.p`
   margin: 0;
   font-weight: 400;
 
-  /* 響應式調整 */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    font-size: 20px;
-    line-height: 1.7;
-  }
-
   @media (max-width: 768px) {
     font-size: 18px;
     line-height: 1.6;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 16px;
-    line-height: 1.5;
-  }
-
-  @media (max-width: 320px) {
-    font-size: 14px;
-    line-height: 1.4;
   }
 `;
 
@@ -1589,7 +847,6 @@ const HighlightText = styled.span`
   }
 `;
 
-/* ================= 底部說明優化 ================ */
 const Disclaimer = styled.div`
   position: fixed;
   bottom: 4px;
@@ -1613,19 +870,9 @@ const Disclaimer = styled.div`
     font-size: 10px;
     padding: 2px 4px;
   }
-
-  @media (max-width: 480px) {
-    font-size: 9px;
-    padding: 1px 2px;
-  }
-
-  @media (max-width: 320px) {
-    font-size: 8px;
-    padding: 1px;
-  }
 `;
 
-/* ================= Bot 配置映射 ================ */
+// Bot 配置
 const BOT_MAP = {
   empathy: {
     name: "Lumi",
@@ -1661,6 +908,40 @@ const BOT_MAP = {
   },
 };
 
+// 文字強調處理
+const renderEmphasis = (text = "") => {
+  if (!text) return null;
+  
+  const parts = text.split(/(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|『[^『]+』|「[^「]+」|《[^《]+》|〈[^〈]+〉)/g);
+  
+  return parts.map((seg, i) => {
+    if (!seg) return null;
+
+    if (/^\*\*\*[^*]+\*\*\*$/.test(seg)) {
+      return (
+        <strong key={i} style={{ 
+          color: '#2e2f5e', 
+          fontWeight: '700',
+          textShadow: '0 1px 2px rgba(46, 47, 94, 0.1)',
+          letterSpacing: '0.5px'
+        }}>
+          {seg.slice(3, -3)}
+        </strong>
+      );
+    }
+
+    if (/^\*\*[^*]+\*\*$/.test(seg)) {
+      return <strong key={i} style={{ fontWeight: '600' }}>{seg.slice(2, -2)}</strong>;
+    }
+
+    if (/^『.*』$/.test(seg) || /^「.*」$/.test(seg) || /^《.*》$/.test(seg) || /^〈.*〉$/.test(seg)) {
+      return <strong key={i} style={{ fontWeight: '600' }}>{seg.slice(1, -1).trim()}</strong>;
+    }
+
+    return <React.Fragment key={i}>{seg}</React.Fragment>;
+  });
+};
+
 export default function MoodInput() {
   const navigate = useNavigate();
   const [mode, setMode] = useState("video");
@@ -1674,51 +955,21 @@ export default function MoodInput() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [showIntroText, setShowIntroText] = useState(false);
   const chatBoxRef = useRef(null);
-  const [isSecondVideo, setIsSecondVideo] = useState(false);
-  const [playIntroVideo, setPlayIntroVideo] = useState(false);
-  const videoRef = useRef(null);
+  const streamVideoRef = useRef(null);
+  const [isStreamLoading, setIsStreamLoading] = useState(false);
+  const [hasActiveStream, setHasActiveStream] = useState(false);
 
   const selectedBotType = (localStorage.getItem("selectedBotType") || "solution");
   const bot = BOT_MAP[selectedBotType] || BOT_MAP.solution;
   const selectedBotImage = localStorage.getItem("selectedBotImage") || botTemp;
   const nickname = (JSON.parse(localStorage.getItem("user") || "{}").nickname) || "你";
 
-  // API呼叫函數
-  const API_BASE =
-    (import.meta?.env?.VITE_API_BASE) ||
-    (process.env.REACT_APP_API_BASE) ||
-    "";
-
-  const apiSend = async ({ botType, mode, message, history, demo = false }) => {
-    const userObj = JSON.parse(localStorage.getItem("user") || "{}");
-    const userId = userObj?.id ?? 0;
-
-    const url = `${API_BASE}/api/chat/send`.replace(/\/{2,}/g, "/").replace(":/", "://");
-
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-User-Id": String(userId),
-          ...(localStorage.getItem("token")
-            ? { Authorization: `Bearer ${localStorage.getItem("token")}` }
-            : {}),
-        },
-        credentials: "include",
-        body: JSON.stringify({ bot_type: botType, mode, message, history, demo }),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`HTTP ${res.status} ${text.slice(0, 120)}`);
-      }
-      return await res.json();
-    } catch (e) {
-      console.warn("apiSend failed:", e);
-      return { ok: false, error: String(e) };
-    }
-  };
+  const today = new Date().toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long'
+  });
 
   // 進場動畫
   useEffect(() => {
@@ -1738,17 +989,43 @@ export default function MoodInput() {
     }
   }, [messages, isTyping]);
 
+  // 清理 HeyGen 資源
   useEffect(() => {
-    if (playIntroVideo && videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(() => {});
-    }
-  }, [playIntroVideo]);
+    return () => {
+      if (hasActiveStream) {
+        heygenService.endSession();
+      }
+    };
+  }, [hasActiveStream]);
 
   // 狀態提示
   const showStatus = (message, duration = 3000) => {
     setStatusMessage(message);
     setTimeout(() => setStatusMessage(null), duration);
+  };
+
+  // 初始化 HeyGen 串流
+  const initializeHeyGenStream = async () => {
+    try {
+      setIsStreamLoading(true);
+      await heygenService.createStreamingSession();
+      setHasActiveStream(true);
+      
+      // 設定影片元素
+      const stream = heygenService.getMediaStream();
+      if (stream && streamVideoRef.current) {
+        streamVideoRef.current.srcObject = stream;
+        streamVideoRef.current.play();
+      }
+      
+      setIsStreamLoading(false);
+      return true;
+    } catch (error) {
+      console.error('Failed to initialize HeyGen stream:', error);
+      setIsStreamLoading(false);
+      showStatus('影像模式初始化失敗，請稍後再試');
+      return false;
+    }
   };
 
   const startConversation = async () => {
@@ -1760,14 +1037,14 @@ export default function MoodInput() {
     };
     setMessages([first]);
     setChatStarted(true);
-    if (mode === "video") setPlayIntroVideo(true);
-    await apiSend({ 
-      botType: selectedBotType, 
-      mode, 
-      message: first.content, 
-      history: [{ role: "assistant", content: first.content }], 
-      demo: true 
-    });
+    
+    // 如果是影片模式，初始化 HeyGen
+    if (mode === "video") {
+      const streamReady = await initializeHeyGenStream();
+      if (streamReady) {
+        await heygenService.sendTextToSpeak(first.content);
+      }
+    }
   };
 
   useEffect(() => {
@@ -1779,7 +1056,7 @@ export default function MoodInput() {
     };
     window.addEventListener('keydown', handleSpace);
     return () => window.removeEventListener('keydown', handleSpace);
-  }, [chatStarted]);
+  }, [chatStarted, mode]);
 
   const handleSend = async () => {
     if (!inputValue.trim() && !isRecording) return;
@@ -1824,9 +1101,9 @@ export default function MoodInput() {
           timestamp: replyTime 
         }]);
         
-        if (mode === "video") {
-          setIsSecondVideo(true);
-          setPlayIntroVideo(true);
+        // 如果是影片模式，讓 Avatar 說話
+        if (mode === "video" && hasActiveStream) {
+          await heygenService.sendTextToSpeak(result.reply);
         }
       } else {
         throw new Error(result?.error || "API 回傳格式錯誤");
@@ -1835,20 +1112,20 @@ export default function MoodInput() {
       console.error("Chat API failed:", error);
       const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const fallbackReply = mode === "video"
-        ? "我在這裡，先一起做個小小的深呼吸。想和我說說剛剛最在意的一件事嗎？"
-        : "收到，讓我們一步一步來。想先從今天最困擾你的情境開始聊聊嗎？";
+        ? "我在這裡陪著你。影像模式暫時有些問題，要不要試試文字模式呢？"
+        : "我在這裡陪著你。想聊聊今天最讓你在意的事情嗎？";
+      
       setMessages(prev => [...prev, { 
         sender: "ai", 
         content: fallbackReply, 
         timestamp: replyTime 
       }]);
+    } finally {
+      setIsTyping(false);
+      setInputDisabled(false);
     }
-
-    setIsTyping(false);
-    setInputDisabled(false);
   };
 
-  // 語音按鈕
   const handleVoiceButton = () => {
     if (inputDisabled) return;
     if (isRecording) {
@@ -1868,12 +1145,22 @@ export default function MoodInput() {
     }
   };
 
-  const today = new Date().toLocaleDateString('zh-TW', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'long'
-  });
+  const handleModeChange = async (newMode) => {
+    if (newMode === mode) return;
+    
+    // 如果從影片模式切換出去，清理 HeyGen 資源
+    if (mode === "video" && hasActiveStream) {
+      await heygenService.endSession();
+      setHasActiveStream(false);
+    }
+    
+    setMode(newMode);
+    
+    // 如果切換到影片模式且已經開始對話，初始化 HeyGen
+    if (newMode === "video" && chatStarted) {
+      await initializeHeyGenStream();
+    }
+  };
 
   return (
     <Container>
@@ -1895,7 +1182,7 @@ export default function MoodInput() {
       </IntroTextOverlay>
 
       <Header>
-        <BackButton onClick={() => navigate("/dashboard")}>
+        <BackButton onClick={() => navigate("/member-dashboard")}>
           <FiChevronLeft size={18} />
           {chatStarted ? '離開對話' : '離開'}
         </BackButton>
@@ -1904,13 +1191,13 @@ export default function MoodInput() {
           <ModeSelect>
             <ModeButton 
               active={mode === "text"} 
-              onClick={() => setMode("text")}
+              onClick={() => handleModeChange("text")}
             >
               文字模式
             </ModeButton>
             <ModeButton 
               active={mode === "video"} 
-              onClick={() => setMode("video")}
+              onClick={() => handleModeChange("video")}
             >
               影像模式
             </ModeButton>
@@ -1934,19 +1221,17 @@ export default function MoodInput() {
             <DemoContainer>
               <FallbackImage 
                 src={selectedBotImage} 
-                visible={!playIntroVideo} 
+                visible={!hasActiveStream && !isStreamLoading} 
               />
-              <DemoVideo 
-                ref={videoRef} 
-                src={isSecondVideo ? secondVideo : introVideo} 
-                visible={playIntroVideo}
-                onEnded={() => { 
-                  setPlayIntroVideo(false); 
-                  try { 
-                    videoRef.current.pause(); 
-                  } catch {} 
-                }} 
+              <StreamVideo 
+                ref={streamVideoRef} 
+                visible={hasActiveStream && !isStreamLoading}
+                autoPlay
+                playsInline
               />
+              <LoadingOverlay visible={isStreamLoading}>
+                正在連接影像...
+              </LoadingOverlay>
             </DemoContainer>
           </VideoColumn>
         )}
