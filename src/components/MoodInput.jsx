@@ -1,4 +1,4 @@
-// src/components/MoodInput.jsx - 修復HeyGen整合問題版本
+// src/components/MoodInput.jsx - 修復 HeyGen 整合問題版本
 import React, { useState, useRef, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -1567,6 +1567,7 @@ export default function MoodInput() {
     setStatusMessage("正在連接 Avatar 系統...");
     
     try {
+      // 修復：正確的 API 端點路徑
       const response = await fetch(`${API_BASE}/api/chat/heygen/create_session`, {
         method: 'POST',
         headers: {
@@ -1580,6 +1581,11 @@ export default function MoodInput() {
           voice: process.env.REACT_APP_HEYGEN_VOICE || "zh-TW-HsiaoChenNeural"
         }),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
 
       const result = await response.json();
       
