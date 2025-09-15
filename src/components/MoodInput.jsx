@@ -1495,7 +1495,7 @@ const BOT_MAP = {
     letter: "S",
     avatarBg: "linear-gradient(45deg, #7AC2DD, #5A8CF2)",
     tagline: "Solin — 一起澄清、看見新的可能。",
-    subtitle: "以溫柔的提問與澄清，協助梳理線索、找出關鍵與洞見。",
+    subtitle: "以溫柔的提問與澄清，幫助梳理線索、找出關鍵與洞見。",
     system: "你是Solin，洞察型AI。以蘇格拉底式提問、澄清與澄清，幫助使用者澄清想法，維持中性、尊重、結構化。",
   },
   solution: {
@@ -1503,7 +1503,7 @@ const BOT_MAP = {
     letter: "N",
     avatarBg: "linear-gradient(45deg, #7AC2DD, #5A8CF2)",
     tagline: "Niko — 一起做點能改變的事。",
-    subtitle: "聚焦可行步驟與微目標，協助把感受轉成行動與支持。",
+    subtitle: "聚焦可行步驟與微目標，幫助把感受轉成行動與支持。",
     system: "你是Niko，解決型AI。以務實、具體的建議與分步行動為主，給出小目標、工具與下一步，語氣鼓勵但不強迫。",
   },
   cognitive: {
@@ -1512,7 +1512,7 @@ const BOT_MAP = {
     avatarBg: "linear-gradient(45deg, #8D8DF2, #5A5B9F)",
     tagline: "Clara — 一起練習看見思緒的樣子。",
     subtitle: "以認知重建、想法檢核、替代想法等，幫你和腦內小劇場溫柔同桌。",
-    system: "你是Clara，認知型AI。以CBT語氣協助辨識自動想法、認知偏誤與替代想法，提供簡短表格式步驟與練習。",
+    system: "你是Clara，認知型AI。以CBT語氣幫助辨識自動想法、認知偏誤與替代想法，提供簡短表格式步驟與練習。",
   },
 };
 
@@ -1551,7 +1551,7 @@ export default function MoodInput() {
   // API配置
   const API_BASE = process.env.REACT_APP_API_BASE || "";
 
-  // 修復 HeyGen 初始化函數
+  // 修復 HeyGen 初始化函數 - 正確的參數格式
   const initHeygenSession = async () => {
     // 防止重複初始化和無限重試
     if (heygenConnecting || heygenSessionId || heygenError) return;
@@ -1567,7 +1567,20 @@ export default function MoodInput() {
     setStatusMessage("正在連接 Avatar 系統...");
     
     try {
-      // 修復：正確的 API 端點路徑
+      // 修復：正確的參數格式
+      const requestBody = {
+        avatar_id: process.env.REACT_APP_HEYGEN_AVATAR_ID || "June_HR_public",
+        voice: {
+          voice_id: process.env.REACT_APP_HEYGEN_VOICE || "zh-TW-HsiaoChenNeural",
+          rate: 1.0,
+          emotion: "friendly"
+        },
+        quality: "medium",
+        language: "zh-TW"
+      };
+
+      console.log("HeyGen 請求參數:", requestBody);
+
       const response = await fetch(`${API_BASE}/api/chat/heygen/create_session`, {
         method: 'POST',
         headers: {
@@ -1576,10 +1589,7 @@ export default function MoodInput() {
             Authorization: `Bearer ${localStorage.getItem("token")}` 
           } : {}),
         },
-        body: JSON.stringify({
-          avatar_id: process.env.REACT_APP_HEYGEN_AVATAR_ID || "default_avatar",
-          voice: process.env.REACT_APP_HEYGEN_VOICE || "zh-TW-HsiaoChenNeural"
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -1588,6 +1598,7 @@ export default function MoodInput() {
       }
 
       const result = await response.json();
+      console.log("HeyGen API 回應:", result);
       
       // 檢查API回應的成功狀態
       if (result && result.success === true && result.session_id) {
@@ -1599,8 +1610,12 @@ export default function MoodInput() {
         setStatusMessage("Avatar 系統已就緒");
         
         // 設置 video 元素的 stream
-        if (result.data && result.data.stream_url && heygenVideoRef) {
-          heygenVideoRef.src = result.data.stream_url;
+        if (result.data && (result.data.stream_url || result.stream_url) && heygenVideoRef) {
+          heygenVideoRef.src = result.data.stream_url || result.stream_url;
+          // 嘗試播放視頻
+          heygenVideoRef.play().catch(err => {
+            console.log("視頻自動播放被阻止，需要用戶交互:", err);
+          });
         }
       } else {
         // API返回失敗狀態
@@ -1624,11 +1639,20 @@ export default function MoodInput() {
     }
   };
 
-  // 發送文字到 HeyGen Avatar
+  // 發送文字到 HeyGen Avatar - 修復參數格式
   const sendTextToHeyGen = async (text) => {
     if (!heygenSessionId || !text.trim() || heygenError) return;
     
     try {
+      const requestBody = {
+        session_id: heygenSessionId,
+        text: text,
+        emotion: "friendly",
+        rate: 1.0
+      };
+
+      console.log("發送文字到 HeyGen:", requestBody);
+
       const response = await fetch(`${API_BASE}/api/chat/heygen/send_text`, {
         method: 'POST',
         headers: {
@@ -1637,15 +1661,14 @@ export default function MoodInput() {
             Authorization: `Bearer ${localStorage.getItem("token")}` 
           } : {}),
         },
-        body: JSON.stringify({
-          session_id: heygenSessionId,
-          text: text,
-          emotion: "friendly"
-        }),
+        body: JSON.stringify(requestBody),
       });
       
       if (!response.ok) {
         console.error("發送文字到 HeyGen 失敗:", response.status);
+      } else {
+        const result = await response.json();
+        console.log("HeyGen 文字發送結果:", result);
       }
     } catch (error) {
       console.error("發送文字到 HeyGen 失敗:", error);
@@ -1911,7 +1934,7 @@ export default function MoodInput() {
             當你結束這段對話時，<br/>
             系統會詢問你是否願意分享今天的聊天內容。<br/>
             只有在你同意的情況下，這些紀錄才會提供給心理專業人員，<br/>
-            協助你獲得更適切的支持與關懷。<br/>
+            幫助你獲得更適切的支持與關懷。<br/>
             我們會溫柔守護你的每一份選擇。
           </IntroText>
         </IntroContent>
@@ -1954,7 +1977,7 @@ export default function MoodInput() {
       <Layout>
         {mode === "video" && (
           <VideoColumn show={true}>
-            {/* 根據 HeyGen 狀態選擇顯示內容 */}
+            {/* 修復：根據 HeyGen 狀態選擇顯示內容 */}
             {useHeygenMode && heygenReady ? (
               <HeygenVideoContainer>
                 <HeygenVideo 
@@ -2075,7 +2098,7 @@ export default function MoodInput() {
       </InputArea>
 
       <Disclaimer isVideoMode={mode === "video"}>
-        AI夥伴無法取代心理診斷與治療，如需進一步協助，請尋求專業資源。
+        AI夥伴無法取代心理診斷與治療，如需進一步幫助，請尋求專業資源。
       </Disclaimer>
     </Container>
   );
