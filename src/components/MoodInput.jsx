@@ -1561,39 +1561,35 @@ export default function MoodInput() {
       setUseHeygenMode(false);
       return;
     }
-  
+    
     setHeygenConnecting(true);
     setHeygenInitAttempts(prev => prev + 1);
     setStatusMessage("正在連接 Avatar 系統...");
-  
+    
     try {
+      // 修復：正確的 API 端點路徑
       const response = await fetch(`${API_BASE}/api/chat/heygen/create_session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(localStorage.getItem("token")
-            ? { Authorization: `Bearer ${localStorage.getItem("token")}` }
-            : {}),
+          ...(localStorage.getItem("token") ? { 
+            Authorization: `Bearer ${localStorage.getItem("token")}` 
+          } : {}),
         },
         body: JSON.stringify({
-          // ← 這裡維持你既有的 avatar 設定
-          avatar_id: process.env.REACT_APP_HEYGEN_AVATAR_ID || "June_HR_public",
-          // ← 這裡是關鍵修正：由字串改成物件 { voice_id: '...' }
-          voice: {
-            voice_id: process.env.REACT_APP_HEYGEN_VOICE || "zh-TW-HsiaoChenNeural"
-          },
-          // 可選：品質/版本，後端也有預設值，寫上去更明確
-          quality: "medium",
-          version: "v2"
+          avatar_id: process.env.REACT_APP_HEYGEN_AVATAR_ID || "default_avatar",
+          voice: process.env.REACT_APP_HEYGEN_VOICE || "zh-TW-HsiaoChenNeural"
         }),
       });
-  
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
-  
+
       const result = await response.json();
+      
+      // 檢查API回應的成功狀態
       if (result && result.success === true && result.session_id) {
         console.log("HeyGen會話創建成功:", result.session_id);
         setHeygenSessionId(result.session_id);
@@ -1601,22 +1597,25 @@ export default function MoodInput() {
         setHeygenReady(true);
         setHeygenError(false);
         setStatusMessage("Avatar 系統已就緒");
-  
-        // 若後端回傳可用串流 URL，可直接掛上（視你的後端回傳欄位而定）
+        
+        // 設置 video 元素的 stream
         if (result.data && result.data.stream_url && heygenVideoRef) {
           heygenVideoRef.src = result.data.stream_url;
         }
       } else {
+        // API返回失敗狀態
         throw new Error(result.error || 'HeyGen 會話建立失敗');
       }
     } catch (error) {
       console.error(`HeyGen 初始化失敗 (嘗試 ${heygenInitAttempts}/${MAX_HEYGEN_ATTEMPTS}):`, error);
+      
       if (heygenInitAttempts >= MAX_HEYGEN_ATTEMPTS) {
         setHeygenError(true);
         setStatusMessage("Avatar 系統連接失敗，使用預設影片模式");
       } else {
-        setStatusMessage(`Avatar 系統連接失敗，正在重試. (${heygenInitAttempts}/${MAX_HEYGEN_ATTEMPTS})`);
+        setStatusMessage(`Avatar 系統連接失敗，正在重試... (${heygenInitAttempts}/${MAX_HEYGEN_ATTEMPTS})`);
       }
+      
       setUseHeygenMode(false);
       setHeygenReady(false);
     } finally {
