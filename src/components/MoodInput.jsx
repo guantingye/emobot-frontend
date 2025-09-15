@@ -1,4 +1,4 @@
-// src/components/MoodInput.jsx - 最小修改版本，保持原有架構
+// src/components/MoodInput.jsx - 修復HeyGen整合問題版本
 import React, { useState, useRef, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,7 @@ import { IoSend } from "react-icons/io5";
 import { FiChevronLeft, FiMic } from "react-icons/fi";
 import introVideo from "../assets/demo_video_2.mov";
 import secondVideo from "../assets/demo_video_3.mov";
-import { sendChatMessage } from "../api/client"; 
+import { sendChatMessage } from "../api/client";
 
 /* ================= 動畫定義（保持原有）================ */
 const float = keyframes`
@@ -292,7 +292,6 @@ const ModeButton = styled.button`
   }
 `;
 
-// 保持所有原有的組件樣式...
 const AvatarContainer = styled.div`
   display: flex;
   align-items: center;
@@ -418,7 +417,6 @@ const Layout = styled.div`
   }
 `;
 
-// *** 新增：HeyGen相關的樣式組件 ***
 const HeygenVideoContainer = styled.div`
   position: relative;
   width: 100%;
@@ -483,7 +481,6 @@ const VideoPlaceholder = styled.div`
   }
 `;
 
-// 保持所有原有的樣式組件不變...
 const VideoColumn = styled.div`
   position: relative;
   top: 60px;
@@ -571,10 +568,6 @@ const FallbackImage = styled.img`
   transition: opacity 1.2s ease-in-out;
   opacity: ${p => p.visible ? 1 : 0};
 `;
-
-// ... 保持所有其他原有樣式組件不變 ...
-// (這裡包含所有您原有的ChatColumn, FadeWrapper, Description, Title, Subtitle, 
-// IntroBar, DateDivider, ChatBox, BubbleWrapper, ChatBubble, 等等所有樣式)
 
 const ChatColumn = styled.div`
   flex: 1;
@@ -821,7 +814,6 @@ const ChatBox = styled.div`
   }
 `;
 
-// 繼續保持所有原有的樣式...
 const renderEmphasis = (text = "") => {
   if (!text) return null;
   
@@ -1054,7 +1046,6 @@ const TypingDot = styled.div`
   }
 `;
 
-// 保持所有原有的輸入區域和其他樣式...
 const InputArea = styled.div`
   position: fixed;
   bottom: 35px;
@@ -1126,7 +1117,7 @@ const InputField = styled.input`
 
   @media (max-width: 768px) {
     padding: 8px 12px;
-    font-size: 16px; /* 防止iOS Safari縮放 */
+    font-size: 16px;
   }
 
   @media (max-width: 480px) {
@@ -1542,26 +1533,37 @@ export default function MoodInput() {
   const [playIntroVideo, setPlayIntroVideo] = useState(false);
   const videoRef = useRef(null);
   
-  // *** 新增 HeyGen 相關狀態 ***
+  // HeyGen 相關狀態
   const [heygenVideoRef, setHeygenVideoRef] = useState(null);
   const [heygenSessionId, setHeygenSessionId] = useState(null);
   const [heygenConnecting, setHeygenConnecting] = useState(false);
   const [heygenReady, setHeygenReady] = useState(false);
-  const [useHeygenMode, setUseHeygenMode] = useState(false); // 控制是否使用HeyGen
+  const [useHeygenMode, setUseHeygenMode] = useState(false);
+  const [heygenError, setHeygenError] = useState(false);
+  const [heygenInitAttempts, setHeygenInitAttempts] = useState(0);
+  const MAX_HEYGEN_ATTEMPTS = 3;
 
   const selectedBotType = (localStorage.getItem("selectedBotType") || "solution");
   const bot = BOT_MAP[selectedBotType] || BOT_MAP.solution;
   const selectedBotImage = localStorage.getItem("selectedBotImage") || botTemp;
   const nickname = (JSON.parse(localStorage.getItem("user") || "{}").nickname) || "你";
 
-  // API配置 (CRA版本)
+  // API配置
   const API_BASE = process.env.REACT_APP_API_BASE || "";
 
-  // *** 新增：HeyGen 初始化函數 (通過後端代理) ***
+  // 修復 HeyGen 初始化函數
   const initHeygenSession = async () => {
-    if (heygenConnecting || heygenSessionId) return;
+    // 防止重複初始化和無限重試
+    if (heygenConnecting || heygenSessionId || heygenError) return;
+    if (heygenInitAttempts >= MAX_HEYGEN_ATTEMPTS) {
+      console.log("HeyGen初始化已達最大嘗試次數");
+      setHeygenError(true);
+      setUseHeygenMode(false);
+      return;
+    }
     
     setHeygenConnecting(true);
+    setHeygenInitAttempts(prev => prev + 1);
     setStatusMessage("正在連接 Avatar 系統...");
     
     try {
@@ -1574,42 +1576,54 @@ export default function MoodInput() {
           } : {}),
         },
         body: JSON.stringify({
-          avatar_id: process.env.REACT_APP_HEYGEN_AVATAR_ID,
+          avatar_id: process.env.REACT_APP_HEYGEN_AVATAR_ID || "default_avatar",
           voice: process.env.REACT_APP_HEYGEN_VOICE || "zh-TW-HsiaoChenNeural"
         }),
       });
 
       const result = await response.json();
       
-      if (result.success && result.session_id) {
+      // 檢查API回應的成功狀態
+      if (result && result.success === true && result.session_id) {
+        console.log("HeyGen會話創建成功:", result.session_id);
         setHeygenSessionId(result.session_id);
         setUseHeygenMode(true);
         setHeygenReady(true);
+        setHeygenError(false);
         setStatusMessage("Avatar 系統已就緒");
         
-        // 設置 video 元素的 srcObject (如果有 WebRTC stream)
+        // 設置 video 元素的 stream
         if (result.data && result.data.stream_url && heygenVideoRef) {
           heygenVideoRef.src = result.data.stream_url;
         }
       } else {
+        // API返回失敗狀態
         throw new Error(result.error || 'HeyGen 會話建立失敗');
       }
     } catch (error) {
-      console.error("HeyGen 初始化失敗:", error);
-      setStatusMessage("Avatar 系統連接失敗，使用預設影片模式");
+      console.error(`HeyGen 初始化失敗 (嘗試 ${heygenInitAttempts}/${MAX_HEYGEN_ATTEMPTS}):`, error);
+      
+      if (heygenInitAttempts >= MAX_HEYGEN_ATTEMPTS) {
+        setHeygenError(true);
+        setStatusMessage("Avatar 系統連接失敗，使用預設影片模式");
+      } else {
+        setStatusMessage(`Avatar 系統連接失敗，正在重試... (${heygenInitAttempts}/${MAX_HEYGEN_ATTEMPTS})`);
+      }
+      
       setUseHeygenMode(false);
+      setHeygenReady(false);
     } finally {
       setHeygenConnecting(false);
       setTimeout(() => setStatusMessage(null), 3000);
     }
   };
 
-  // *** 新增：發送文字到 HeyGen Avatar ***
+  // 發送文字到 HeyGen Avatar
   const sendTextToHeyGen = async (text) => {
-    if (!heygenSessionId || !text.trim()) return;
+    if (!heygenSessionId || !text.trim() || heygenError) return;
     
     try {
-      await fetch(`${API_BASE}/api/chat/heygen/send_text`, {
+      const response = await fetch(`${API_BASE}/api/chat/heygen/send_text`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1623,12 +1637,16 @@ export default function MoodInput() {
           emotion: "friendly"
         }),
       });
+      
+      if (!response.ok) {
+        console.error("發送文字到 HeyGen 失敗:", response.status);
+      }
     } catch (error) {
       console.error("發送文字到 HeyGen 失敗:", error);
     }
   };
 
-  // 原有的 API 發送函數 (保持不變)
+  // 原有的 API 發送函數
   const apiSend = async ({ botType, mode, message, history, demo = false }) => {
     const userObj = JSON.parse(localStorage.getItem("user") || "{}");
     const userId = userObj?.id ?? 0;
@@ -1652,7 +1670,7 @@ export default function MoodInput() {
           message, 
           history, 
           demo,
-          session_id: heygenSessionId // 傳遞 HeyGen session ID
+          session_id: heygenSessionId
         }),
       });
 
@@ -1667,7 +1685,7 @@ export default function MoodInput() {
     }
   };
 
-  // 進場動畫 (保持原有)
+  // 進場動畫
   useEffect(() => {
     const welcomeTimer = setTimeout(() => {
       setShowWelcome(false);
@@ -1678,20 +1696,22 @@ export default function MoodInput() {
     return () => clearTimeout(welcomeTimer);
   }, []);
 
-  // 自動滾到最底 (保持原有)
+  // 自動滾到最底
   useEffect(() => {
     if (chatBoxRef.current) {
       chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
     }
   }, [messages, isTyping]);
 
-  // *** 新增：影像模式時初始化 HeyGen ***
+  // 影像模式時初始化 HeyGen（加入重試限制）
   useEffect(() => {
-    if (mode === "video" && !heygenSessionId && !heygenConnecting) {
-      // 嘗試初始化 HeyGen，失敗則使用原有demo影片
-      initHeygenSession();
+    if (mode === "video" && !heygenSessionId && !heygenConnecting && !heygenError) {
+      // 只在未達最大嘗試次數時才初始化
+      if (heygenInitAttempts < MAX_HEYGEN_ATTEMPTS) {
+        initHeygenSession();
+      }
     }
-  }, [mode, heygenSessionId, heygenConnecting]);
+  }, [mode]); // 移除多餘的依賴項避免無限循環
 
   useEffect(() => {
     if (playIntroVideo && videoRef.current) {
@@ -1700,7 +1720,7 @@ export default function MoodInput() {
     }
   }, [playIntroVideo]);
 
-  // 狀態提示 (保持原有)
+  // 狀態提示
   const showStatus = (message, duration = 3000) => {
     setStatusMessage(message);
     setTimeout(() => setStatusMessage(null), duration);
@@ -1716,7 +1736,7 @@ export default function MoodInput() {
     setMessages([first]);
     setChatStarted(true);
     
-    // *** 修改：根據模式決定影片播放方式 ***
+    // 根據模式決定影片播放方式
     if (mode === "video") {
       if (useHeygenMode && heygenSessionId) {
         // 使用 HeyGen Avatar 說話
@@ -1790,7 +1810,7 @@ export default function MoodInput() {
           timestamp: replyTime 
         }]);
         
-        // *** 修改：根據模式決定回應播放方式 ***
+        // 根據模式決定回應播放方式
         if (mode === "video") {
           if (useHeygenMode && heygenSessionId) {
             // 使用 HeyGen Avatar 說出AI回應
@@ -1816,7 +1836,7 @@ export default function MoodInput() {
         timestamp: replyTime 
       }]);
       
-      // *** 新增：錯誤情況下也要讓Avatar說話 ***
+      // 錯誤情況下也要讓Avatar說話
       if (mode === "video" && useHeygenMode && heygenSessionId) {
         await sendTextToHeyGen(fallbackReply);
       }
@@ -1826,7 +1846,7 @@ export default function MoodInput() {
     setInputDisabled(false);
   };
 
-  // 語音按鈕 (保持原有)
+  // 語音按鈕
   const handleVoiceButton = () => {
     if (inputDisabled) return;
     if (isRecording) {
@@ -1846,7 +1866,7 @@ export default function MoodInput() {
     }
   };
 
-  // *** 新增：清理函數 ***
+  // 清理函數
   useEffect(() => {
     return () => {
       if (heygenSessionId) {
@@ -1863,7 +1883,7 @@ export default function MoodInput() {
         }).catch(err => console.error("清理HeyGen會話失敗:", err));
       }
     };
-  }, [heygenSessionId]);
+  }, [heygenSessionId, API_BASE]);
 
   const today = new Date().toLocaleDateString('zh-TW', {
     year: 'numeric',
@@ -1928,7 +1948,7 @@ export default function MoodInput() {
       <Layout>
         {mode === "video" && (
           <VideoColumn show={true}>
-            {/* *** 修改：根據 HeyGen 狀態選擇顯示內容 *** */}
+            {/* 根據 HeyGen 狀態選擇顯示內容 */}
             {useHeygenMode && heygenReady ? (
               <HeygenVideoContainer>
                 <HeygenVideo 
