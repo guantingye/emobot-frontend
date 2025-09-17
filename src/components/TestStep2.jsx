@@ -296,7 +296,7 @@ const Subtitle = styled.p`
 `;
 
 const QuestionList = styled.ul`
-  font-size: 22px;
+  font-size: 26px;
   color: #333;
   padding-left: 0;
   text-align: left;
@@ -316,22 +316,24 @@ const QuestionList = styled.ul`
 
 const QuestionItem = styled.li`
   list-style: decimal;
-  margin-bottom: 64px;
-  padding: 0 8px;
+  list-style-position: inside;
+  margin-bottom: 70px;
+  padding: 0 50px;
+  text-align: center;
 
   @media (max-width: 768px) {
-    margin-bottom: 32px;
-    padding: 0 4px;
+    margin-bottom: 40px;
+    padding: 0 20px;
   }
 
   @media (max-width: 480px) {
-    margin-bottom: 24px;
-    padding: 0 2px;
+    margin-bottom: 32px;
+    padding: 0 16px;
   }
 
   @media (max-width: 320px) {
-    margin-bottom: 20px;
-    padding: 0;
+    margin-bottom: 28px;
+    padding: 0 12px;
   }
 `;
 
@@ -339,26 +341,24 @@ const ScaleWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  margin-top: 48px;
+  gap: 20px;
+  margin-top: 45px;
 
   @media (max-width: 768px) {
-    gap: 8px;
-    margin-top: 24px;
-    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
   }
 
   @media (max-width: 480px) {
-    gap: 4px;
-    margin-top: 16px;
-    /* 關鍵：手機也維持左右佈局 */
+    gap: 6px;
+    margin-top: 24px;
     flex-wrap: nowrap;
     justify-content: space-between;
   }
 
   @media (max-width: 320px) {
-    gap: 2px;
-    margin-top: 12px;
+    gap: 4px;
+    margin-top: 20px;
   }
 `;
 
@@ -403,43 +403,42 @@ background: ${(props) =>
   }
 
   @media (max-width: 768px) {
-    width: ${(props) => Math.max(props.size - 12, 24)}px;
-    height: ${(props) => Math.max(props.size - 12, 24)}px;
+    width: ${(props) => Math.max(props.size - 8, 22)}px;
+    height: ${(props) => Math.max(props.size - 8, 22)}px;
   }
 
   @media (max-width: 480px) {
-    width: ${(props) => Math.max(props.size - 16, 20)}px;
-    height: ${(props) => Math.max(props.size - 16, 20)}px;
+    width: ${(props) => Math.max(props.size - 10, 20)}px;
+    height: ${(props) => Math.max(props.size - 10, 20)}px;
   }
 
   @media (max-width: 320px) {
-    width: ${(props) => Math.max(props.size - 20, 18)}px;
-    height: ${(props) => Math.max(props.size - 20, 18)}px;
+    width: ${(props) => Math.max(props.size - 12, 18)}px;
+    height: ${(props) => Math.max(props.size - 12, 18)}px;
   }
 `;
 
 const Label = styled.span`
   font-size: 18px;
   color: ${(p) => (p.side === "left" ? "#6A4C93" : "#3AA87A")};
-  width: 60px;
+  width: 55px;
   text-align: ${(p) => (p.side === "left" ? "right" : "left")};
   font-weight: 600;
   flex: 0 0 auto;
 
   @media (max-width: 768px) {
     font-size: 14px;
-    width: 50px;
+    width: 45px;
   }
 
   @media (max-width: 480px) {
     font-size: 12px;
-    width: 56px;   /* 不再滿寬，避免換行到上/下方 */
-    margin: 0;
+    width: 40px;
   }
 
   @media (max-width: 320px) {
-    font-size: 10px;
-    width: 52px;
+    font-size: 11px;
+    width: 36px;
   }
 `;
 
@@ -447,20 +446,18 @@ const CircleRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 20px;
 
   @media (max-width: 768px) {
-    gap: 8px;
+    gap: 12px;
   }
 
   @media (max-width: 480px) {
-    gap: 4px;
-    /* 關鍵：移除原本的 order 與額外 margin，讓圓點置中位於兩個 Label 之間 */
-    margin: 0;
+    gap: 6px;
   }
 
   @media (max-width: 320px) {
-    gap: 2px;
+    gap: 4px;
   }
 `;
 
@@ -636,7 +633,7 @@ export default function TestStep2() {
                   {[1, 2, 3, 4, 5, 6, 7].map((n, idx) => (
                     <Circle
                       key={n}
-                      size={42 + Math.abs(4 - n) * 3}
+                      size={38 + Math.abs(3 - idx) * 3}
                       index={idx}
                       selected={answers[i] === n}
                       onClick={() => handleSelect(i, n)}
