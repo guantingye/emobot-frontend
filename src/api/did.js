@@ -1,11 +1,10 @@
-// src/api/did.js
-const API_BASE =
-  (typeof import !== "undefined" && import.meta && import.meta.env && import.meta.env.VITE_API_BASE) ||
-  (typeof process !== "undefined" && process.env && process.env.REACT_APP_API_BASE) ||
-  "";
+// src/api/did.js  —— CRA 版（無 import.meta）
+// 讀取後端位址：請在 .env(.local) 或 Vercel 設定 REACT_APP_API_BASE
+const API_BASE = (process.env.REACT_APP_API_BASE || "").trim();
 
 function buildUrl(path) {
-  return `${API_BASE || ""}${path}`.replace(/\/{2,}/g, "/").replace(":/", "://");
+  const base = API_BASE.endsWith("/") ? API_BASE.slice(0, -1) : API_BASE;
+  return `${base}${path}`.replace(/\/{2,}/g, "/").replace(":/", "://");
 }
 
 async function jsonRequest(path, { method = "GET", body, headers = {} } = {}) {
@@ -28,7 +27,9 @@ async function jsonRequest(path, { method = "GET", body, headers = {} } = {}) {
 
   const text = await res.text();
   let data = {};
-  try { data = text ? JSON.parse(text) : {}; } catch {
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
     data = { raw: text };
   }
 
@@ -49,7 +50,7 @@ export async function createDidTalk({ text, voiceId, sourceUrl, config }) {
     body: {
       text,
       voice_id: voiceId,
-      source_url: sourceUrl,
+      source_url: sourceUrl, // 可不傳，由後端 DID_SOURCE_URL 接管
       config,
     },
   });
