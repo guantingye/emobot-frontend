@@ -23,11 +23,27 @@ function formatError(data, status) {
   return `HTTP ${status}`;
 }
 
+function toAbsoluteUrl(url) {
+  if (!url) return null;
+  try {
+    // 已是 http(s) 絕對網址
+    if (/^https?:\/\//i.test(url)) return url;
+    // 協定相對 //example.com/...
+    if (/^\/\//.test(url)) return `${window.location.protocol}${url}`;
+    // 站內相對 /static/media/...
+    if (url.startsWith("/")) return new URL(url, window.location.origin).href;
+    // 其他相對像 assets/bot.png
+    return new URL(url, window.location.origin).href;
+  } catch {
+    return url;
+  }
+}
+
 async function request(path, options = {}) {
   const base = API_BASE.replace(/\/+$/, "");
   const url = `${base}${path}`;
 
-  let { method = "GET", headers = {}, body, retries = 2 } = options;
+  let { method = "GET", headers = {}, body, retries = 1 } = options;
 
   if (body != null && typeof body !== "string") {
     body = JSON.stringify(body);
@@ -50,16 +66,18 @@ async function request(path, options = {}) {
         method: httpMethod,
         headers: finalHeaders,
         body: body || undefined,
-        credentials: 'omit',   // ★ 改為不帶 Cookie（降低 CORS 約束）
-        mode: 'cors',          // ★ 指定 CORS 模式
+        credentials: 'omit',
+        mode: 'cors',
       });
 
       if (response.ok) {
         return await response.json();
       } else {
-        const errorData = await response.json().catch(() => ({}));
+        // 盡量解析回傳 JSON 的錯誤訊息
+        let errorData = {};
+        try { errorData = await response.json(); } catch { /* noop */ }
         const errorMessage = formatError(errorData, response.status);
-        throw new Error(errorMessage);
+        throw new Error(errorMessage || `HTTP ${response.status}`);
       }
     } catch (error) {
       if (attempt === retries) {
@@ -80,10 +98,7 @@ async function request(path, options = {}) {
 export async function testConnection() { return await request("/api/health"); }
 
 export async function apiJoin(pid, nickname) {
-  const result = await request("/api/auth/join", {
-    method: "POST",
-    body: { pid, nickname },
-  });
+  const result = await request("/api/auth/join", { method: "POST", body: { pid, nickname } });
   if (result?.token) localStorage.setItem("token", result.token);
   if (result?.user) localStorage.setItem("user", JSON.stringify(result.user));
   return result;
@@ -122,15 +137,16 @@ export async function sendChatMessage(message, botType = "solution", mode = "tex
   });
 }
 
-// 產生本地 lipsync 影片
+// ✅ 產生本地 lipsync 影片（把圖片 URL 轉為絕對網址）
 export async function generateUtterVideo({ text, imageUrl, voice = null, mouthBox = null, fps = 30 }) {
+  const normalized = toAbsoluteUrl(imageUrl);
   return await request("/api/av/utter", {
     method: "POST",
-    body: { text, image_url: imageUrl || null, voice, mouth_box: mouthBox, fps },
+    body: { text, image_url: normalized || null, voice, mouth_box: mouthBox, fps },
   });
 }
 
-// ====== 舊版相容 ======
+// ====== 舊版相容/其他 ======
 export async function saveChatMessage(content, role = "user", botType = null, userMood = null, moodIntensity = null) {
   return await request("/api/chat/messages", {
     method: "POST",
@@ -138,41 +154,22 @@ export async function saveChatMessage(content, role = "user", botType = null, us
   });
 }
 export async function getChatHistory(limit = 50) { return await request(`/api/chat/messages?limit=${limit}`); }
-
-// ====== 心情記錄 ======
 export async function saveMoodRecord(mood, intensity, note = null) {
-  return await request("/api/mood/records", { method: "POST", body: { mood, intensity, note } });
+  return await request("/api/mood/create", { method: "POST", body: { mood, intensity, note } });
 }
-export async function getMoodHistory(days = 30) { return await request(`/api/mood/records?days=${days}`); }
-
-// ====== 會話管理 ======
-export async function endChatSession(reason = "user_ended") {
-  return await request("/api/chat/session/end", { method: "POST", body: { reason } });
-}
+export async function getMoodHistory(days = 30) { return await request(`/api/mood/me?days=${days}`); }
+export async function endChatSession(reason = "user_ended") { return await request("/api/chat/sessions/0/end", { method: "POST", body: { reason } }); }
 export async function getChatSessions(activeOnly = false) { return await request(`/api/admin/chat-sessions?active_only=${activeOnly}`); }
-export async function cleanupInactiveSessions(timeoutMinutes = 5) {
-  return await request(`/api/admin/chat-sessions/cleanup?timeout_minutes=${timeoutMinutes}`, { method: "POST" });
-}
-
-// ====== PID 管理 ======
+export async function cleanupInactiveSessions(timeoutMinutes = 5) { return await request(`/api/admin/chat-sessions/cleanup?timeout_minutes=${timeoutMinutes}`, { method: "POST" }); }
 export async function getAllowedPids(activeOnly = true) { return await request(`/api/admin/allowed-pids?active_only=${activeOnly}`); }
-export async function createAllowedPid(pid, description = null) {
-  return await request("/api/admin/allowed-pids", { method: "POST", body: { pid, description } });
-}
-export async function updateAllowedPid(pidId, updates) {
-  return await request(`/api/admin/allowed-pids/${pidId}`, { method: "PUT", body: updates });
-}
+export async function createAllowedPid(pid, description = null) { return await request("/api/admin/allowed-pids", { method: "POST", body: { pid, description } }); }
+export async function updateAllowedPid(pidId, updates) { return await request(`/api/admin/allowed-pids/${pidId}`, { method: "PATCH", body: updates }); }
 export async function deleteAllowedPid(pidId) { return await request(`/api/admin/allowed-pids/${pidId}`, { method: "DELETE" }); }
-
-// ====== 統計 ======
 export async function getSystemStatistics() { return await request("/api/admin/statistics"); }
-
-// ====== 其他 ======
 export async function getMyAssessment() { return await request("/api/assessments/me"); }
 export async function getMyMatchChoice() { return await request("/api/match/me"); }
 export async function debugDbTest() { return await request("/api/debug/db-test"); }
 
-// ====== 會話管理 Hook ======
 export function useSessionManager() {
   const [sessionId, setSessionId] = useState(null);
   const [isActive, setIsActive] = useState(false);
