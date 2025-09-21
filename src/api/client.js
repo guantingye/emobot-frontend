@@ -50,8 +50,8 @@ async function request(path, options = {}) {
         method: httpMethod,
         headers: finalHeaders,
         body: body || undefined,
-        credentials: 'omit',   // ★ 改為不帶 Cookie（降低 CORS 約束）
-        mode: 'cors',          // ★ 指定 CORS 模式
+        credentials: 'omit',   // 不帶 Cookie，降低 CORS 約束
+        mode: 'cors',
       });
 
       if (response.ok) {
@@ -78,38 +78,13 @@ async function request(path, options = {}) {
 
 // ====== 基本 API ======
 export async function testConnection() { return await request("/api/health"); }
-
 export async function apiJoin(pid, nickname) {
-  const result = await request("/api/auth/join", {
-    method: "POST",
-    body: { pid, nickname },
-  });
+  const result = await request("/api/auth/join", { method: "POST", body: { pid, nickname } });
   if (result?.token) localStorage.setItem("token", result.token);
   if (result?.user) localStorage.setItem("user", JSON.stringify(result.user));
   return result;
 }
-
 export async function apiMe() { return await request("/api/user/profile"); }
-
-// ====== 測評相關 ======
-export async function saveAssessment(data) {
-  const processedData = { ...data, submittedAt: data.submittedAt || new Date().toISOString() };
-  if (data.mbti && typeof data.mbti === 'object') {
-    processedData.mbti_raw = data.mbti.raw;
-    processedData.mbti_encoded = data.mbti.encoded;
-    delete processedData.mbti;
-  }
-  return await request("/api/assessments/upsert", { method: "POST", body: processedData });
-}
-
-export async function saveAssessmentMBTI(mbtiString, encodedArray) {
-  const mbti_raw = String(mbtiString).toUpperCase();
-  const mbti_encoded = Array.isArray(encodedArray) ? encodedArray.map(v => parseFloat(v) || 0) : [0,0,0,0];
-  return await request("/api/assessments/upsert", { method: "POST", body: { mbti_raw, mbti_encoded } });
-}
-
-export async function runMatching() { return await request("/api/match/recommend", { method: "POST" }); }
-export async function commitChoice(botType) { return await request("/api/match/choose", { method: "POST", body: { bot_type: botType } }); }
 
 // ====== 聊天相關 ======
 export async function sendChatMessage(message, botType = "solution", mode = "text", history = []) {
@@ -122,15 +97,25 @@ export async function sendChatMessage(message, botType = "solution", mode = "tex
   });
 }
 
+// ✅ 修正：相對路徑自動補成「前端完整網址」再傳後端
+function absolutizeForBackend(url) {
+  if (!url) return null;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  const origin = window.location?.origin || "";
+  if (!origin) return url;
+  return url.startsWith("/") ? (origin + url) : (origin + "/" + url);
+}
+
 // 產生本地 lipsync 影片
 export async function generateUtterVideo({ text, imageUrl, voice = null, mouthBox = null, fps = 30 }) {
+  const absUrl = imageUrl ? absolutizeForBackend(imageUrl) : null;
   return await request("/api/av/utter", {
     method: "POST",
-    body: { text, image_url: imageUrl || null, voice, mouth_box: mouthBox, fps },
+    body: { text, image_url: absUrl, voice, mouth_box: mouthBox, fps },
   });
 }
 
-// ====== 舊版相容 ======
+// ====== 舊版/其他 API（略，保持原樣） ======
 export async function saveChatMessage(content, role = "user", botType = null, userMood = null, moodIntensity = null) {
   return await request("/api/chat/messages", {
     method: "POST",
@@ -138,14 +123,10 @@ export async function saveChatMessage(content, role = "user", botType = null, us
   });
 }
 export async function getChatHistory(limit = 50) { return await request(`/api/chat/messages?limit=${limit}`); }
-
-// ====== 心情記錄 ======
 export async function saveMoodRecord(mood, intensity, note = null) {
   return await request("/api/mood/records", { method: "POST", body: { mood, intensity, note } });
 }
 export async function getMoodHistory(days = 30) { return await request(`/api/mood/records?days=${days}`); }
-
-// ====== 會話管理 ======
 export async function endChatSession(reason = "user_ended") {
   return await request("/api/chat/session/end", { method: "POST", body: { reason } });
 }
@@ -153,8 +134,6 @@ export async function getChatSessions(activeOnly = false) { return await request
 export async function cleanupInactiveSessions(timeoutMinutes = 5) {
   return await request(`/api/admin/chat-sessions/cleanup?timeout_minutes=${timeoutMinutes}`, { method: "POST" });
 }
-
-// ====== PID 管理 ======
 export async function getAllowedPids(activeOnly = true) { return await request(`/api/admin/allowed-pids?active_only=${activeOnly}`); }
 export async function createAllowedPid(pid, description = null) {
   return await request("/api/admin/allowed-pids", { method: "POST", body: { pid, description } });
@@ -163,22 +142,16 @@ export async function updateAllowedPid(pidId, updates) {
   return await request(`/api/admin/allowed-pids/${pidId}`, { method: "PUT", body: updates });
 }
 export async function deleteAllowedPid(pidId) { return await request(`/api/admin/allowed-pids/${pidId}`, { method: "DELETE" }); }
-
-// ====== 統計 ======
 export async function getSystemStatistics() { return await request("/api/admin/statistics"); }
-
-// ====== 其他 ======
 export async function getMyAssessment() { return await request("/api/assessments/me"); }
 export async function getMyMatchChoice() { return await request("/api/match/me"); }
 export async function debugDbTest() { return await request("/api/debug/db-test"); }
 
-// ====== 會話管理 Hook ======
 export function useSessionManager() {
   const [sessionId, setSessionId] = useState(null);
   const [isActive, setIsActive] = useState(false);
   const lastActivityRef = useRef(Date.now());
   const timeoutRef = useRef(null);
-
   const TIMEOUT_MINUTES = 5;
   const TIMEOUT_MS = TIMEOUT_MINUTES * 60 * 1000;
 
@@ -187,64 +160,32 @@ export function useSessionManager() {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => { handleSessionTimeout(); }, TIMEOUT_MS);
   };
-
   const handleSessionTimeout = async () => {
     if (isActive) {
-      try {
-        await endChatSession("timeout");
-        setIsActive(false);
-        setSessionId(null);
-      } catch (error) {
-        console.error("自動結束會話失敗:", error);
-      }
+      try { await endChatSession("timeout"); setIsActive(false); setSessionId(null); }
+      catch (error) { console.error("自動結束會話失敗:", error); }
     }
   };
-
   const startSession = (newSessionId) => { setSessionId(newSessionId); setIsActive(true); updateActivity(); };
   const endSession = async (reason = "user_ended") => {
     if (isActive) {
-      try {
-        await endChatSession(reason);
-        setIsActive(false);
-        setSessionId(null);
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      } catch (error) {
-        console.error("結束會話失敗:", error);
-      }
+      try { await endChatSession(reason); setIsActive(false); setSessionId(null); if (timeoutRef.current) clearTimeout(timeoutRef.current); }
+      catch (error) { console.error("結束會話失敗:", error); }
     }
   };
-
   useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }, []);
-
   return { sessionId, isActive, startSession, endSession, updateActivity, timeoutMinutes: TIMEOUT_MINUTES };
 }
 
 const apiClient = {
-  testConnection,
-  apiJoin,
-  apiMe,
-  saveAssessment,
-  saveAssessmentMBTI,
-  runMatching,
-  commitChoice,
-  sendChatMessage,
-  generateUtterVideo,
-  saveChatMessage,
-  getChatHistory,
-  saveMoodRecord,
-  getMoodHistory,
-  getMyAssessment,
-  getMyMatchChoice,
-  debugDbTest,
-  endChatSession,
-  getChatSessions,
-  cleanupInactiveSessions,
-  getAllowedPids,
-  createAllowedPid,
-  updateAllowedPid,
-  deleteAllowedPid,
-  getSystemStatistics,
-  useSessionManager,
+  testConnection, apiJoin, apiMe,
+  sendChatMessage, generateUtterVideo,
+  saveChatMessage, getChatHistory,
+  saveMoodRecord, getMoodHistory,
+  getMyAssessment, getMyMatchChoice, debugDbTest,
+  endChatSession, getChatSessions, cleanupInactiveSessions,
+  getAllowedPids, createAllowedPid, updateAllowedPid, deleteAllowedPid,
+  getSystemStatistics, useSessionManager,
 };
 
 export default apiClient;
