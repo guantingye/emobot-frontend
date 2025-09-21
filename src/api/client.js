@@ -1,19 +1,13 @@
 // src/api/client.js
-// 簡化版本 - 專注解決 CORS 和連線問題
-
-// ★ 修復：將所有 import 移到檔案頂部
 import { useState, useEffect, useRef } from 'react';
 
-const API_BASE = "https://emobot-backend.onrender.com"; // ★ 請替換成你的實際後端 URL
-
-console.log("API_BASE:", API_BASE);
+const API_BASE = "https://emobot-backend.onrender.com";
 
 function authHeader() {
   const token = localStorage.getItem("token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-// 格式化錯誤訊息
 function formatError(data, status) {
   if (!data) return `HTTP ${status}`;
   if (Array.isArray(data.detail)) {
@@ -29,7 +23,6 @@ function formatError(data, status) {
   return `HTTP ${status}`;
 }
 
-// ★ 通用 request
 async function request(path, options = {}) {
   const base = API_BASE.replace(/\/+$/, "");
   const url = `${base}${path}`;
@@ -51,35 +44,26 @@ async function request(path, options = {}) {
     ...headers,
   };
 
-  console.log(`🌐 ${httpMethod} ${url}`);
-  if (body && body !== "{}") {
-    console.log("📤 Request body:", body.substring(0, 100) + (body.length > 100 ? "..." : ""));
-  }
-
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const response = await fetch(url, {
         method: httpMethod,
         headers: finalHeaders,
         body: body || undefined,
-        credentials: 'include',
+        credentials: 'omit',   // ★ 改為不帶 Cookie（降低 CORS 約束）
+        mode: 'cors',          // ★ 指定 CORS 模式
       });
 
-      console.log(`📥 Response: ${response.status} ${response.statusText}`);
-
       if (response.ok) {
-        const data = await response.json();
-        console.log("✅ Success:", data);
-        return data;
+        return await response.json();
       } else {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = formatError(errorData, response.status);
         throw new Error(errorMessage);
       }
     } catch (error) {
-      console.error(`❌ Attempt ${attempt + 1} failed:`, error.message);
       if (attempt === retries) {
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        if (error.name === 'TypeError' && String(error.message).includes('fetch')) {
           throw new Error(`無法連接到伺服器，請檢查：
 1. 伺服器離線或重啟中
 2. 網路連線問題
@@ -93,10 +77,7 @@ async function request(path, options = {}) {
 }
 
 // ====== 基本 API ======
-export async function testConnection() {
-  const result = await request("/api/health");
-  return result;
-}
+export async function testConnection() { return await request("/api/health"); }
 
 export async function apiJoin(pid, nickname) {
   const result = await request("/api/auth/join", {
@@ -108,48 +89,27 @@ export async function apiJoin(pid, nickname) {
   return result;
 }
 
-export async function apiMe() {
-  return await request("/api/user/profile");
-}
+export async function apiMe() { return await request("/api/user/profile"); }
 
 // ====== 測評相關 ======
 export async function saveAssessment(data) {
-  const processedData = {
-    ...data,
-    submittedAt: data.submittedAt || new Date().toISOString()
-  };
+  const processedData = { ...data, submittedAt: data.submittedAt || new Date().toISOString() };
   if (data.mbti && typeof data.mbti === 'object') {
     processedData.mbti_raw = data.mbti.raw;
     processedData.mbti_encoded = data.mbti.encoded;
     delete processedData.mbti;
   }
-  return await request("/api/assessments/upsert", {
-    method: "POST",
-    body: processedData,
-  });
+  return await request("/api/assessments/upsert", { method: "POST", body: processedData });
 }
 
 export async function saveAssessmentMBTI(mbtiString, encodedArray) {
   const mbti_raw = String(mbtiString).toUpperCase();
-  const mbti_encoded = Array.isArray(encodedArray) ?
-    encodedArray.map(v => parseFloat(v) || 0) :
-    [0, 0, 0, 0];
-  return await request("/api/assessments/upsert", {
-    method: "POST",
-    body: { mbti_raw, mbti_encoded },
-  });
+  const mbti_encoded = Array.isArray(encodedArray) ? encodedArray.map(v => parseFloat(v) || 0) : [0,0,0,0];
+  return await request("/api/assessments/upsert", { method: "POST", body: { mbti_raw, mbti_encoded } });
 }
 
-export async function runMatching() {
-  return await request("/api/match/recommend", { method: "POST" });
-}
-
-export async function commitChoice(botType) {
-  return await request("/api/match/choose", {
-    method: "POST",
-    body: { bot_type: botType },
-  });
-}
+export async function runMatching() { return await request("/api/match/recommend", { method: "POST" }); }
+export async function commitChoice(botType) { return await request("/api/match/choose", { method: "POST", body: { bot_type: botType } }); }
 
 // ====== 聊天相關 ======
 export async function sendChatMessage(message, botType = "solution", mode = "text", history = []) {
@@ -162,95 +122,57 @@ export async function sendChatMessage(message, botType = "solution", mode = "tex
   });
 }
 
-// ✅ 新增：產生本地 lipsync 影片
+// 產生本地 lipsync 影片
 export async function generateUtterVideo({ text, imageUrl, voice = null, mouthBox = null, fps = 30 }) {
   return await request("/api/av/utter", {
     method: "POST",
-    body: {
-      text,
-      image_url: imageUrl || null,
-      voice,
-      mouth_box: mouthBox,
-      fps
-    },
+    body: { text, image_url: imageUrl || null, voice, mouth_box: mouthBox, fps },
   });
 }
 
-// ====== 舊版聊天 API（向後相容）======
+// ====== 舊版相容 ======
 export async function saveChatMessage(content, role = "user", botType = null, userMood = null, moodIntensity = null) {
   return await request("/api/chat/messages", {
     method: "POST",
     body: { content, role, bot_type: botType, mode: "text", user_mood: userMood, mood_intensity: moodIntensity },
   });
 }
-
-export async function getChatHistory(limit = 50) {
-  return await request(`/api/chat/messages?limit=${limit}`);
-}
+export async function getChatHistory(limit = 50) { return await request(`/api/chat/messages?limit=${limit}`); }
 
 // ====== 心情記錄 ======
 export async function saveMoodRecord(mood, intensity, note = null) {
-  return await request("/api/mood/records", {
-    method: "POST",
-    body: { mood, intensity, note },
-  });
+  return await request("/api/mood/records", { method: "POST", body: { mood, intensity, note } });
 }
+export async function getMoodHistory(days = 30) { return await request(`/api/mood/records?days=${days}`); }
 
-export async function getMoodHistory(days = 30) {
-  return await request(`/api/mood/records?days=${days}`);
-}
-
-// ====== 會話管理 API ======
+// ====== 會話管理 ======
 export async function endChatSession(reason = "user_ended") {
-  return await request("/api/chat/session/end", {
-    method: "POST",
-    body: { reason },
-  });
+  return await request("/api/chat/session/end", { method: "POST", body: { reason } });
 }
-export async function getChatSessions(activeOnly = false) {
-  return await request(`/api/admin/chat-sessions?active_only=${activeOnly}`);
-}
+export async function getChatSessions(activeOnly = false) { return await request(`/api/admin/chat-sessions?active_only=${activeOnly}`); }
 export async function cleanupInactiveSessions(timeoutMinutes = 5) {
   return await request(`/api/admin/chat-sessions/cleanup?timeout_minutes=${timeoutMinutes}`, { method: "POST" });
 }
 
-// ====== PID 管理 API ======
-export async function getAllowedPids(activeOnly = true) {
-  return await request(`/api/admin/allowed-pids?active_only=${activeOnly}`);
-}
+// ====== PID 管理 ======
+export async function getAllowedPids(activeOnly = true) { return await request(`/api/admin/allowed-pids?active_only=${activeOnly}`); }
 export async function createAllowedPid(pid, description = null) {
-  return await request("/api/admin/allowed-pids", {
-    method: "POST",
-    body: { pid, description },
-  });
+  return await request("/api/admin/allowed-pids", { method: "POST", body: { pid, description } });
 }
 export async function updateAllowedPid(pidId, updates) {
-  return await request(`/api/admin/allowed-pids/${pidId}`, {
-    method: "PUT",
-    body: updates,
-  });
+  return await request(`/api/admin/allowed-pids/${pidId}`, { method: "PUT", body: updates });
 }
-export async function deleteAllowedPid(pidId) {
-  return await request(`/api/admin/allowed-pids/${pidId}`, { method: "DELETE" });
-}
+export async function deleteAllowedPid(pidId) { return await request(`/api/admin/allowed-pids/${pidId}`, { method: "DELETE" }); }
 
-// ====== 統計資料 API ======
-export async function getSystemStatistics() {
-  return await request("/api/admin/statistics");
-}
+// ====== 統計 ======
+export async function getSystemStatistics() { return await request("/api/admin/statistics"); }
 
-// ====== 其他 API ======
-export async function getMyAssessment() {
-  return await request("/api/assessments/me");
-}
-export async function getMyMatchChoice() {
-  return await request("/api/match/me");
-}
-export async function debugDbTest() {
-  return await request("/api/debug/db-test");
-}
+// ====== 其他 ======
+export async function getMyAssessment() { return await request("/api/assessments/me"); }
+export async function getMyMatchChoice() { return await request("/api/match/me"); }
+export async function debugDbTest() { return await request("/api/debug/db-test"); }
 
-// ====== 會話管理 Hook (React) ======
+// ====== 會話管理 Hook ======
 export function useSessionManager() {
   const [sessionId, setSessionId] = useState(null);
   const [isActive, setIsActive] = useState(false);
@@ -272,9 +194,8 @@ export function useSessionManager() {
         await endChatSession("timeout");
         setIsActive(false);
         setSessionId(null);
-        console.log("🕐 會話因超時自動結束");
       } catch (error) {
-        console.error("❌ 自動結束會話失敗:", error);
+        console.error("自動結束會話失敗:", error);
       }
     }
   };
@@ -287,9 +208,8 @@ export function useSessionManager() {
         setIsActive(false);
         setSessionId(null);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        console.log(`✅ 會話已結束 (${reason})`);
       } catch (error) {
-        console.error("❌ 結束會話失敗:", error);
+        console.error("結束會話失敗:", error);
       }
     }
   };
@@ -299,7 +219,6 @@ export function useSessionManager() {
   return { sessionId, isActive, startSession, endSession, updateActivity, timeoutMinutes: TIMEOUT_MINUTES };
 }
 
-// ★ 預設匯出：加入 generateUtterVideo
 const apiClient = {
   testConnection,
   apiJoin,
@@ -309,7 +228,7 @@ const apiClient = {
   runMatching,
   commitChoice,
   sendChatMessage,
-  generateUtterVideo, // ← 新增
+  generateUtterVideo,
   saveChatMessage,
   getChatHistory,
   saveMoodRecord,
