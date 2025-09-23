@@ -495,7 +495,13 @@ export function useSessionManager() {
     timeoutMinutes: TIMEOUT_MINUTES
   };
 }
-
+// src/api/client.js 末端附加
+export async function lipsyncTalk(text, avatarUrl, voice = "zh-TW-HsiaoChenNeural") {
+  return await request("/api/av/talk", {
+    method: "POST",
+    body: { text, avatar_url: avatarUrl, voice }
+  });
+}
 // ★ 修復：預設匯出使用物件變數
 const apiClient = {
   testConnection,
