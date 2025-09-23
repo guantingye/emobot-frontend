@@ -7,7 +7,68 @@ import { IoSend } from "react-icons/io5";
 import { FiChevronLeft, FiMic, FiVolume2, FiVolumeX } from "react-icons/fi";
 import introVideo from "../assets/demo_video_2.mov";
 import secondVideo from "../assets/demo_video_3.mov";
-import { sendChatMessage, lipsyncTalk } from "../api/client";
+import { sendChatMessage } from "../api/client";
+
+/* ===========================================================
+   工具：呼叫後端 Agents Streaming API（內建，避免額外檔案依賴）
+   後端請加入 /api/chat/did/agents/* 路由（我在訊息後段有說明）
+=========================================================== */
+const API_BASE = (process.env.REACT_APP_API_BASE || "").replace(/\/+$/, "");
+
+async function jsonFetch(path, { method = "GET", body } = {}) {
+  const url = `${API_BASE}${path}`;
+  const token = localStorage.getItem("token");
+  const res = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const text = await res.text();
+  let data = {};
+  try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${JSON.stringify(data)}`);
+  return data;
+}
+
+// Streaming API
+async function apiCreateStream() {
+  return jsonFetch(`/api/chat/did/agents/streams`, {
+    method: "POST",
+    body: { fluent: true, compatibility_mode: "on" },
+  });
+}
+async function apiSendSDP(streamId, answer, sessionId) {
+  return jsonFetch(`/api/chat/did/agents/streams/${encodeURIComponent(streamId)}/sdp`, {
+    method: "POST",
+    body: { answer, session_id: sessionId },
+  });
+}
+async function apiSendICE(streamId, candidate, sessionId) {
+  return jsonFetch(`/api/chat/did/agents/streams/${encodeURIComponent(streamId)}/ice`, {
+    method: "POST",
+    body: {
+      candidate: candidate || null,
+      sdpMid: candidate?.sdpMid ?? null,
+      sdpMLineIndex: candidate?.sdpMLineIndex ?? null,
+      session_id: sessionId,
+    },
+  });
+}
+async function apiSpeak(streamId, sessionId, text) {
+  return jsonFetch(`/api/chat/did/agents/streams/${encodeURIComponent(streamId)}/speak`, {
+    method: "POST",
+    body: { stream_id: streamId, session_id: sessionId, text },
+  });
+}
+async function apiCloseStream(streamId, sessionId) {
+  return jsonFetch(`/api/chat/did/agents/streams/${encodeURIComponent(streamId)}`, {
+    method: "DELETE",
+    body: { session_id: sessionId },
+  });
+}
 
 /* ================= 動畫定義（保留原有 + 微調）================ */
 const float = keyframes`0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}`;
@@ -223,17 +284,21 @@ export default function MoodInput() {
   const [showIntroText, setShowIntroText] = useState(false);
 
   const chatBoxRef = useRef(null);
-
-  /* ============ 影片播放狀態 ============ */
-  const videoRef = useRef(null);
-  const [clipSrc, setClipSrc] = useState(null);     // 後端 lipsync 短片 URL
-  const [clipPlaying, setClipPlaying] = useState(false);
   const [isSecondVideo, setIsSecondVideo] = useState(false);
   const [playIntroVideo, setPlayIntroVideo] = useState(false);
+  const videoRef = useRef(null);
+
+  /* ============ Streaming 狀態 ============ */
+  const [streamInfo, setStreamInfo] = useState(null); // { stream_id, session_id }
+  const pcRef = useRef(null);
 
   /* ============ 影音控制 ============ */
   const [isMuted, setIsMuted] = useState(true);
   const [soundUnlocked, setSoundUnlocked] = useState(localStorage.getItem("sound_unlocked") === "1");
+
+  /* ============ 句子佇列（避免重入） ============ */
+  const [talkQueue, setTalkQueue] = useState([]);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   /* ============ 其餘參考資料 ============ */
   const selectedBotType = (localStorage.getItem("selectedBotType") || "solution");
@@ -268,9 +333,9 @@ export default function MoodInput() {
     if (videoRef.current) {
       videoRef.current.muted = !soundUnlocked || isMuted;
       videoRef.current.playsInline = true;
-      if (soundUnlocked && clipSrc) videoRef.current.play().catch(()=>{});
+      if (soundUnlocked) videoRef.current.play().catch(()=>{});
     }
-  }, [soundUnlocked, isMuted, clipSrc]);
+  }, [soundUnlocked, isMuted]);
 
   /* ============ 一次性解鎖聲音（行動端必要） ============ */
   const unlockAudio = useCallback(async () => {
@@ -300,35 +365,97 @@ export default function MoodInput() {
     if (soundUnlocked && !next) { v.play().catch(()=>{}); }
   };
 
-  /* ============ 一句話 → 後端 lipsync clip → 播放 ============ */
-  const speakOnce = useCallback(async (text) => {
+  /* ============ 佇列：加入要說的句子 ============ */
+  const enqueueTalk = useCallback((text) => {
     const toSpeak = sliceForSpeech(text, 80);
     if (!toSpeak) return;
+    setTalkQueue(q => [...q, toSpeak]);
+  }, []);
 
-    try {
-      const res = await lipsyncTalk(toSpeak, selectedBotImage);
-      if (res?.ok && res.video_url) {
-        setClipSrc(res.video_url);
-        setClipPlaying(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = null; // 確保不是串流來源
-          videoRef.current.src = res.video_url;
-          videoRef.current.muted = !soundUnlocked || isMuted;
-          await videoRef.current.play().catch(()=>{});
+  /* ============ 佇列處理：逐句 Speak ============ */
+  useEffect(() => {
+    if (!streamInfo || isSpeaking || talkQueue.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      setIsSpeaking(true);
+      try {
+        while (!cancelled && talkQueue.length > 0 && streamInfo) {
+          const sentence = talkQueue[0];
+          try {
+            await apiSpeak(streamInfo.stream_id, streamInfo.session_id, sentence);
+          } catch (e) {
+            console.warn("speak failed:", e);
+            showStatus("串流說話失敗，將以文字繼續", 2500);
+            break;
+          }
+          setTalkQueue(q => q.slice(1));
         }
-      } else {
-        // 播放示範影片 fallback
-        setClipSrc(null);
-        setClipPlaying(false);
-        setPlayIntroVideo(true);
+      } finally {
+        if (!cancelled) setIsSpeaking(false);
       }
+    })();
+    return () => { cancelled = true; };
+  }, [streamInfo, talkQueue, isSpeaking]);
+
+  /* ============ 建立/關閉 Streaming 連線 ============ */
+  async function startDidStreaming() {
+    try {
+      const s = await apiCreateStream(); // { id, session_id, offer, ice_servers }
+      const streamId = s.id, sessionId = s.session_id;
+
+      const pc = new RTCPeerConnection({ iceServers: s.ice_servers || [] });
+      pcRef.current = pc;
+
+      const remoteStream = new MediaStream();
+      if (videoRef.current) videoRef.current.srcObject = remoteStream;
+
+      pc.ontrack = (e) => {
+        // 接收遠端音/影 track
+        e.streams[0].getTracks().forEach(t => remoteStream.addTrack(t));
+        // 自動播放
+        if (videoRef.current && soundUnlocked) videoRef.current.play().catch(()=>{});
+      };
+
+      pc.onicecandidate = async (ev) => {
+        try { await apiSendICE(streamId, ev.candidate, sessionId); } catch (e) { console.warn("sendICE", e); }
+      };
+
+      await pc.setRemoteDescription({ type: "offer", sdp: s.offer });
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await apiSendSDP(streamId, answer.sdp, sessionId);
+
+      // 等 ICE 連線
+      await new Promise((res) => {
+        const check = () => {
+          const st = pc.iceConnectionState;
+          if (st === "connected" || st === "completed") res();
+        };
+        pc.addEventListener("iceconnectionstatechange", check);
+        check();
+        setTimeout(res, 5000);
+      });
+
+      setStreamInfo({ stream_id: streamId, session_id: sessionId });
+      return { streamId, sessionId };
     } catch (e) {
-      console.warn("lipsyncTalk failed:", e);
-      setClipSrc(null);
-      setClipPlaying(false);
-      setPlayIntroVideo(true);
+      console.error("startDidStreaming error:", e);
+      setStreamInfo(null);
+      if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
+      throw e;
     }
-  }, [selectedBotImage, soundUnlocked, isMuted]);
+  }
+
+  async function stopDidStreaming() {
+    const info = streamInfo;
+    try {
+      if (info) await apiCloseStream(info.stream_id, info.session_id);
+    } catch {}
+    setStreamInfo(null);
+    if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
+  }
+
+  useEffect(() => () => { stopDidStreaming(); }, []); // 卸載清理
 
   /* ============ 啟動對話 ============ */
   const startConversation = async () => {
@@ -338,7 +465,15 @@ export default function MoodInput() {
     setChatStarted(true);
 
     if (mode === "video") {
-      await speakOnce(first.content);
+      try {
+        const { streamId, sessionId } = await startDidStreaming();
+        // 第一句立即說
+        const toSpeak = sliceForSpeech(first.content, 80);
+        if (toSpeak) await apiSpeak(streamId, sessionId, toSpeak);
+      } catch {
+        // fallback：示範影片
+        setPlayIntroVideo(true);
+      }
     }
 
     // 回報後端（保留舊有）
@@ -352,7 +487,7 @@ export default function MoodInput() {
     return () => window.removeEventListener('keydown', handleSpace);
   }, [chatStarted]); // eslint-disable-line
 
-  /* ============ 傳送訊息 → GPT → 取得回覆 → 說一次 ============ */
+  /* ============ 傳送訊息 → GPT → 佇列進 Streaming ============ */
   const handleSend = async () => {
     if (!inputValue.trim() && !isRecording) return;
     if (!chatStarted) { await startConversation(); return; }
@@ -377,7 +512,19 @@ export default function MoodInput() {
         setMessages(prev => [...prev, aiMsg]);
 
         if (mode === "video") {
-          await speakOnce(result.reply);
+          // 串流存在就即時說；否則試著啟動串流
+          if (streamInfo) {
+            enqueueTalk(result.reply);
+          } else {
+            try {
+              const { streamId, sessionId } = await startDidStreaming();
+              const toSpeak = sliceForSpeech(result.reply, 80);
+              if (toSpeak) await apiSpeak(streamId, sessionId, toSpeak);
+            } catch {
+              setIsSecondVideo(true);
+              setPlayIntroVideo(true);
+            }
+          }
         }
       } else {
         throw new Error(result?.error || "API 回傳格式錯誤");
@@ -389,7 +536,7 @@ export default function MoodInput() {
         ? "我在這裡，先一起做個小小的深呼吸。想和我說說剛剛最在意的一件事嗎？"
         : "收到，讓我們一步一步來。想先從今天最困擾你的情境開始聊聊嗎？";
       setMessages(prev => [...prev, { sender: "ai", content: fallbackReply, timestamp: replyTime }]);
-      if (mode === "video") await speakOnce(fallbackReply);
+      if (mode === "video") enqueueTalk(fallbackReply);
     }
 
     setIsTyping(false);
@@ -431,7 +578,7 @@ export default function MoodInput() {
       </IntroTextOverlay>
 
       <Header>
-        <BackButton onClick={() => { navigate("/dashboard"); }}>
+        <BackButton onClick={() => { stopDidStreaming(); navigate("/dashboard"); }}>
           <FiChevronLeft size={18} />
           {chatStarted ? '離開對話' : '離開'}
         </BackButton>
@@ -458,13 +605,13 @@ export default function MoodInput() {
         {mode === "video" && (
           <VideoColumn show={true}>
             <DemoContainer>
-              {/* 影像邏輯：有 clip 就放 clip；否則用示範影片；再不然顯示靜態圖 */}
-              <FallbackImage src={selectedBotImage} visible={!clipPlaying && !playIntroVideo} />
+              {/* Streaming：使用 WebRTC track，因此這裡 <video> 用 srcObject（已在 startDidStreaming 設定） */}
+              <FallbackImage src={selectedBotImage} visible={!streamInfo && !playIntroVideo} />
               <DemoVideo
                 ref={videoRef}
-                src={clipSrc ?? (playIntroVideo ? (isSecondVideo ? secondVideo : introVideo) : undefined)}
-                visible={Boolean(clipSrc) || playIntroVideo}
-                onEnded={() => { setPlayIntroVideo(false); setClipPlaying(false); try { videoRef.current.pause(); } catch {} }}
+                src={streamInfo ? undefined : (isSecondVideo ? secondVideo : introVideo)}
+                visible={Boolean(streamInfo) || playIntroVideo}
+                onEnded={() => { setPlayIntroVideo(false); try { videoRef.current.pause(); } catch {} }}
                 controls
                 playsInline
                 autoPlay
@@ -485,7 +632,7 @@ export default function MoodInput() {
                 </div>
               )}
               {/* 影音控制 Overlay */}
-              {(clipPlaying || playIntroVideo) && (
+              {(Boolean(streamInfo) || playIntroVideo) && (
                 <OverlayBar>
                   <SmallBtn onClick={toggleMute} title={(!soundUnlocked || isMuted) ? "開聲音" : "關靜音"}>
                     {(!soundUnlocked || isMuted) ? <FiVolumeX /> : <FiVolume2 />}
