@@ -1,4 +1,4 @@
-// src/components/MoodInput.jsx - 整合頭像動畫功能
+// src/components/MoodInput.jsx - 簡化版，專注頭像動畫
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -10,10 +10,7 @@ import secondVideo from "../assets/demo_video_3.mov";
 import { sendChatMessage } from "../api/client";
 import AvatarAnimation from "./AvatarAnimation";
 
-/* ===========================================================
-   工具：呼叫後端 Agents Streaming API（內建，避免額外檔案依賴）
-   後端請加入 /api/chat/did/agents/* 路由（我在訊息後段有說明）
-=========================================================== */
+/* ================= API 工具函數 ================= */
 const API_BASE = (process.env.REACT_APP_API_BASE || "").replace(/\/+$/, "");
 
 async function jsonFetch(path, { method = "GET", body } = {}) {
@@ -46,44 +43,7 @@ async function apiCreateAnimation(text, botType) {
   });
 }
 
-// Streaming API（保留原有功能）
-async function apiCreateStream() {
-  return jsonFetch(`/api/chat/did/agents/streams`, {
-    method: "POST",
-    body: { fluent: true, compatibility_mode: "on" },
-  });
-}
-async function apiSendSDP(streamId, answer, sessionId) {
-  return jsonFetch(`/api/chat/did/agents/streams/${encodeURIComponent(streamId)}/sdp`, {
-    method: "POST",
-    body: { answer, session_id: sessionId },
-  });
-}
-async function apiSendICE(streamId, candidate, sessionId) {
-  return jsonFetch(`/api/chat/did/agents/streams/${encodeURIComponent(streamId)}/ice`, {
-    method: "POST",
-    body: {
-      candidate: candidate || null,
-      sdpMid: candidate?.sdpMid ?? null,
-      sdpMLineIndex: candidate?.sdpMLineIndex ?? null,
-      session_id: sessionId,
-    },
-  });
-}
-async function apiSpeak(streamId, sessionId, text) {
-  return jsonFetch(`/api/chat/did/agents/streams/${encodeURIComponent(streamId)}/speak`, {
-    method: "POST",
-    body: { stream_id: streamId, session_id: sessionId, text },
-  });
-}
-async function apiCloseStream(streamId, sessionId) {
-  return jsonFetch(`/api/chat/did/agents/streams/${encodeURIComponent(streamId)}`, {
-    method: "DELETE",
-    body: { session_id: sessionId },
-  });
-}
-
-/* ================= 動畫定義（保留原有 + 微調）================ */
+/* ================= 動畫定義 ================= */
 const float = keyframes`0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}`;
 const fadeIn = keyframes`from{opacity:0}to{opacity:1}`;
 const fadeInDown = keyframes`from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}`;
@@ -93,13 +53,14 @@ const pulse = keyframes`0%{box-shadow:0 0 0 0 rgba(122,194,221,.4)}70%{box-shado
 const recording = keyframes`0%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.8)}100%{transform:scale(1);opacity:1}`;
 const fadeInStagger = keyframes`from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}`;
 
-/* ================= 樣式（原樣保留）================ */
+/* ================= 樣式組件 ================= */
 const Container = styled.div`
   display:flex;flex-direction:column;width:100vw;height:100vh;
   background:linear-gradient(135deg,#f5f7fa 0%,#eef1f5 100%);font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,sans-serif;
   position:relative;overflow:hidden;
   @media (max-width:768px){overflow-y:auto;background-size:140%;background-position:center 30%;}
 `;
+
 const Header = styled.header`
   position:fixed;top:0;left:0;right:0;height:70px;display:flex;align-items:center;justify-content:space-between;
   padding:0 30px;background:linear-gradient(135deg,rgba(255,255,255,.95) 0%,rgba(248,250,252,.95) 100%);
@@ -107,6 +68,7 @@ const Header = styled.header`
   z-index:100;animation:${fadeInDown} .8s ease-out both;animation-delay:.3s;
   @media (max-width:768px){height:55px;padding:0 12px;}
 `;
+
 const BackButton = styled.button`
   background:transparent;color:#2e2f5e;display:flex;align-items:center;gap:8px;padding:12px 20px;border-radius:12px;font-weight:600;font-size:16px;
   border:1px solid rgba(46,47,94,.2);cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;
@@ -115,84 +77,110 @@ const BackButton = styled.button`
   &:active{transform:translateX(-1px) scale(.98);}
   @media (max-width:768px){font-size:14px;padding:8px 14px;}
 `;
+
 const ModeSelect = styled.div`
   background:rgba(255,255,255,.9);padding:6px;border-radius:14px;display:flex;gap:4px;box-shadow:0 4px 20px rgba(0,0,0,.06);backdrop-filter:blur(10px);
   @media (max-width:320px){display:none;}
 `;
+
 const ModeButton = styled.button`
   padding:10px 22px;border-radius:10px;font-weight:600;font-size:15px;border:none;cursor:pointer;position:relative;overflow:hidden;
   background:${p=>p.active?'linear-gradient(45deg,#2e2f5e,#5a5b9f)':'transparent'};
   color:${p=>p.active?'#fff':'#555'};
   &:hover{background:${p=>p.active?'linear-gradient(45deg,#2e2f5e,#5a5b9f)':'rgba(0,0,0,.05)'};transform:translateY(-1px);}
 `;
+
 const AvatarContainer = styled.div`display:flex;align-items:center;gap:12px;`;
+
 const BotAvatar = styled.div`
   width:50px;height:50px;border-radius:50%;background:${p=>p.bg||'linear-gradient(45deg,#7AC2DD,#5A8CF2)'};
   display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:20px;box-shadow:0 4px 12px rgba(90,140,242,.3);
 `;
+
 const BotInfo = styled.div`display:flex;flex-direction:column;@media (max-width:480px){display:none;}`;
 const BotName = styled.span`font-weight:700;font-size:16px;color:#2e2f5e;`;
 const BotStatus = styled.span`font-size:13px;color:#65B741;`;
+
 const Layout = styled.div`
   flex:1;display:flex;padding:100px 40px 140px;box-sizing:border-box;overflow:hidden;gap:30px;
   @media (max-width:768px){flex-direction:column;padding:70px 16px 150px;gap:16px;}
 `;
+
 const VideoColumn = styled.div`
   position:relative;top:60px;width:45%;max-width:520px;display:${p=>p.show?'block':'none'};padding-right:30px;
   @media (max-width:768px){width:100%;top:0;padding-right:0;margin-bottom:20px;order:1;}
 `;
+
 const DemoContainer = styled.div`
   position:relative;width:100%;height:85vh;max-height:700px;border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.15);
   @media (max-width:768px){height:220px;max-height:250px;border-radius:12px;}
 `;
+
 const DemoVideo = styled.video`
   position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;transition:opacity 1.2s ease-in-out;opacity:${p=>p.visible?1:0};
 `;
+
 const FallbackImage = styled.img`
   position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;transition:opacity 1.2s ease-in-out;opacity:${p=>p.visible?1:0};
 `;
+
 const ChatColumn = styled.div`flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative;scroll-behavior:smooth;`;
+
 const FadeWrapper = styled.div`display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1;animation:${fadeIn} 1s ease-out forwards;padding:20px;text-align:center;`;
+
 const Description = styled.div`margin:auto;text-align:center;max-width:600px;animation:${fadeIn} 1s ease-out forwards;`;
+
 const Title = styled.h1`
   font-size:42px;font-weight:800;margin-bottom:16px;background:linear-gradient(45deg,#2e2f5e 30%,#5A8CF2 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2;text-shadow:0 2px 4px rgba(0,0,0,.1);
   @media (max-width:768px){font-size:30px;}
 `;
+
 const Subtitle = styled.p`
   font-size:22px;color:#666;line-height:1.7;opacity:0;animation:${fadeIn} 1s ease-out .5s forwards;
   @media (max-width:768px){font-size:17px;}
 `;
+
 const IntroBar = styled.div`
   margin:0 auto 24px;padding:20px 28px;background:linear-gradient(135deg,rgba(122,194,221,.1) 0%,rgba(90,140,242,.08) 100%);
   border:1px solid rgba(122,194,221,.2);border-radius:16px;box-shadow:0 8px 32px rgba(122,194,221,.12),0 4px 16px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.6);
   font-size:16px;font-weight:600;line-height:1.6;animation:${fadeInDown} .6s ease-out, ${float} 4s ease-in-out 1s infinite;max-width:600px;text-align:center;color:#2e2f5e;
 `;
+
 const DateDivider = styled.div`text-align:center;margin:20px 0;position:relative; &:before{content:"";position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.1);z-index:-1;}`;
 const DateLabel = styled.span`background:#f0f4f8;padding:4px 12px;border-radius:20px;font-size:13px;color:#666;box-shadow:0 2px 4px rgba(0,0,0,.05);`;
+
 const ChatBox = styled.div`display:flex;flex-direction:column;gap:16px;padding-right:10px;padding-bottom:20px;overflow-y:auto;animation:${slideInLTR} .4s ease-out both;`;
+
 const BubbleWrapper = styled.div`
   display:flex;flex-direction:column;align-items:${p=>p.sender==='user'?'flex-end':'flex-start'};
   max-width:85%;align-self:${p=>p.sender==='user'?'flex-end':'flex-start'};
 `;
+
 const BubbleHeader = styled.div`font-size:12px;color:#888;margin-bottom:4px;padding:0 12px;display:flex;align-items:center;gap:6px;`;
+
 const SenderAvatar = styled.div`
   width:24px;height:24px;border-radius:50%;background:${p=>p.sender==='user'?'#5A8CF2':'linear-gradient(135deg,#7AC2DD,#5A8CF2)'};
   display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.1);
 `;
+
 const ChatBubble = styled.div`
   background:${p=>p.sender==='user'?'linear-gradient(135deg,#5A8CF2,#7A72E0)':'#fff'};
   color:${p=>p.sender==='user'?'#fff':'#333'};padding:14px 20px;border-radius:${p=>p.sender==='user'?'18px 18px 4px 18px':'18px 18px 18px 4px'};
   box-shadow:${p=>p.sender==='user'?'0 4px 12px rgba(90,140,242,.2)':'0 4px 12px rgba(0,0,0,.08)'};white-space:pre-wrap;animation:${fadeInBubble} .3s ease-out;line-height:1.5;font-size:15px;
 `;
+
 const MessageTime = styled.span`font-size:11px;color:#999;`;
+
 const TypingBubble = styled(ChatBubble)`width:60px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;gap:4px;`;
+
 const TypingDot = styled.div`
   width:8px;height:8px;background:#888;border-radius:50%;opacity:.8;animation:${p=>keyframes`
     0%,100%{transform:translateY(0);opacity:.8;}
     50%{transform:translateY(-4px);opacity:1;}
   `} ${p=>p.delay}s infinite ease-in-out;
 `;
+
 const InputArea = styled.div`
   position:fixed;bottom:35px;left:${p=>p.isVideoMode?'70%':'50%'};transform:translateX(-50%);width:${p=>p.isVideoMode?'50%':'90%'};
   background:${p=>p.disabled?'rgba(240,240,240,.95)':'rgba(255,255,255,.98)'};border-radius:14px;display:flex;align-items:center;padding:6px 10px;
@@ -200,44 +188,55 @@ const InputArea = styled.div`
   border:1px solid rgba(0,0,0,.05);z-index:100;transition:all .3s cubic-bezier(.4,0,.2,1);
   @media (max-width:768px){left:50%;width:94%;}
 `;
+
 const InputField = styled.input`
   flex:1;font-size:16px;background:transparent;border:none;outline:none;padding:14px 20px;color:${p=>p.disabled?'#999':'#333'};
   &::placeholder{color:${p=>p.disabled?'#aaa':'#999'};font-style:italic;}
 `;
+
 const InputButtons = styled.div`display:flex;align-items:center;gap:12px;padding-right:8px;`;
+
 const ActionButton = styled.button`
   width:44px;height:44px;background:${p=>p.isRecording?'rgba(234,84,85,.1)':'transparent'};border-radius:50%;border:none;color:${p=>p.isRecording?'#EA5455':'#888'};
   font-size:20px;display:flex;align-items:center;justify-content:center;cursor:${p=>p.disabled?'not-allowed':'pointer'};
   transition:all .3s cubic-bezier(.4,0,.2,1);animation:${p=>p.isRecording?recording:'none'} 1.5s infinite;opacity:${p=>p.disabled?.5:1};
 `;
+
 const SendButton = styled.button`
   width:50px;height:50px;background:${p=>p.disabled?'#ccc':'linear-gradient(135deg,#7AC2DD,#5A8CF2)'};border-radius:50%;border:none;color:#fff;font-size:22px;
   display:flex;align-items:center;justify-content:center;cursor:${p=>p.disabled?'not-allowed':'pointer'};transition:all .3s cubic-bezier(.4,0,.2,1);
   animation:${p=>p.active&&!p.disabled?pulse:'none'} 1.5s infinite;opacity:${p=>p.disabled?.7:1};box-shadow:0 4px 12px rgba(122,194,221,.3);
 `;
+
 const StatusMessage = styled.div`
   position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 20px;border-radius:24px;font-size:14px;z-index:101;
   animation:${fadeInDown} .3s ease-out;backdrop-filter:blur(10px);box-shadow:0 4px 16px rgba(0,0,0,.2);max-width:90%;text-align:center;
 `;
+
 const WelcomeAnimation = styled.div`
   position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(255,255,255,.95) 0%,rgba(248,250,252,.95) 100%);
   display:flex;justify-content:center;align-items:center;font-size:80px;font-weight:bold;color:#2b3993;z-index:200;opacity:${p=>p.visible?1:0};visibility:${p=>p.visible?'visible':'hidden'};
   transition:all .5s cubic-bezier(.4,0,.2,1);text-shadow:0 4px 8px rgba(43,57,147,.2);
 `;
+
 const IntroTextOverlay = styled.div`
   position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(248,250,252,.95));
   display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding:200px 40px 40px;text-align:center;z-index:200;
   opacity:${p=>p.visible?1:0};visibility:${p=>p.visible?'visible':'hidden'};transition:opacity .6s cubic-bezier(.4,0,.2,1),visibility .6s;
 `;
+
 const TipHeader = styled.h2`
   font-size:38px;font-weight:700;background:linear-gradient(45deg,#2e2f5e 30%,#5A8CF2 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px;animation:${fadeInStagger} .8s ease-out;
 `;
+
 const IntroContent = styled.div`
   max-width:680px;width:100%;padding:32px;background:rgba(255,255,255,.9);border-radius:20px;border:1px solid rgba(255,255,255,.3);
   box-shadow:0 8px 32px rgba(0,0,0,.1),0 4px 16px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.5);animation:${fadeInStagger} .8s ease-out .4s both;
 `;
+
 const IntroText = styled.p`font-size:23px;color:#4a5568;line-height:1.8;margin:0;font-weight:400;`;
+
 const Disclaimer = styled.div`
   position:fixed;bottom:4px;left:${p=>p.isVideoMode?'70%':'50%'};transform:translateX(-50%);width:90%;max-width:1440px;font-size:12px;color:#666;text-align:center;padding:4px 8px;z-index:100;
   transition:left .3s ease;
@@ -247,20 +246,21 @@ const Disclaimer = styled.div`
 const OverlayBar = styled.div`
   position:absolute;right:12px;bottom:12px;display:flex;gap:8px;z-index:5;
 `;
+
 const SmallBtn = styled.button`
   background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:999px;padding:8px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;
   font-size:13px;backdrop-filter:blur(6px);
 `;
 
-/* ================== Bot 定義（保留）================== */
+/* ================== Bot 定義 ================== */
 const BOT_MAP = {
   empathy: { name: "Lumi", letter: "L", avatarBg: "linear-gradient(45deg, #FFB6C1, #FF8FB1)", tagline: "Lumi — 用溫柔與共感陪你說說話。", subtitle: "溫暖陪伴、情緒承接與安撫，讓你被好好地聆聽與理解。"},
   insight:  { name: "Solin", letter: "S", avatarBg: "linear-gradient(45deg, #7AC2DD, #5A8CF2)", tagline: "Solin — 一起澄清、看見新的可能。", subtitle: "以溫柔的提問與澄清，幫助梳理線索、找出關鍵與洞見。"},
-  solution: { name: "Niko", letter: "N", avatarBg: "linear-gradient(45deg, #7AC2DD, #5A8CF2)", tagline: "Niko — 一起做點能改變的事。", subtitle: "聚焦可行步驟與微目標，幫助把感受轉成行動與支持。"},
+  solution: { name: "Niko", letter: "N", avatarBg: "linear-gradient(45deg, #7AC2DD, #5A8CF2)", tagline: "Niko — 一起做點能改變的事。", subtitle: "聚焦可行步驟與微目標，幫助把感受轉成行動與支撐。"},
   cognitive:{ name: "Clara", letter: "C", avatarBg: "linear-gradient(45deg, #8D8DF2, #5A5B9F)", tagline: "Clara — 一起練習看見思緒的樣子。", subtitle: "以認知重建、想法檢核、替代想法等，幫你和腦內小劇場溫柔共桌。"},
 };
 
-/* ====== 加粗強調（保留）====== */
+/* ====== 加粗強調 ====== */
 const renderEmphasis = (text="")=>{
   const parts = text.split(/(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|『[^』]+』|「[^」]+」|《[^》]+》|〈[^〉]+〉)/g);
   return parts.map((seg,i)=>{
@@ -301,10 +301,6 @@ export default function MoodInput() {
   const [playIntroVideo, setPlayIntroVideo] = useState(false);
   const videoRef = useRef(null);
 
-  /* ============ Streaming 狀態 ============ */
-  const [streamInfo, setStreamInfo] = useState(null); // { stream_id, session_id }
-  const pcRef = useRef(null);
-
   /* ============ 影音控制 ============ */
   const [isMuted, setIsMuted] = useState(true);
   const [soundUnlocked, setSoundUnlocked] = useState(localStorage.getItem("sound_unlocked") === "1");
@@ -312,10 +308,6 @@ export default function MoodInput() {
   /* ============ 頭像動畫狀態 ============ */
   const [currentAnimation, setCurrentAnimation] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
-
-  /* ============ 句子佇列（避免重入）============ */
-  const [talkQueue, setTalkQueue] = useState([]);
-  const [isSpeaking, setIsSpeaking] = useState(false);
 
   /* ============ 其餘參考資料 ============ */
   const selectedBotType = (localStorage.getItem("selectedBotType") || "solution");
@@ -382,98 +374,6 @@ export default function MoodInput() {
     if (soundUnlocked && !next) { v.play().catch(()=>{}); }
   };
 
-  /* ============ 佇列：加入要說的句子 ============ */
-  const enqueueTalk = useCallback((text) => {
-    const toSpeak = sliceForSpeech(text, 80);
-    if (!toSpeak) return;
-    setTalkQueue(q => [...q, toSpeak]);
-  }, []);
-
-  /* ============ 佇列處理：送入 Speak ============ */
-  useEffect(() => {
-    if (!streamInfo || isSpeaking || talkQueue.length === 0) return;
-    let cancelled = false;
-    (async () => {
-      setIsSpeaking(true);
-      try {
-        while (!cancelled && talkQueue.length > 0 && streamInfo) {
-          const sentence = talkQueue[0];
-          try {
-            await apiSpeak(streamInfo.stream_id, streamInfo.session_id, sentence);
-          } catch (e) {
-            console.warn("speak failed:", e);
-            showStatus("串流說話失敗，將以文字繼續", 2500);
-            break;
-          }
-          setTalkQueue(q => q.slice(1));
-        }
-      } finally {
-        if (!cancelled) setIsSpeaking(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [streamInfo, talkQueue, isSpeaking]);
-
-  /* ============ 建立/關閉 Streaming 連線 ============ */
-  async function startDidStreaming() {
-    try {
-      const s = await apiCreateStream(); // { id, session_id, offer, ice_servers }
-      const streamId = s.id, sessionId = s.session_id;
-
-      const pc = new RTCPeerConnection({ iceServers: s.ice_servers || [] });
-      pcRef.current = pc;
-
-      const remoteStream = new MediaStream();
-      if (videoRef.current) videoRef.current.srcObject = remoteStream;
-
-      pc.ontrack = (e) => {
-        // 接收遠端音/影 track
-        e.streams[0].getTracks().forEach(t => remoteStream.addTrack(t));
-        // 自動播放
-        if (videoRef.current && soundUnlocked) videoRef.current.play().catch(()=>{});
-      };
-
-      pc.onicecandidate = async (ev) => {
-        try { await apiSendICE(streamId, ev.candidate, sessionId); } catch (e) { console.warn("sendICE", e); }
-      };
-
-      await pc.setRemoteDescription({ type: "offer", sdp: s.offer });
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      await apiSendSDP(streamId, answer.sdp, sessionId);
-
-      // 等 ICE 連線
-      await new Promise((res) => {
-        const check = () => {
-          const st = pc.iceConnectionState;
-          if (st === "connected" || st === "completed") res();
-        };
-        pc.addEventListener("iceconnectionstatechange", check);
-        check();
-        setTimeout(res, 5000);
-      });
-
-      setStreamInfo({ stream_id: streamId, session_id: sessionId });
-      return { streamId, sessionId };
-    } catch (e) {
-      console.error("startDidStreaming error:", e);
-      setStreamInfo(null);
-      if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
-      throw e;
-    }
-  }
-
-  async function stopDidStreaming() {
-    const info = streamInfo;
-    try {
-      if (info) await apiCloseStream(info.stream_id, info.session_id);
-    } catch {}
-    setStreamInfo(null);
-    if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
-  }
-
-  useEffect(() => () => { stopDidStreaming(); }, []); // 卸載清理
-
   /* ============ 頭像動畫功能 ============ */
   const triggerAvatarAnimation = useCallback(async (text) => {
     if (!text || mode !== "video") return;
@@ -532,16 +432,8 @@ export default function MoodInput() {
       // 優先嘗試頭像動畫
       await triggerAvatarAnimation(first.content);
       
-      // 如果需要，也可以同時嘗試 streaming（作為備用）
-      try {
-        const { streamId, sessionId } = await startDidStreaming();
-        // 第一句立即說
-        const toSpeak = sliceForSpeech(first.content, 80);
-        if (toSpeak) await apiSpeak(streamId, sessionId, toSpeak);
-      } catch {
-        // fallback：示範影片
-        setPlayIntroVideo(true);
-      }
+      // fallback：示範影片
+      setPlayIntroVideo(true);
     }
 
     // 回報後端（保留舊有）
@@ -555,7 +447,7 @@ export default function MoodInput() {
     return () => window.removeEventListener('keydown', handleSpace);
   }, [chatStarted]); // eslint-disable-line
 
-  /* ============ 傳送訊息 → GPT → 佇列進 Streaming + 頭像動畫 ============ */
+  /* ============ 傳送訊息 → GPT → 頭像動畫 ============ */
   const handleSend = async () => {
     if (!inputValue.trim() && !isRecording) return;
     if (!chatStarted) { await startConversation(); return; }
@@ -583,19 +475,9 @@ export default function MoodInput() {
           // 優先頭像動畫
           await triggerAvatarAnimation(result.reply);
           
-          // 串流存在就即時說；否則試著啟動串流
-          if (streamInfo) {
-            enqueueTalk(result.reply);
-          } else {
-            try {
-              const { streamId, sessionId } = await startDidStreaming();
-              const toSpeak = sliceForSpeech(result.reply, 80);
-              if (toSpeak) await apiSpeak(streamId, sessionId, toSpeak);
-            } catch {
-              setIsSecondVideo(true);
-              setPlayIntroVideo(true);
-            }
-          }
+          // fallback：示範影片
+          setIsSecondVideo(true);
+          setPlayIntroVideo(true);
         }
       } else {
         throw new Error(result?.error || "API 回傳格式錯誤");
@@ -610,7 +492,6 @@ export default function MoodInput() {
       
       if (mode === "video") {
         await triggerAvatarAnimation(fallbackReply);
-        enqueueTalk(fallbackReply);
       }
     }
 
@@ -618,7 +499,7 @@ export default function MoodInput() {
     setInputDisabled(false);
   };
 
-  /* ============ 語音按鈕（保留）============ */
+  /* ============ 語音按鈕（保留） ============ */
   const handleVoiceButton = () => {
     if (inputDisabled) return;
     if (isRecording) {
@@ -653,7 +534,7 @@ export default function MoodInput() {
       </IntroTextOverlay>
 
       <Header>
-        <BackButton onClick={() => { stopDidStreaming(); navigate("/dashboard"); }}>
+        <BackButton onClick={() => navigate("/dashboard")}>
           <FiChevronLeft size={18} />
           {chatStarted ? '離開對話' : '離開'}
         </BackButton>
@@ -691,12 +572,11 @@ export default function MoodInput() {
                 />
               ) : (
                 <>
-                  {/* Streaming：使用 WebRTC track，因此這裡 <video> 用 srcObject（已在 startDidStreaming 設定） */}
-                  <FallbackImage src={selectedBotImage} visible={!streamInfo && !playIntroVideo} />
+                  <FallbackImage src={selectedBotImage} visible={!playIntroVideo} />
                   <DemoVideo
                     ref={videoRef}
-                    src={streamInfo ? undefined : (isSecondVideo ? secondVideo : introVideo)}
-                    visible={Boolean(streamInfo) || playIntroVideo}
+                    src={isSecondVideo ? secondVideo : introVideo}
+                    visible={playIntroVideo}
                     onEnded={() => { setPlayIntroVideo(false); try { videoRef.current.pause(); } catch {} }}
                     controls
                     playsInline
@@ -722,7 +602,7 @@ export default function MoodInput() {
               )}
               
               {/* 影音控制 Overlay */}
-              {(Boolean(streamInfo) || playIntroVideo || currentAnimation) && (
+              {(playIntroVideo || currentAnimation) && (
                 <OverlayBar>
                   <SmallBtn onClick={toggleMute} title={(!soundUnlocked || isMuted) ? "開聲音" : "關靜音"}>
                     {(!soundUnlocked || isMuted) ? <FiVolumeX /> : <FiVolume2 />}
