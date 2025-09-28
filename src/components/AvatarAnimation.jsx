@@ -1,4 +1,4 @@
-// src/components/AvatarAnimation.jsx - 修復 styled-components 警告
+// src/components/AvatarAnimation.jsx - 頭像動畫組件
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
 
@@ -34,7 +34,7 @@ const AvatarWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: ${props => `translate(${props.$headX || 0}px, ${props.$headY || 0}px)`};
+  transform: ${props => `translate(${props.headX || 0}px, ${props.headY || 0}px)`};
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   @media (max-width: 768px) {
@@ -54,7 +54,7 @@ const AvatarImage = styled.img`
   object-fit: cover;
   border-radius: 50%;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  animation: ${props => props.$isAnimating ? pulse : 'none'} 2s ease-in-out infinite;
+  animation: ${props => props.isAnimating ? pulse : 'none'} 2s ease-in-out infinite;
 `;
 
 const MouthOverlay = styled.div`
@@ -62,22 +62,22 @@ const MouthOverlay = styled.div`
   bottom: 25%;
   left: 50%;
   transform: translateX(-50%);
-  width: ${props => 20 + (props.$openness * 30)}px;
-  height: ${props => 8 + (props.$openness * 12)}px;
+  width: ${props => 20 + (props.openness * 30)}px;
+  height: ${props => 8 + (props.openness * 12)}px;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 50%;
-  opacity: ${props => props.$openness > 0.1 ? 0.8 : 0};
+  opacity: ${props => props.openness > 0.1 ? 0.8 : 0};
   transition: all 0.1s ease-out;
   z-index: 10;
   
   @media (max-width: 768px) {
-    width: ${props => 16 + (props.$openness * 24)}px;
-    height: ${props => 6 + (props.$openness * 10)}px;
+    width: ${props => 16 + (props.openness * 24)}px;
+    height: ${props => 6 + (props.openness * 10)}px;
   }
   
   @media (max-width: 480px) {
-    width: ${props => 14 + (props.$openness * 20)}px;
-    height: ${props => 5 + (props.$openness * 8)}px;
+    width: ${props => 14 + (props.openness * 20)}px;
+    height: ${props => 5 + (props.openness * 8)}px;
   }
 `;
 
@@ -86,8 +86,8 @@ const EyeOverlay = styled.div`
   top: 35%;
   width: 100%;
   height: 8px;
-  background: ${props => props.$isBlinking ? 'rgba(0, 0, 0, 0.4)' : 'transparent'};
-  opacity: ${props => props.$isBlinking ? 1 : 0};
+  background: ${props => props.isBlinking ? 'rgba(0, 0, 0, 0.4)' : 'transparent'};
+  opacity: ${props => props.isBlinking ? 1 : 0};
   transition: opacity 0.1s ease-out;
   z-index: 10;
   
@@ -133,7 +133,7 @@ const AudioVisualizer = styled.div`
   gap: 2px;
   height: 20px;
   align-items: flex-end;
-  opacity: ${props => props.$isPlaying ? 1 : 0};
+  opacity: ${props => props.isPlaying ? 1 : 0};
   transition: opacity 0.3s ease;
 `;
 
@@ -141,8 +141,8 @@ const AudioBar = styled.div`
   width: 3px;
   background: linear-gradient(to top, #7AC2DD, #5A8CF2);
   border-radius: 2px;
-  height: ${props => 4 + (props.$intensity * 16)}px;
-  animation: ${props => props.$isPlaying ? pulse : 'none'} ${props => 0.5 + (props.$index * 0.1)}s ease-in-out infinite alternate;
+  height: ${props => 4 + (props.intensity * 16)}px;
+  animation: ${props => props.isPlaying ? pulse : 'none'} ${props => 0.5 + (props.index * 0.1)}s ease-in-out infinite alternate;
 `;
 
 const StatusText = styled.div`
@@ -153,7 +153,7 @@ const StatusText = styled.div`
   font-size: 14px;
   color: #666;
   text-align: center;
-  opacity: ${props => props.$show ? 1 : 0};
+  opacity: ${props => props.show ? 1 : 0};
   transition: opacity 0.3s ease;
   white-space: nowrap;
   
@@ -376,34 +376,34 @@ const AvatarAnimation = ({
   return (
     <Container>
       <AvatarWrapper 
-        $headX={headPosition.x} 
-        $headY={headPosition.y}
+        headX={headPosition.x} 
+        headY={headPosition.y}
       >
         <AvatarImage 
           src={avatarUrl} 
           alt="機器人頭像"
-          $isAnimating={isPlaying}
+          isAnimating={isPlaying}
           onError={(e) => {
             console.error('頭像圖片載入失敗:', e);
             setStatus('圖片載入失敗');
           }}
         />
         
-        <MouthOverlay $openness={mouthOpenness} />
-        <EyeOverlay $isBlinking={isBlinking} />
+        <MouthOverlay openness={mouthOpenness} />
+        <EyeOverlay isBlinking={isBlinking} />
         
-        <AudioVisualizer $isPlaying={isPlaying && audioIntensity > 0}>
+        <AudioVisualizer isPlaying={isPlaying && audioIntensity > 0}>
           {[0, 1, 2, 3, 4].map(i => (
             <AudioBar 
               key={i}
-              $index={i}
-              $intensity={audioIntensity * (0.5 + Math.sin((currentTime + i) * 2) * 0.5)}
-              $isPlaying={isPlaying}
+              index={i}
+              intensity={audioIntensity * (0.5 + Math.sin((currentTime + i) * 2) * 0.5)}
+              isPlaying={isPlaying}
             />
           ))}
         </AudioVisualizer>
         
-        <StatusText $show={status.length > 0}>
+        <StatusText show={status.length > 0}>
           {status}
         </StatusText>
       </AvatarWrapper>
