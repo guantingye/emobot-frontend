@@ -1,4 +1,4 @@
-// src/components/MoodInput.jsx
+// src/components/MoodInput.jsx - 整合頭像動畫功能
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,7 @@ import { FiChevronLeft, FiMic, FiVolume2, FiVolumeX } from "react-icons/fi";
 import introVideo from "../assets/demo_video_2.mov";
 import secondVideo from "../assets/demo_video_3.mov";
 import { sendChatMessage } from "../api/client";
+import AvatarAnimation from "./AvatarAnimation";
 
 /* ===========================================================
    工具：呼叫後端 Agents Streaming API（內建，避免額外檔案依賴）
@@ -33,7 +34,19 @@ async function jsonFetch(path, { method = "GET", body } = {}) {
   return data;
 }
 
-// Streaming API
+// 頭像動畫 API
+async function apiCreateAnimation(text, botType) {
+  return jsonFetch(`/api/chat/avatar/animate`, {
+    method: "POST",
+    body: { 
+      text, 
+      bot_type: botType,
+      animation_style: "normal"
+    },
+  });
+}
+
+// Streaming API（保留原有功能）
 async function apiCreateStream() {
   return jsonFetch(`/api/chat/did/agents/streams`, {
     method: "POST",
@@ -80,7 +93,7 @@ const pulse = keyframes`0%{box-shadow:0 0 0 0 rgba(122,194,221,.4)}70%{box-shado
 const recording = keyframes`0%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.8)}100%{transform:scale(1);opacity:1}`;
 const fadeInStagger = keyframes`from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}`;
 
-/* ================= 樣式（原樣保留） ================ */
+/* ================= 樣式（原樣保留）================ */
 const Container = styled.div`
   display:flex;flex-direction:column;width:100vw;height:100vh;
   background:linear-gradient(135deg,#f5f7fa 0%,#eef1f5 100%);font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,sans-serif;
@@ -239,15 +252,15 @@ const SmallBtn = styled.button`
   font-size:13px;backdrop-filter:blur(6px);
 `;
 
-/* ================== Bot 定義（保留） ================== */
+/* ================== Bot 定義（保留）================== */
 const BOT_MAP = {
   empathy: { name: "Lumi", letter: "L", avatarBg: "linear-gradient(45deg, #FFB6C1, #FF8FB1)", tagline: "Lumi — 用溫柔與共感陪你說說話。", subtitle: "溫暖陪伴、情緒承接與安撫，讓你被好好地聆聽與理解。"},
   insight:  { name: "Solin", letter: "S", avatarBg: "linear-gradient(45deg, #7AC2DD, #5A8CF2)", tagline: "Solin — 一起澄清、看見新的可能。", subtitle: "以溫柔的提問與澄清，幫助梳理線索、找出關鍵與洞見。"},
   solution: { name: "Niko", letter: "N", avatarBg: "linear-gradient(45deg, #7AC2DD, #5A8CF2)", tagline: "Niko — 一起做點能改變的事。", subtitle: "聚焦可行步驟與微目標，幫助把感受轉成行動與支持。"},
-  cognitive:{ name: "Clara", letter: "C", avatarBg: "linear-gradient(45deg, #8D8DF2, #5A5B9F)", tagline: "Clara — 一起練習看見思緒的樣子。", subtitle: "以認知重建、想法檢核、替代想法等，幫你和腦內小劇場溫柔同桌。"},
+  cognitive:{ name: "Clara", letter: "C", avatarBg: "linear-gradient(45deg, #8D8DF2, #5A5B9F)", tagline: "Clara — 一起練習看見思緒的樣子。", subtitle: "以認知重建、想法檢核、替代想法等，幫你和腦內小劇場溫柔共桌。"},
 };
 
-/* ====== 加粗強調（保留） ====== */
+/* ====== 加粗強調（保留）====== */
 const renderEmphasis = (text="")=>{
   const parts = text.split(/(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|『[^』]+』|「[^」]+」|《[^》]+》|〈[^〉]+〉)/g);
   return parts.map((seg,i)=>{
@@ -296,7 +309,11 @@ export default function MoodInput() {
   const [isMuted, setIsMuted] = useState(true);
   const [soundUnlocked, setSoundUnlocked] = useState(localStorage.getItem("sound_unlocked") === "1");
 
-  /* ============ 句子佇列（避免重入） ============ */
+  /* ============ 頭像動畫狀態 ============ */
+  const [currentAnimation, setCurrentAnimation] = useState(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  /* ============ 句子佇列（避免重入）============ */
   const [talkQueue, setTalkQueue] = useState([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
@@ -337,7 +354,7 @@ export default function MoodInput() {
     }
   }, [soundUnlocked, isMuted]);
 
-  /* ============ 一次性解鎖聲音（行動端必要） ============ */
+  /* ============ 一次性解鎖聲音（行動端必要）============ */
   const unlockAudio = useCallback(async () => {
     try {
       const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -372,7 +389,7 @@ export default function MoodInput() {
     setTalkQueue(q => [...q, toSpeak]);
   }, []);
 
-  /* ============ 佇列處理：逐句 Speak ============ */
+  /* ============ 佇列處理：送入 Speak ============ */
   useEffect(() => {
     if (!streamInfo || isSpeaking || talkQueue.length === 0) return;
     let cancelled = false;
@@ -457,6 +474,53 @@ export default function MoodInput() {
 
   useEffect(() => () => { stopDidStreaming(); }, []); // 卸載清理
 
+  /* ============ 頭像動畫功能 ============ */
+  const triggerAvatarAnimation = useCallback(async (text) => {
+    if (!text || mode !== "video") return;
+    
+    try {
+      setIsAnimating(true);
+      showStatus("正在生成動畫...", 1000);
+      
+      const result = await apiCreateAnimation(text, selectedBotType);
+      
+      if (result.success) {
+        setCurrentAnimation({
+          avatarUrl: selectedBotImage,
+          audioUrl: result.audio_base64,
+          animationData: result.animation_data
+        });
+        showStatus("", 0); // 清除狀態
+      } else {
+        console.warn("動畫生成失敗:", result.error);
+        // 靜默動畫作為後備
+        setCurrentAnimation({
+          avatarUrl: selectedBotImage,
+          audioUrl: null,
+          animationData: result.animation_data || null
+        });
+        if (result.error) {
+          showStatus(result.error, 3000);
+        }
+      }
+    } catch (error) {
+      console.error("頭像動畫錯誤:", error);
+      showStatus("動畫生成失敗，使用靜態顯示", 2500);
+      // 使用靜態顯示作為後備
+      setCurrentAnimation({
+        avatarUrl: selectedBotImage,
+        audioUrl: null,
+        animationData: null
+      });
+    }
+  }, [mode, selectedBotType, selectedBotImage]);
+
+  /* ============ 動畫結束處理 ============ */
+  const handleAnimationEnd = useCallback(() => {
+    setIsAnimating(false);
+    setCurrentAnimation(null);
+  }, []);
+
   /* ============ 啟動對話 ============ */
   const startConversation = async () => {
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -465,6 +529,10 @@ export default function MoodInput() {
     setChatStarted(true);
 
     if (mode === "video") {
+      // 優先嘗試頭像動畫
+      await triggerAvatarAnimation(first.content);
+      
+      // 如果需要，也可以同時嘗試 streaming（作為備用）
       try {
         const { streamId, sessionId } = await startDidStreaming();
         // 第一句立即說
@@ -487,7 +555,7 @@ export default function MoodInput() {
     return () => window.removeEventListener('keydown', handleSpace);
   }, [chatStarted]); // eslint-disable-line
 
-  /* ============ 傳送訊息 → GPT → 佇列進 Streaming ============ */
+  /* ============ 傳送訊息 → GPT → 佇列進 Streaming + 頭像動畫 ============ */
   const handleSend = async () => {
     if (!inputValue.trim() && !isRecording) return;
     if (!chatStarted) { await startConversation(); return; }
@@ -512,6 +580,9 @@ export default function MoodInput() {
         setMessages(prev => [...prev, aiMsg]);
 
         if (mode === "video") {
+          // 優先頭像動畫
+          await triggerAvatarAnimation(result.reply);
+          
           // 串流存在就即時說；否則試著啟動串流
           if (streamInfo) {
             enqueueTalk(result.reply);
@@ -536,14 +607,18 @@ export default function MoodInput() {
         ? "我在這裡，先一起做個小小的深呼吸。想和我說說剛剛最在意的一件事嗎？"
         : "收到，讓我們一步一步來。想先從今天最困擾你的情境開始聊聊嗎？";
       setMessages(prev => [...prev, { sender: "ai", content: fallbackReply, timestamp: replyTime }]);
-      if (mode === "video") enqueueTalk(fallbackReply);
+      
+      if (mode === "video") {
+        await triggerAvatarAnimation(fallbackReply);
+        enqueueTalk(fallbackReply);
+      }
     }
 
     setIsTyping(false);
     setInputDisabled(false);
   };
 
-  /* ============ 語音按鈕（保留） ============ */
+  /* ============ 語音按鈕（保留）============ */
   const handleVoiceButton = () => {
     if (inputDisabled) return;
     if (isRecording) {
@@ -594,7 +669,7 @@ export default function MoodInput() {
           <AvatarContainer>
             <BotInfo>
               <BotName>{bot.name}</BotName>
-              <BotStatus>在線上</BotStatus>
+              <BotStatus>線上</BotStatus>
             </BotInfo>
             <BotAvatar bg={bot.avatarBg}>{bot.letter}</BotAvatar>
           </AvatarContainer>
@@ -605,19 +680,33 @@ export default function MoodInput() {
         {mode === "video" && (
           <VideoColumn show={true}>
             <DemoContainer>
-              {/* Streaming：使用 WebRTC track，因此這裡 <video> 用 srcObject（已在 startDidStreaming 設定） */}
-              <FallbackImage src={selectedBotImage} visible={!streamInfo && !playIntroVideo} />
-              <DemoVideo
-                ref={videoRef}
-                src={streamInfo ? undefined : (isSecondVideo ? secondVideo : introVideo)}
-                visible={Boolean(streamInfo) || playIntroVideo}
-                onEnded={() => { setPlayIntroVideo(false); try { videoRef.current.pause(); } catch {} }}
-                controls
-                playsInline
-                autoPlay
-                preload="auto"
-                muted={!soundUnlocked || isMuted}
-              />
+              {/* 頭像動畫組件 */}
+              {currentAnimation ? (
+                <AvatarAnimation
+                  avatarUrl={currentAnimation.avatarUrl}
+                  audioUrl={currentAnimation.audioUrl}
+                  animationData={currentAnimation.animationData}
+                  isPlaying={isAnimating}
+                  onAnimationEnd={handleAnimationEnd}
+                />
+              ) : (
+                <>
+                  {/* Streaming：使用 WebRTC track，因此這裡 <video> 用 srcObject（已在 startDidStreaming 設定） */}
+                  <FallbackImage src={selectedBotImage} visible={!streamInfo && !playIntroVideo} />
+                  <DemoVideo
+                    ref={videoRef}
+                    src={streamInfo ? undefined : (isSecondVideo ? secondVideo : introVideo)}
+                    visible={Boolean(streamInfo) || playIntroVideo}
+                    onEnded={() => { setPlayIntroVideo(false); try { videoRef.current.pause(); } catch {} }}
+                    controls
+                    playsInline
+                    autoPlay
+                    preload="auto"
+                    muted={!soundUnlocked || isMuted}
+                  />
+                </>
+              )}
+              
               {/* 啟用聲音遮罩（一次性解鎖） */}
               {(!soundUnlocked) && (
                 <div style={{
@@ -631,8 +720,9 @@ export default function MoodInput() {
                   </button>
                 </div>
               )}
+              
               {/* 影音控制 Overlay */}
-              {(Boolean(streamInfo) || playIntroVideo) && (
+              {(Boolean(streamInfo) || playIntroVideo || currentAnimation) && (
                 <OverlayBar>
                   <SmallBtn onClick={toggleMute} title={(!soundUnlocked || isMuted) ? "開聲音" : "關靜音"}>
                     {(!soundUnlocked || isMuted) ? <FiVolumeX /> : <FiVolume2 />}
@@ -689,7 +779,7 @@ export default function MoodInput() {
 
       <InputArea disabled={inputDisabled} isVideoMode={mode === "video"}>
         <InputField
-          placeholder={inputDisabled ? "請等待回覆..." : isRecording ? "正在錄製語音..." : "將你的心情寫在這裡吧！"}
+          placeholder={inputDisabled ? "請等待回復..." : isRecording ? "正在錄製語音..." : "將你的心情寫在這裡吧！"}
           value={inputValue}
           onChange={e => setInputValue(e.target.value)}
           onKeyDown={e => e.key === "Enter" && !inputDisabled && handleSend()}
