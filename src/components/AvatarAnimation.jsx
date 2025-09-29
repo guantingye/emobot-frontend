@@ -1,9 +1,37 @@
-// AvatarAnimation.jsx - TTS-only 版（停用 demo 影片 fallback）
-// - 單例音訊播放器避免 AbortError
-// - 沒有 audio 也不播 demo，只顯示動畫（靜默或之後有聲都 ok）
-// - 修正 <svg height="auto"> 警告，改為 width/height="100%" + viewBox
+// AvatarAnimation.jsx - 安全解析 API_BASE + TTS-only（停用 demo 影片）
+// 修正重點：不在模組載入時觸碰 import.meta.env；改為執行期安全解析。
+// 另外保留單例 Audio 播放與競態防護（避免 AbortError），SVG 不再用 height="auto"。
 
 import React, { useEffect, useRef, useState } from "react";
+
+/** ====== 安全解析 API Base ====== */
+function resolveApiBase(explicit) {
+  // 1) 呼叫端直接傳入 > 優先
+  if (explicit && typeof explicit === "string") return explicit;
+
+  // 2) 嘗試 Vite 變數（執行期安全判斷，不在頂層讀）
+  try {
+    // 有些 bundler 連 import 都沒有
+    // eslint-disable-next-line no-undef
+    if (typeof import !== "undefined" && import.meta && import.meta.env && import.meta.env.VITE_API_BASE) {
+      // eslint-disable-next-line no-undef
+      return import.meta.env.VITE_API_BASE;
+    }
+  } catch (_) {}
+
+  // 3) CRA / Webpack 常用
+  if (typeof process !== "undefined" && process.env && process.env.REACT_APP_API_BASE) {
+    return process.env.REACT_APP_API_BASE;
+  }
+
+  // 4) 全域注入（可在 index.html 或 window 上設定）
+  if (typeof window !== "undefined" && window.__API_BASE__) {
+    return window.__API_BASE__;
+  }
+
+  // 5) 最後備援：你的正式後端
+  return "https://emobot-backend.onrender.com";
+}
 
 /** ====== 單例音訊控制器（避免多 audio 互搶） ====== */
 const AudioController = (() => {
@@ -17,6 +45,7 @@ const AudioController = (() => {
     }
     return audio;
   }
+
   async function play(dataUrl) {
     const a = ensure();
     const myToken = ++playingToken;
@@ -24,9 +53,10 @@ const AudioController = (() => {
       a.pause();
       a.currentTime = 0;
       a.src = dataUrl;
-      a.load();
+      a.load(); // for Safari/iOS
       const p = a.play();
       if (p && typeof p.then === "function") await p;
+
       if (myToken === playingToken) {
         await new Promise((resolve) => {
           const onEnd = () => {
@@ -37,19 +67,22 @@ const AudioController = (() => {
         });
       }
     } catch (err) {
-      if (err?.name === "AbortError") return;
+      if (err?.name === "AbortError") return; // 被新的播放中斷，正常
       throw err;
     }
   }
+
   function stop() {
     const a = ensure();
-    playingToken++;
+    playingToken++; // 使前一次播放失效
     a.pause();
   }
+
   function isSpeaking() {
     const a = ensure();
     return !a.paused;
   }
+
   return { play, stop, isSpeaking };
 })();
 
@@ -111,6 +144,7 @@ function useAnimationPlayer(animationData) {
       const t = (performance.now() - startRef.current) / 1000;
       const clamped = Math.min(t, total);
 
+      // mouth
       let m = 0;
       if (mouth.length > 0) {
         let idx = mouth.findIndex((f) => f.time >= clamped);
@@ -119,6 +153,7 @@ function useAnimationPlayer(animationData) {
         m = mouth[idx]?.mouth_openness ?? 0;
       }
 
+      // blink
       let b = "open";
       for (let i = 0; i < blinks.length; i++) {
         const f = blinks[i];
@@ -128,6 +163,7 @@ function useAnimationPlayer(animationData) {
         }
       }
 
+      // head
       let h = { x: 0, y: 0 };
       if (heads.length > 0) {
         let idx = heads.findIndex((f) => f.time >= clamped);
@@ -139,7 +175,7 @@ function useAnimationPlayer(animationData) {
 
       setFrame({ mouth: m, blink: b, head: h });
 
-      // 只要還在說話就繼續跑；若是靜默模式也讓它跑到 total 即停
+      // 若是靜默也讓動畫跑到 total
       if (t < total && (AudioController.isSpeaking() || t < total)) {
         rafRef.current = requestAnimationFrame(loop);
       }
@@ -161,17 +197,18 @@ async function fetchAnimation({ apiBase, text, botType }) {
     body: JSON.stringify({ text, bot_type: botType }),
   });
   const data = await res.json();
-  // ✅ 關掉 demo：即使沒有 audio_base64 也視為可播放（以純動畫呈現）
+  // TTS-only：就算沒有 audio 也不進 demo，直接回傳動畫資料
   return data;
 }
 
 /** ====== 主元件 ====== */
 export default function AvatarAnimation({
-  apiBase = import.meta.env.VITE_API_BASE || "https://emobot-backend.onrender.com",
+  apiBase,           // 可選：若呼叫端傳入則使用
   text,
   botType = "solution",
   onError,
 }) {
+  const resolvedApiBase = resolveApiBase(apiBase);
   const [anim, setAnim] = useState(null);
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState(null);
@@ -185,7 +222,7 @@ export default function AvatarAnimation({
     let cancelled = false;
     const myReqId = ++lastReqIdRef.current;
 
-    // 每次開始新一句前，先停掉舊的
+    // 開始新一句前，先停舊播放
     AudioController.stop();
 
     (async () => {
@@ -193,7 +230,7 @@ export default function AvatarAnimation({
         setError(null);
         setPlaying(false);
 
-        const data = await fetchAnimation({ apiBase, text, botType });
+        const data = await fetchAnimation({ apiBase: resolvedApiBase, text, botType });
         if (cancelled || myReqId !== lastReqIdRef.current) return;
 
         setAnim(data.animation_data || null);
@@ -208,8 +245,7 @@ export default function AvatarAnimation({
             setPlaying(false);
           }
         } else {
-          // ❌ 不播 demo；純動畫照跑即可
-          setPlaying(false);
+          setPlaying(false); // 無音訊就靜默跑動畫
         }
       } catch (e) {
         const msg = e?.message || "播放失敗";
@@ -223,7 +259,7 @@ export default function AvatarAnimation({
       cancelled = true;
       AudioController.stop();
     };
-  }, [text, botType, apiBase]);
+  }, [text, botType, resolvedApiBase]);
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
