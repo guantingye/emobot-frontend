@@ -1,49 +1,41 @@
-// src/components/MoodInput.jsx - 簡化版，專注頭像動畫
+// src/components/MoodInput.jsx - 新款通道：讓 AvatarAnimation 自行取資料（TTS-only）
+// 1) 不再在這裡呼叫 /api/chat/avatar/animate
+// 2) 把要說的那句 "text" + botType 交給 <AvatarAnimation />
+// 3) 關閉 demo 影片 fallback，畫面固定是頭像 + 動畫
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import botTemp from "../assets/bot_temp.png";
 import { IoSend } from "react-icons/io5";
-import { FiChevronLeft, FiMic, FiVolume2, FiVolumeX } from "react-icons/fi";
-import introVideo from "../assets/demo_video_2.mov";
-import secondVideo from "../assets/demo_video_3.mov";
+import { FiChevronLeft, FiMic } from "react-icons/fi";
 import { sendChatMessage } from "../api/client";
 import AvatarAnimation from "./AvatarAnimation";
 
-/* ================= API 工具函數 ================= */
-const API_BASE = (process.env.REACT_APP_API_BASE || "").replace(/\/+$/, "");
-
-async function jsonFetch(path, { method = "GET", body } = {}) {
-  const url = `${API_BASE}${path}`;
-  const token = localStorage.getItem("token");
-  const res = await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const text = await res.text();
-  let data = {};
-  try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
-  if (!res.ok) throw new Error(`HTTP ${res.status}: ${JSON.stringify(data)}`);
-  return data;
+/* ================= API Base 工具（與 AvatarAnimation 同步邏輯） ================= */
+function getApiBase() {
+  // window 全域（可在 index.html 注入）
+  if (typeof window !== "undefined" && typeof window.API_BASE === "string" && window.API_BASE) {
+    return window.API_BASE.replace(/\/+$/, "");
+  }
+  // Vite
+  try {
+    const v = (import.meta && import.meta.env && import.meta.env.VITE_API_BASE) || "";
+    if (v) return v.replace(/\/+$/, "");
+  } catch (_) {}
+  // CRA/webpack
+  if (typeof process !== "undefined" && process.env && typeof process.env.REACT_APP_API_BASE === "string" && process.env.REACT_APP_API_BASE) {
+    return process.env.REACT_APP_API_BASE.replace(/\/+$/, "");
+  }
+  // 舊寫法保留
+  if (typeof process !== "undefined" && process.env && typeof process.env.API_BASE === "string" && process.env.API_BASE) {
+    return process.env.API_BASE.replace(/\/+$/, "");
+  }
+  // 預設
+  return "https://emobot-backend.onrender.com";
 }
+const API_BASE = getApiBase();
 
-// 頭像動畫 API
-async function apiCreateAnimation(text, botType) {
-  return jsonFetch(`/api/chat/avatar/animate`, {
-    method: "POST",
-    body: { 
-      text, 
-      bot_type: botType,
-      animation_style: "normal"
-    },
-  });
-}
-
-/* ================= 動畫定義 ================= */
+/* ================= 動畫定義與樣式 ================= */
 const float = keyframes`0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}`;
 const fadeIn = keyframes`from{opacity:0}to{opacity:1}`;
 const fadeInDown = keyframes`from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}`;
@@ -53,14 +45,12 @@ const pulse = keyframes`0%{box-shadow:0 0 0 0 rgba(122,194,221,.4)}70%{box-shado
 const recording = keyframes`0%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.8)}100%{transform:scale(1);opacity:1}`;
 const fadeInStagger = keyframes`from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}`;
 
-/* ================= 樣式組件 ================= */
 const Container = styled.div`
   display:flex;flex-direction:column;width:100vw;height:100vh;
   background:linear-gradient(135deg,#f5f7fa 0%,#eef1f5 100%);font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,sans-serif;
   position:relative;overflow:hidden;
   @media (max-width:768px){overflow-y:auto;background-size:140%;background-position:center 30%;}
 `;
-
 const Header = styled.header`
   position:fixed;top:0;left:0;right:0;height:70px;display:flex;align-items:center;justify-content:space-between;
   padding:0 30px;background:linear-gradient(135deg,rgba(255,255,255,.95) 0%,rgba(248,250,252,.95) 100%);
@@ -68,7 +58,6 @@ const Header = styled.header`
   z-index:100;animation:${fadeInDown} .8s ease-out both;animation-delay:.3s;
   @media (max-width:768px){height:55px;padding:0 12px;}
 `;
-
 const BackButton = styled.button`
   background:transparent;color:#2e2f5e;display:flex;align-items:center;gap:8px;padding:12px 20px;border-radius:12px;font-weight:600;font-size:16px;
   border:1px solid rgba(46,47,94,.2);cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;
@@ -77,110 +66,75 @@ const BackButton = styled.button`
   &:active{transform:translateX(-1px) scale(.98);}
   @media (max-width:768px){font-size:14px;padding:8px 14px;}
 `;
-
 const ModeSelect = styled.div`
   background:rgba(255,255,255,.9);padding:6px;border-radius:14px;display:flex;gap:4px;box-shadow:0 4px 20px rgba(0,0,0,.06);backdrop-filter:blur(10px);
   @media (max-width:320px){display:none;}
 `;
-
 const ModeButton = styled.button`
   padding:10px 22px;border-radius:10px;font-weight:600;font-size:15px;border:none;cursor:pointer;position:relative;overflow:hidden;
   background:${p=>p.active?'linear-gradient(45deg,#2e2f5e,#5a5b9f)':'transparent'};
   color:${p=>p.active?'#fff':'#555'};
   &:hover{background:${p=>p.active?'linear-gradient(45deg,#2e2f5e,#5a5b9f)':'rgba(0,0,0,.05)'};transform:translateY(-1px);}
 `;
-
 const AvatarContainer = styled.div`display:flex;align-items:center;gap:12px;`;
-
 const BotAvatar = styled.div`
-  width:50px;height:50px;border-radius:50%;background:${p=>p.bg||'linear-gradient(45deg,#7AC2DD,#5A8CF2)'};
-  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:20px;box-shadow:0 4px 12px rgba(90,140,242,.3);
+  width:50px;height:50px;border-radius:50%;background:${p=>p.bg||'linear-gradient(45deg,#7AC2DD,#5A8CF2)'};display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:bold;font-size:20px;box-shadow:0 4px 12px rgba(90,140,242,.3);
 `;
-
 const BotInfo = styled.div`display:flex;flex-direction:column;@media (max-width:480px){display:none;}`;
 const BotName = styled.span`font-weight:700;font-size:16px;color:#2e2f5e;`;
 const BotStatus = styled.span`font-size:13px;color:#65B741;`;
-
 const Layout = styled.div`
   flex:1;display:flex;padding:100px 40px 140px;box-sizing:border-box;overflow:hidden;gap:30px;
   @media (max-width:768px){flex-direction:column;padding:70px 16px 150px;gap:16px;}
 `;
-
 const VideoColumn = styled.div`
   position:relative;top:60px;width:45%;max-width:520px;display:${p=>p.show?'block':'none'};padding-right:30px;
   @media (max-width:768px){width:100%;top:0;padding-right:0;margin-bottom:20px;order:1;}
 `;
-
-const DemoContainer = styled.div`
+const AvatarStage = styled.div`
   position:relative;width:100%;height:85vh;max-height:700px;border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.15);
-  @media (max-width:768px){height:220px;max-height:250px;border-radius:12px;}
+  background:#fff;display:grid;place-items:center;
+  @media (max-width:768px){height:260px;max-height:320px;border-radius:12px;}
 `;
-
-const DemoVideo = styled.video`
-  position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;transition:opacity 1.2s ease-in-out;opacity:${p=>p.visible?1:0};
-`;
-
-const FallbackImage = styled.img`
-  position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;transition:opacity 1.2s ease-in-out;opacity:${p=>p.visible?1:0};
-`;
-
 const ChatColumn = styled.div`flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative;scroll-behavior:smooth;`;
-
 const FadeWrapper = styled.div`display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1;animation:${fadeIn} 1s ease-out forwards;padding:20px;text-align:center;`;
-
 const Description = styled.div`margin:auto;text-align:center;max-width:600px;animation:${fadeIn} 1s ease-out forwards;`;
-
 const Title = styled.h1`
   font-size:42px;font-weight:800;margin-bottom:16px;background:linear-gradient(45deg,#2e2f5e 30%,#5A8CF2 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2;text-shadow:0 2px 4px rgba(0,0,0,.1);
   @media (max-width:768px){font-size:30px;}
 `;
-
 const Subtitle = styled.p`
   font-size:22px;color:#666;line-height:1.7;opacity:0;animation:${fadeIn} 1s ease-out .5s forwards;
   @media (max-width:768px){font-size:17px;}
 `;
-
 const IntroBar = styled.div`
   margin:0 auto 24px;padding:20px 28px;background:linear-gradient(135deg,rgba(122,194,221,.1) 0%,rgba(90,140,242,.08) 100%);
   border:1px solid rgba(122,194,221,.2);border-radius:16px;box-shadow:0 8px 32px rgba(122,194,221,.12),0 4px 16px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.6);
   font-size:16px;font-weight:600;line-height:1.6;animation:${fadeInDown} .6s ease-out, ${float} 4s ease-in-out 1s infinite;max-width:600px;text-align:center;color:#2e2f5e;
 `;
-
-const DateDivider = styled.div`text-align:center;margin:20px 0;position:relative; &:before{content:"";position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.1);z-index:-1;}`;
+const DateDivider = styled.div`text-align:center;margin:20px 0;position:relative;&:before{content:"";position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.1);z-index:-1;}`;
 const DateLabel = styled.span`background:#f0f4f8;padding:4px 12px;border-radius:20px;font-size:13px;color:#666;box-shadow:0 2px 4px rgba(0,0,0,.05);`;
-
 const ChatBox = styled.div`display:flex;flex-direction:column;gap:16px;padding-right:10px;padding-bottom:20px;overflow-y:auto;animation:${slideInLTR} .4s ease-out both;`;
-
 const BubbleWrapper = styled.div`
   display:flex;flex-direction:column;align-items:${p=>p.sender==='user'?'flex-end':'flex-start'};
   max-width:85%;align-self:${p=>p.sender==='user'?'flex-end':'flex-start'};
 `;
-
 const BubbleHeader = styled.div`font-size:12px;color:#888;margin-bottom:4px;padding:0 12px;display:flex;align-items:center;gap:6px;`;
-
 const SenderAvatar = styled.div`
-  width:24px;height:24px;border-radius:50%;background:${p=>p.sender==='user'?'#5A8CF2':'linear-gradient(135deg,#7AC2DD,#5A8CF2)'};
-  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.1);
+  width:24px;height:24px;border-radius:50%;background:${p=>p.sender==='user'?'#5A8CF2':'linear-gradient(135deg,#7AC2DD,#5A8CF2)'};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.1);
 `;
-
 const ChatBubble = styled.div`
   background:${p=>p.sender==='user'?'linear-gradient(135deg,#5A8CF2,#7A72E0)':'#fff'};
   color:${p=>p.sender==='user'?'#fff':'#333'};padding:14px 20px;border-radius:${p=>p.sender==='user'?'18px 18px 4px 18px':'18px 18px 18px 4px'};
   box-shadow:${p=>p.sender==='user'?'0 4px 12px rgba(90,140,242,.2)':'0 4px 12px rgba(0,0,0,.08)'};white-space:pre-wrap;animation:${fadeInBubble} .3s ease-out;line-height:1.5;font-size:15px;
 `;
-
 const MessageTime = styled.span`font-size:11px;color:#999;`;
-
 const TypingBubble = styled(ChatBubble)`width:60px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;gap:4px;`;
-
 const TypingDot = styled.div`
-  width:8px;height:8px;background:#888;border-radius:50%;opacity:.8;animation:${p=>keyframes`
-    0%,100%{transform:translateY(0);opacity:.8;}
-    50%{transform:translateY(-4px);opacity:1;}
-  `} ${p=>p.delay}s infinite ease-in-out;
+  width:8px;height:8px;background:#888;border-radius:50%;opacity:.8;animation:${p=>keyframes`0%,100%{transform:translateY(0);opacity:.8;}50%{transform:translateY(-4px);opacity:1;}`} ${p=>p.delay}s infinite ease-in-out;
 `;
-
 const InputArea = styled.div`
   position:fixed;bottom:35px;left:${p=>p.isVideoMode?'70%':'50%'};transform:translateX(-50%);width:${p=>p.isVideoMode?'50%':'90%'};
   background:${p=>p.disabled?'rgba(240,240,240,.95)':'rgba(255,255,255,.98)'};border-radius:14px;display:flex;align-items:center;padding:6px 10px;
@@ -188,68 +142,47 @@ const InputArea = styled.div`
   border:1px solid rgba(0,0,0,.05);z-index:100;transition:all .3s cubic-bezier(.4,0,.2,1);
   @media (max-width:768px){left:50%;width:94%;}
 `;
-
 const InputField = styled.input`
   flex:1;font-size:16px;background:transparent;border:none;outline:none;padding:14px 20px;color:${p=>p.disabled?'#999':'#333'};
   &::placeholder{color:${p=>p.disabled?'#aaa':'#999'};font-style:italic;}
 `;
-
 const InputButtons = styled.div`display:flex;align-items:center;gap:12px;padding-right:8px;`;
-
 const ActionButton = styled.button`
   width:44px;height:44px;background:${p=>p.isRecording?'rgba(234,84,85,.1)':'transparent'};border-radius:50%;border:none;color:${p=>p.isRecording?'#EA5455':'#888'};
-  font-size:20px;display:flex;align-items:center;justify-content:center;cursor:${p=>p.disabled?'not-allowed':'pointer'};
-  transition:all .3s cubic-bezier(.4,0,.2,1);animation:${p=>p.isRecording?recording:'none'} 1.5s infinite;opacity:${p=>p.disabled?.5:1};
+  font-size:20px;display:flex;align-items:center;justify-content:center;cursor:${p=>p.disabled?'not-allowed':'pointer'};transition:all .3s cubic-bezier(.4,0,.2,1);
+  animation:${p=>p.isRecording?recording:'none'} 1.5s infinite;opacity:${p=>p.disabled?.5:1};
 `;
-
 const SendButton = styled.button`
   width:50px;height:50px;background:${p=>p.disabled?'#ccc':'linear-gradient(135deg,#7AC2DD,#5A8CF2)'};border-radius:50%;border:none;color:#fff;font-size:22px;
   display:flex;align-items:center;justify-content:center;cursor:${p=>p.disabled?'not-allowed':'pointer'};transition:all .3s cubic-bezier(.4,0,.2,1);
   animation:${p=>p.active&&!p.disabled?pulse:'none'} 1.5s infinite;opacity:${p=>p.disabled?.7:1};box-shadow:0 4px 12px rgba(122,194,221,.3);
 `;
-
 const StatusMessage = styled.div`
   position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 20px;border-radius:24px;font-size:14px;z-index:101;
   animation:${fadeInDown} .3s ease-out;backdrop-filter:blur(10px);box-shadow:0 4px 16px rgba(0,0,0,.2);max-width:90%;text-align:center;
 `;
-
 const WelcomeAnimation = styled.div`
   position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(255,255,255,.95) 0%,rgba(248,250,252,.95) 100%);
   display:flex;justify-content:center;align-items:center;font-size:80px;font-weight:bold;color:#2b3993;z-index:200;opacity:${p=>p.visible?1:0};visibility:${p=>p.visible?'visible':'hidden'};
   transition:all .5s cubic-bezier(.4,0,.2,1);text-shadow:0 4px 8px rgba(43,57,147,.2);
 `;
-
 const IntroTextOverlay = styled.div`
   position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(248,250,252,.95));
   display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding:200px 40px 40px;text-align:center;z-index:200;
   opacity:${p=>p.visible?1:0};visibility:${p=>p.visible?'visible':'hidden'};transition:opacity .6s cubic-bezier(.4,0,.2,1),visibility .6s;
 `;
-
 const TipHeader = styled.h2`
   font-size:38px;font-weight:700;background:linear-gradient(45deg,#2e2f5e 30%,#5A8CF2 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px;animation:${fadeInStagger} .8s ease-out;
 `;
-
 const IntroContent = styled.div`
   max-width:680px;width:100%;padding:32px;background:rgba(255,255,255,.9);border-radius:20px;border:1px solid rgba(255,255,255,.3);
   box-shadow:0 8px 32px rgba(0,0,0,.1),0 4px 16px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.5);animation:${fadeInStagger} .8s ease-out .4s both;
 `;
-
 const IntroText = styled.p`font-size:23px;color:#4a5568;line-height:1.8;margin:0;font-weight:400;`;
-
 const Disclaimer = styled.div`
   position:fixed;bottom:4px;left:${p=>p.isVideoMode?'70%':'50%'};transform:translateX(-50%);width:90%;max-width:1440px;font-size:12px;color:#666;text-align:center;padding:4px 8px;z-index:100;
   transition:left .3s ease;
-`;
-
-/* ====== 影音控制 Overlay ====== */
-const OverlayBar = styled.div`
-  position:absolute;right:12px;bottom:12px;display:flex;gap:8px;z-index:5;
-`;
-
-const SmallBtn = styled.button`
-  background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:999px;padding:8px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;
-  font-size:13px;backdrop-filter:blur(6px);
 `;
 
 /* ================== Bot 定義 ================== */
@@ -297,17 +230,9 @@ export default function MoodInput() {
   const [showIntroText, setShowIntroText] = useState(false);
 
   const chatBoxRef = useRef(null);
-  const [isSecondVideo, setIsSecondVideo] = useState(false);
-  const [playIntroVideo, setPlayIntroVideo] = useState(false);
-  const videoRef = useRef(null);
 
-  /* ============ 影音控制 ============ */
-  const [isMuted, setIsMuted] = useState(true);
-  const [soundUnlocked, setSoundUnlocked] = useState(localStorage.getItem("sound_unlocked") === "1");
-
-  /* ============ 頭像動畫狀態 ============ */
-  const [currentAnimation, setCurrentAnimation] = useState(null);
-  const [isAnimating, setIsAnimating] = useState(false);
+  /* ============ AvatarAnimation 溝通：只要文字就好 ============ */
+  const [avatarText, setAvatarText] = useState(""); // ← 只把這句交給 AvatarAnimation
 
   /* ============ 其餘參考資料 ============ */
   const selectedBotType = (localStorage.getItem("selectedBotType") || "solution");
@@ -337,107 +262,21 @@ export default function MoodInput() {
     if (chatBoxRef.current) chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
   }, [messages, isTyping]);
 
-  /* ============ 視訊元素屬性 ============ */
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = !soundUnlocked || isMuted;
-      videoRef.current.playsInline = true;
-      if (soundUnlocked) videoRef.current.play().catch(()=>{});
-    }
-  }, [soundUnlocked, isMuted]);
-
-  /* ============ 一次性解鎖聲音（行動端必要）============ */
-  const unlockAudio = useCallback(async () => {
-    try {
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if (!Ctx) return;
-      const ctx = new Ctx();
-      const buf = ctx.createBuffer(1, 1, 22050);
-      const src = ctx.createBufferSource();
-      src.buffer = buf; src.connect(ctx.destination); src.start(0);
-      setSoundUnlocked(true);
-      localStorage.setItem("sound_unlocked", "1");
-      setIsMuted(false);
-      if (videoRef.current) {
-        videoRef.current.muted = false;
-        await videoRef.current.play().catch(()=>{});
-      }
-    } catch (e) { console.warn("unlock failed", e); }
-  }, []);
-
-  const toggleMute = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    const next = !isMuted;
-    setIsMuted(next);
-    v.muted = !soundUnlocked || next;
-    if (soundUnlocked && !next) { v.play().catch(()=>{}); }
-  };
-
-  /* ============ 頭像動畫功能 ============ */
-  const triggerAvatarAnimation = useCallback(async (text) => {
-    if (!text || mode !== "video") return;
-    
-    try {
-      setIsAnimating(true);
-      showStatus("正在生成動畫...", 1000);
-      
-      const result = await apiCreateAnimation(text, selectedBotType);
-      
-      if (result.success) {
-        setCurrentAnimation({
-          avatarUrl: selectedBotImage,
-          audioUrl: result.audio_base64,
-          animationData: result.animation_data
-        });
-        showStatus("", 0); // 清除狀態
-      } else {
-        console.warn("動畫生成失敗:", result.error);
-        // 靜默動畫作為後備
-        setCurrentAnimation({
-          avatarUrl: selectedBotImage,
-          audioUrl: null,
-          animationData: result.animation_data || null
-        });
-        if (result.error) {
-          showStatus(result.error, 3000);
-        }
-      }
-    } catch (error) {
-      console.error("頭像動畫錯誤:", error);
-      showStatus("動畫生成失敗，使用靜態顯示", 2500);
-      // 使用靜態顯示作為後備
-      setCurrentAnimation({
-        avatarUrl: selectedBotImage,
-        audioUrl: null,
-        animationData: null
-      });
-    }
-  }, [mode, selectedBotType, selectedBotImage]);
-
-  /* ============ 動畫結束處理 ============ */
-  const handleAnimationEnd = useCallback(() => {
-    setIsAnimating(false);
-    setCurrentAnimation(null);
-  }, []);
-
   /* ============ 啟動對話 ============ */
   const startConversation = async () => {
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const first = { sender: "ai", content: `嗨 ${nickname}，我是 ${bot.name}。今天想從哪裡開始呢？`, timestamp: now };
+    const firstText = `嗨 ${nickname}，我是 ${bot.name}。今天想從哪裡開始呢？`;
+    const first = { sender: "ai", content: firstText, timestamp: now };
     setMessages([first]);
     setChatStarted(true);
 
     if (mode === "video") {
-      // 優先嘗試頭像動畫
-      await triggerAvatarAnimation(first.content);
-      
-      // fallback：示範影片
-      setPlayIntroVideo(true);
+      // 讓 AvatarAnimation 自己打 API
+      setAvatarText(sliceForSpeech(firstText));
     }
 
-    // 回報後端（保留舊有）
-    await sendChatMessage(first.content, selectedBotType, mode, [{ role: "assistant", content: first.content }], true);
+    // 回報後端（保留）
+    await sendChatMessage(firstText, selectedBotType, mode, [{ role: "assistant", content: firstText }], true);
   };
 
   /* ============ 快捷鍵：空白鍵開始對話 ============ */
@@ -447,7 +286,7 @@ export default function MoodInput() {
     return () => window.removeEventListener('keydown', handleSpace);
   }, [chatStarted]); // eslint-disable-line
 
-  /* ============ 傳送訊息 → GPT → 頭像動畫 ============ */
+  /* ============ 傳送訊息 → GPT → AvatarAnimation 只吃文字 ============ */
   const handleSend = async () => {
     if (!inputValue.trim() && !isRecording) return;
     if (!chatStarted) { await startConversation(); return; }
@@ -472,12 +311,8 @@ export default function MoodInput() {
         setMessages(prev => [...prev, aiMsg]);
 
         if (mode === "video") {
-          // 優先頭像動畫
-          await triggerAvatarAnimation(result.reply);
-          
-          // fallback：示範影片
-          setIsSecondVideo(true);
-          setPlayIntroVideo(true);
+          // 只把要說的文字交給 AvatarAnimation（它自己取音檔與動畫）
+          setAvatarText(sliceForSpeech(result.reply));
         }
       } else {
         throw new Error(result?.error || "API 回傳格式錯誤");
@@ -491,7 +326,7 @@ export default function MoodInput() {
       setMessages(prev => [...prev, { sender: "ai", content: fallbackReply, timestamp: replyTime }]);
       
       if (mode === "video") {
-        await triggerAvatarAnimation(fallbackReply);
+        setAvatarText(sliceForSpeech(fallbackReply));
       }
     }
 
@@ -560,57 +395,15 @@ export default function MoodInput() {
       <Layout>
         {mode === "video" && (
           <VideoColumn show={true}>
-            <DemoContainer>
-              {/* 頭像動畫組件 */}
-              {currentAnimation ? (
-                <AvatarAnimation
-                  avatarUrl={currentAnimation.avatarUrl}
-                  audioUrl={currentAnimation.audioUrl}
-                  animationData={currentAnimation.animationData}
-                  isPlaying={isAnimating}
-                  onAnimationEnd={handleAnimationEnd}
-                />
-              ) : (
-                <>
-                  <FallbackImage src={selectedBotImage} visible={!playIntroVideo} />
-                  <DemoVideo
-                    ref={videoRef}
-                    src={isSecondVideo ? secondVideo : introVideo}
-                    visible={playIntroVideo}
-                    onEnded={() => { setPlayIntroVideo(false); try { videoRef.current.pause(); } catch {} }}
-                    controls
-                    playsInline
-                    autoPlay
-                    preload="auto"
-                    muted={!soundUnlocked || isMuted}
-                  />
-                </>
-              )}
-              
-              {/* 啟用聲音遮罩（一次性解鎖） */}
-              {(!soundUnlocked) && (
-                <div style={{
-                  position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center",
-                  background:"linear-gradient(transparent, rgba(0,0,0,.35))", zIndex:6
-                }}>
-                  <button onClick={unlockAudio}
-                    style={{padding:"10px 16px", borderRadius:999, border:"none",
-                            background:"rgba(0,0,0,.6)", color:"#fff", cursor:"pointer"}}>
-                    🔊 點一下啟用聲音
-                  </button>
-                </div>
-              )}
-              
-              {/* 影音控制 Overlay */}
-              {(playIntroVideo || currentAnimation) && (
-                <OverlayBar>
-                  <SmallBtn onClick={toggleMute} title={(!soundUnlocked || isMuted) ? "開聲音" : "關靜音"}>
-                    {(!soundUnlocked || isMuted) ? <FiVolumeX /> : <FiVolume2 />}
-                    <span>{(!soundUnlocked || isMuted) ? "點我開聲音" : "靜音"}</span>
-                  </SmallBtn>
-                </OverlayBar>
-              )}
-            </DemoContainer>
+            <AvatarStage>
+              {/* 只用新版 AvatarAnimation（自行打 API） */}
+              <AvatarAnimation
+                apiBase={API_BASE}
+                text={avatarText}
+                botType={selectedBotType}
+                onError={(msg)=>showStatus(msg,2000)}
+              />
+            </AvatarStage>
           </VideoColumn>
         )}
 
