@@ -3,6 +3,7 @@ import React, { useRef } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { FiArrowLeft, FiDownload } from "react-icons/fi";
+import html2canvas from "html2canvas";
 
 const Wrap = styled.div`
   width: 100vw;
@@ -31,13 +32,21 @@ const Header = styled.div`
   padding: 14px 32px;
 
   @media (max-width: 768px) {
-    padding: 12px 16px;
+    padding: 12px 20px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 16px;
   }
 `;
 
 const BtnGroup = styled.div`
   display: flex;
   gap: 12px;
+
+  @media (max-width: 768px) {
+    gap: 8px;
+  }
 `;
 
 const Btn = styled.button`
@@ -64,10 +73,22 @@ const Btn = styled.button`
     transform: translateY(0);
     box-shadow: 0 4px 12px rgba(43, 57, 147, 0.16);
   }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px 18px;
+    font-size: 15px;
+    gap: 8px;
+  }
 
   @media (max-width: 480px) {
-    padding: 12px 16px;
-    font-size: 15px;
+    padding: 10px 14px;
+    font-size: 14px;
+    gap: 6px;
   }
 `;
 
@@ -78,6 +99,10 @@ const BackBtn = styled(Btn)`
 const DownloadBtn = styled(Btn)`
   background: #4caf50;
   margin-right: 55px;
+
+  @media (max-width: 768px) {
+    margin-right: 0;
+  }
 `;
 
 const PageTitle = styled.div`
@@ -88,6 +113,11 @@ const PageTitle = styled.div`
 
   @media (max-width: 768px) {
     font-size: 18px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 16px;
+    display: none;
   }
 `;
 
@@ -103,14 +133,31 @@ const GridPanel = styled.div`
   width: min(1200px, 88vw);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: minmax(260px, 1fr) minmax(220px, 1fr);
+  grid-template-rows: minmax(260px, 1.5fr) minmax(160px, 0.5fr);
   gap: 28px;
+
+  @media (max-width: 1024px) {
+    width: 92vw;
+    gap: 24px;
+    margin: 90px auto 32px auto;
+  }
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
-    width: 92vw;
     gap: 20px;
+  }
+
+  @media (max-width: 768px) {
+    width: 94vw;
+    gap: 18px;
+    margin: 80px auto 28px auto;
+  }
+
+  @media (max-width: 480px) {
+    width: 96vw;
+    gap: 16px;
+    margin: 70px auto 24px auto;
   }
 `;
 
@@ -126,10 +173,16 @@ const Card = styled.div`
   justify-content: center;
   min-height: 220px;
 
+  @media (max-width: 768px) {
+    padding: 18px;
+    border-radius: 18px;
+    min-height: 200px;
+  }
+
   @media (max-width: 480px) {
     padding: 16px;
     border-radius: 16px;
-    min-height: 200px;
+    min-height: 180px;
   }
 `;
 
@@ -148,9 +201,18 @@ const SectionTitle = styled.div`
   letter-spacing: 0.3px;
   user-select: none;
 
-  @media (max-width: 480px) {
+  @media (max-width: 768px) {
     font-size: 12px;
+    padding: 5px 9px;
+    top: 12px;
+    left: 12px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 11.5px;
     padding: 5px 8px;
+    top: 10px;
+    left: 10px;
   }
 `;
 
@@ -160,24 +222,20 @@ const Placeholder = styled.div`
   color: #1b1f33;
   opacity: 0.85;
   text-align: center;
+  padding: 0 10px;
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 15px;
+  }
 `;
 
 const LeftTop = styled(Card)`
   grid-column: 1;
   grid-row: 1;
-`;
-
-const LeftBottom = styled(Card)`
-  grid-column: 1;
-  grid-row: 2;
-`;
-
-const RightTop = styled(Card)`
-  grid-column: 2;
-  grid-row: 1 / 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 
   @media (max-width: 900px) {
     grid-column: 1;
@@ -185,10 +243,21 @@ const RightTop = styled(Card)`
   }
 `;
 
-const RightBottom = styled(Card)`
-  grid-column: 2;
-  grid-row: 2;
+const LeftBottom = styled(Card)`
+  grid-column: 1;
+  grid-row: 2 / 4;
   min-height: 160px;
+
+  @media (max-width: 900px) {
+    grid-column: 1;
+    grid-row: auto;
+    min-height: 200px;
+  }
+`;
+
+const RightTop = styled(Card)`
+  grid-column: 2;
+  grid-row: 1 / 3;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -196,15 +265,69 @@ const RightBottom = styled(Card)`
   @media (max-width: 900px) {
     grid-column: 1;
     grid-row: auto;
+    min-height: 280px;
+  }
+`;
+
+const RightBottom = styled(Card)`
+  grid-column: 2;
+  grid-row: 3;
+  min-height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 900px) {
+    grid-column: 1;
+    grid-row: auto;
+    min-height: 140px;
   }
 `;
 
 export default function MoodTrail() {
   const nav = useNavigate();
   const panelRef = useRef(null);
+  const [isDownloading, setIsDownloading] = React.useState(false);
 
   const handleDownload = async () => {
-    alert("下載圖片功能待實作（建議以 html2canvas 進行區塊截圖為 PNG）");
+    if (!panelRef.current || isDownloading) return;
+
+    try {
+      setIsDownloading(true);
+
+      const element = panelRef.current;
+      const padding = 40;
+
+      const canvas = await html2canvas(element, {
+        backgroundColor: "#f6f7fb",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        width: element.offsetWidth + padding * 2,
+        height: element.offsetHeight + padding * 2,
+        x: -padding,
+        y: -padding,
+      });
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "心情足跡圖.png";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }
+      }, "image/png");
+
+    } catch (error) {
+      console.error("下載圖片時發生錯誤:", error);
+      alert("下載圖片失敗，請稍後再試");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -219,8 +342,8 @@ export default function MoodTrail() {
         <PageTitle>心情足跡・MoodTrail</PageTitle>
 
         <BtnGroup>
-          <DownloadBtn onClick={handleDownload}>
-            <FiDownload size={18} /> 下載圖片
+          <DownloadBtn onClick={handleDownload} disabled={isDownloading}>
+            <FiDownload size={18} /> {isDownloading ? "下載中..." : "下載圖片"}
           </DownloadBtn>
         </BtnGroup>
       </Header>
