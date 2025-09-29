@@ -1,444 +1,297 @@
-// src/components/AvatarAnimation.jsx - 頭像動畫組件
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import styled, { keyframes } from 'styled-components';
+// AvatarAnimation.jsx - 穩定播放版（單例播放器 + 競態防護 + SVG修正）
+import React, { useEffect, useRef, useState } from "react";
 
-// ================= 動畫樣式定義 =================
+/** ====== 單例音訊控制器（避免多 audio 元件互搶） ====== */
+const AudioController = (() => {
+  let audio = null;       // HTMLAudioElement
+  let playingToken = 0;   // 用來確保只播放最新的音檔
 
-const fadeIn = keyframes`
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-`;
-
-const pulse = keyframes`
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-`;
-
-const Container = styled.div`
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 20px;
-  overflow: hidden;
-  animation: ${fadeIn} 0.8s ease-out;
-`;
-
-const AvatarWrapper = styled.div`
-  position: relative;
-  width: 300px;
-  height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: ${props => `translate(${props.headX || 0}px, ${props.headY || 0}px)`};
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  @media (max-width: 768px) {
-    width: 250px;
-    height: 250px;
-  }
-  
-  @media (max-width: 480px) {
-    width: 200px;
-    height: 200px;
-  }
-`;
-
-const AvatarImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  animation: ${props => props.isAnimating ? pulse : 'none'} 2s ease-in-out infinite;
-`;
-
-const MouthOverlay = styled.div`
-  position: absolute;
-  bottom: 25%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: ${props => 20 + (props.openness * 30)}px;
-  height: ${props => 8 + (props.openness * 12)}px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 50%;
-  opacity: ${props => props.openness > 0.1 ? 0.8 : 0};
-  transition: all 0.1s ease-out;
-  z-index: 10;
-  
-  @media (max-width: 768px) {
-    width: ${props => 16 + (props.openness * 24)}px;
-    height: ${props => 6 + (props.openness * 10)}px;
-  }
-  
-  @media (max-width: 480px) {
-    width: ${props => 14 + (props.openness * 20)}px;
-    height: ${props => 5 + (props.openness * 8)}px;
-  }
-`;
-
-const EyeOverlay = styled.div`
-  position: absolute;
-  top: 35%;
-  width: 100%;
-  height: 8px;
-  background: ${props => props.isBlinking ? 'rgba(0, 0, 0, 0.4)' : 'transparent'};
-  opacity: ${props => props.isBlinking ? 1 : 0};
-  transition: opacity 0.1s ease-out;
-  z-index: 10;
-  
-  &::before, &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    width: 25px;
-    height: 8px;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 50%;
-  }
-  
-  &::before {
-    left: 30%;
-  }
-  
-  &::after {
-    right: 30%;
-  }
-  
-  @media (max-width: 768px) {
-    &::before, &::after {
-      width: 20px;
-      height: 6px;
+  function ensure() {
+    if (!audio) {
+      audio = new Audio();
+      audio.preload = "auto";
     }
+    return audio;
   }
-  
-  @media (max-width: 480px) {
-    &::before, &::after {
-      width: 16px;
-      height: 5px;
-    }
-  }
-`;
 
-const AudioVisualizer = styled.div`
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 2px;
-  height: 20px;
-  align-items: flex-end;
-  opacity: ${props => props.isPlaying ? 1 : 0};
-  transition: opacity 0.3s ease;
-`;
+  /** 播放 base64 dataURL；只允許最新 token 播放，舊的會被停掉 */
+  async function play(dataUrl) {
+    const a = ensure();
+    const myToken = ++playingToken;
 
-const AudioBar = styled.div`
-  width: 3px;
-  background: linear-gradient(to top, #7AC2DD, #5A8CF2);
-  border-radius: 2px;
-  height: ${props => 4 + (props.intensity * 16)}px;
-  animation: ${props => props.isPlaying ? pulse : 'none'} ${props => 0.5 + (props.index * 0.1)}s ease-in-out infinite alternate;
-`;
+    try {
+      // 停掉舊播放
+      a.pause();
+      a.currentTime = 0;
 
-const StatusText = styled.div`
-  position: absolute;
-  bottom: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 14px;
-  color: #666;
-  text-align: center;
-  opacity: ${props => props.show ? 1 : 0};
-  transition: opacity 0.3s ease;
-  white-space: nowrap;
-  
-  @media (max-width: 480px) {
-    font-size: 12px;
-    bottom: -35px;
-  }
-`;
+      // 設定新來源
+      a.src = dataUrl;
+      // iOS/Safari 容易卡住，顯式 load
+      a.load();
 
-const FallbackContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  text-align: center;
-  padding: 20px;
-`;
-
-const FallbackText = styled.p`
-  color: #666;
-  font-size: 16px;
-  margin-top: 16px;
-  
-  @media (max-width: 480px) {
-    font-size: 14px;
-  }
-`;
-
-// ================= React 組件 =================
-
-const AvatarAnimation = ({ 
-  avatarUrl, 
-  animationData, 
-  audioUrl, 
-  isPlaying: externalIsPlaying = false,
-  onAnimationEnd,
-  showControls = false 
-}) => {
-  // 狀態管理
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [mouthOpenness, setMouthOpenness] = useState(0);
-  const [isBlinking, setIsBlinking] = useState(false);
-  const [headPosition, setHeadPosition] = useState({ x: 0, y: 0 });
-  const [audioIntensity, setAudioIntensity] = useState(0);
-  const [status, setStatus] = useState('');
-  
-  // Refs
-  const audioRef = useRef(null);
-  const animationRef = useRef(null);
-  const timeUpdateRef = useRef(null);
-  
-  // 清理動畫
-  const cleanupAnimation = useCallback(() => {
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
-    }
-    if (timeUpdateRef.current) {
-      clearInterval(timeUpdateRef.current);
-      timeUpdateRef.current = null;
-    }
-  }, []);
-  
-  // 更新動畫狀態
-  const updateAnimationState = useCallback((time) => {
-    if (!animationData) return;
-    
-    // 更新嘴部動畫
-    if (animationData.mouth_animation) {
-      const mouthFrame = animationData.mouth_animation
-        .filter(frame => frame.time <= time)
-        .pop();
-      if (mouthFrame) {
-        setMouthOpenness(mouthFrame.mouth_openness || 0);
+      // 嘗試播放；若在期間有新的 token 產生，直接中止
+      const playPromise = a.play();
+      if (playPromise && typeof playPromise.then === "function") {
+        await playPromise;
       }
-    }
-    
-    // 更新眨眼動畫
-    if (animationData.blink_animation) {
-      const blinkFrame = animationData.blink_animation
-        .filter(frame => frame.time <= time)
-        .pop();
-      if (blinkFrame) {
-        setIsBlinking(blinkFrame.eye_state === 'closed' || blinkFrame.eye_state === 'closing');
-      }
-    }
-    
-    // 更新頭部動作
-    if (animationData.head_animation) {
-      const headFrame = animationData.head_animation
-        .filter(frame => frame.time <= time)
-        .pop();
-      if (headFrame) {
-        setHeadPosition({
-          x: headFrame.head_x || 0,
-          y: headFrame.head_y || 0
+
+      // 僅當我仍是最新 token 時才監聽 ended
+      if (myToken === playingToken) {
+        await new Promise((resolve) => {
+          const onEnd = () => {
+            a.removeEventListener("ended", onEnd);
+            resolve();
+          };
+          a.addEventListener("ended", onEnd, { once: true });
         });
       }
+    } catch (err) {
+      // 常見：AbortError（被 pause 中斷），直接忽略
+      if (err && err.name === "AbortError") return;
+      // 其它錯誤丟上層讓 UI 顯示
+      throw err;
     }
-  }, [animationData]);
-  
-  // 開始播放動畫
-  const startAnimation = useCallback(async () => {
-    if (!animationData) {
-      setStatus('動畫數據無效');
-      return;
-    }
-    
-    setIsPlaying(true);
-    setStatus('正在播放動畫...');
-    setCurrentTime(0);
-    
-    const duration = animationData.total_duration * 1000; // 轉換為毫秒
-    const startTime = Date.now();
-    
-    // 播放音頻
-    if (audioRef.current && audioUrl) {
-      try {
-        audioRef.current.currentTime = 0;
-        await audioRef.current.play();
-        setStatus('');
-      } catch (e) {
-        console.warn('音頻播放失敗:', e);
-        setStatus('靜音模式');
-      }
-    } else {
-      setStatus('靜音模式');
-    }
-    
-    // 動畫循環
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = elapsed / duration;
-      const currentTime = (elapsed / 1000);
-      
-      setCurrentTime(currentTime);
-      updateAnimationState(currentTime);
-      
-      // 模擬音頻波形
-      if (isPlaying) {
-        const intensity = Math.sin(elapsed * 0.01) * 0.5 + 0.5;
-        setAudioIntensity(intensity);
-      }
-      
-      if (progress < 1 && isPlaying) {
-        animationRef.current = requestAnimationFrame(animate);
-      } else {
-        // 動畫結束
-        stopAnimation();
-        if (onAnimationEnd) onAnimationEnd();
-      }
-    };
-    
-    animationRef.current = requestAnimationFrame(animate);
-  }, [animationData, audioUrl, isPlaying, updateAnimationState, onAnimationEnd]);
-  
-  // 停止動畫
-  const stopAnimation = useCallback(() => {
-    setIsPlaying(false);
-    setStatus('');
-    cleanupAnimation();
-    
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    
-    // 重置動畫狀態
-    setMouthOpenness(0);
-    setIsBlinking(false);
-    setHeadPosition({ x: 0, y: 0 });
-    setAudioIntensity(0);
-    setCurrentTime(0);
-  }, [cleanupAnimation]);
-  
-  // 外部控制播放狀態
-  useEffect(() => {
-    if (externalIsPlaying && !isPlaying && animationData) {
-      startAnimation();
-    } else if (!externalIsPlaying && isPlaying) {
-      stopAnimation();
-    }
-  }, [externalIsPlaying, isPlaying, animationData, startAnimation, stopAnimation]);
-  
-  // 自動播放邏輯
-  useEffect(() => {
-    if (animationData && audioUrl) {
-      // 延遲一點再開始播放，確保組件完全準備好
-      const timer = setTimeout(() => {
-        startAnimation();
-      }, 200);
-      return () => clearTimeout(timer);
-    }
-  }, [animationData, audioUrl, startAnimation]);
-  
-  // 清理
-  useEffect(() => {
-    return () => {
-      cleanupAnimation();
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-    };
-  }, [cleanupAnimation]);
-  
-  // 錯誤處理
-  if (!avatarUrl) {
-    return (
-      <Container>
-        <FallbackContainer>
-          <div style={{ fontSize: '48px', color: '#ccc' }}>🤖</div>
-          <FallbackText>未選擇機器人頭像</FallbackText>
-        </FallbackContainer>
-      </Container>
-    );
   }
-  
-  return (
-    <Container>
-      <AvatarWrapper 
-        headX={headPosition.x} 
-        headY={headPosition.y}
-      >
-        <AvatarImage 
-          src={avatarUrl} 
-          alt="機器人頭像"
-          isAnimating={isPlaying}
-          onError={(e) => {
-            console.error('頭像圖片載入失敗:', e);
-            setStatus('圖片載入失敗');
-          }}
-        />
-        
-        <MouthOverlay openness={mouthOpenness} />
-        <EyeOverlay isBlinking={isBlinking} />
-        
-        <AudioVisualizer isPlaying={isPlaying && audioIntensity > 0}>
-          {[0, 1, 2, 3, 4].map(i => (
-            <AudioBar 
-              key={i}
-              index={i}
-              intensity={audioIntensity * (0.5 + Math.sin((currentTime + i) * 2) * 0.5)}
-              isPlaying={isPlaying}
-            />
-          ))}
-        </AudioVisualizer>
-        
-        <StatusText show={status.length > 0}>
-          {status}
-        </StatusText>
-      </AvatarWrapper>
-      
-      {/* 隱藏的音頻元素 */}
-      {audioUrl && (
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          preload="auto"
-          onEnded={stopAnimation}
-          onError={(e) => {
-            console.warn('音頻播放錯誤:', e);
-            setStatus('音頻播放失敗');
-          }}
-          style={{ display: 'none' }}
-        />
-      )}
-      
-      {/* 開發模式下的控制按鈕 */}
-      {showControls && (
-        <div style={{ 
-          position: 'absolute', 
-          bottom: '10px', 
-          right: '10px',
-          display: 'flex',
-          gap: '8px'
-        }}>
-          <button onClick={isPlaying ? stopAnimation : startAnimation}>
-            {isPlaying ? '停止' : '播放'}
-          </button>
-        </div>
-      )}
-    </Container>
-  );
-};
 
-export default AvatarAnimation;
+  function stop() {
+    const a = ensure();
+    playingToken++; // 讓任何等待中的播放失效
+    a.pause();
+  }
+
+  function isSpeaking() {
+    const a = ensure();
+    return !a.paused;
+  }
+
+  function currentTime() {
+    const a = ensure();
+    return a.currentTime || 0;
+  }
+
+  return { play, stop, isSpeaking, currentTime };
+})();
+
+/** ====== Avatar 渲染：SVG 不再使用 height="auto" ====== */
+function Face({ mouth = 0, blink = "open", head = { x: 0, y: 0 } }) {
+  // 將嘴型 0~1 映射到下巴位移
+  const jaw = 4 + mouth * 10; // px
+  const isClosed = blink === "closed";
+
+  return (
+    <svg
+      viewBox="0 0 200 200"
+      width="100%"                 // ✅ 不用 auto
+      height="100%"                // ✅ 不用 auto
+      preserveAspectRatio="xMidYMid meet"
+      style={{
+        maxWidth: 220,
+        maxHeight: 220,
+        display: "block",
+      }}
+    >
+      <g transform={`translate(${head.x}, ${head.y})`}>
+        {/* 臉底 */}
+        <circle cx="100" cy="100" r="90" fill="#F5F7FB" stroke="#DDE3EE" />
+        {/* 眼睛 */}
+        <g>
+          {isClosed ? (
+            <>
+              <line x1="70" y1="85" x2="90" y2="85" stroke="#333" strokeWidth="3" />
+              <line x1="110" y1="85" x2="130" y2="85" stroke="#333" strokeWidth="3" />
+            </>
+          ) : (
+            <>
+              <circle cx="80" cy="85" r="6" fill="#333" />
+              <circle cx="120" cy="85" r="6" fill="#333" />
+            </>
+          )}
+        </g>
+        {/* 嘴巴 */}
+        <path
+          d={`M 70 ${120 + mouth * 2} Q 100 ${120 + jaw} 130 ${120 + mouth * 2}`}
+          stroke="#333"
+          strokeWidth="4"
+          fill="transparent"
+          strokeLinecap="round"
+        />
+      </g>
+    </svg>
+  );
+}
+
+/** ====== 將後端 animation_data 播放成逐幀屬性 ====== */
+function useAnimationPlayer(animationData) {
+  const [frame, setFrame] = useState({ mouth: 0, blink: "open", head: { x: 0, y: 0 } });
+  const rafRef = useRef(null);
+  const startRef = useRef(null);
+
+  // 預處理時間軸（避免每次 render 做線性搜尋）
+  const mouth = animationData?.mouth_animation || [];
+  const blinks = animationData?.blink_animation || [];
+  const heads = animationData?.head_animation || [];
+  const total = animationData?.total_duration || 3;
+
+  useEffect(() => {
+    cancelAnimationFrame(rafRef.current);
+    startRef.current = performance.now();
+
+    const loop = () => {
+      const t = (performance.now() - startRef.current) / 1000; // 秒
+      const clamped = Math.min(t, total);
+
+      // 找 mouth 最接近 clamped 的一個幀
+      let m = 0;
+      if (mouth.length > 0) {
+        const idx = Math.max(
+          0,
+          mouth.findIndex((f) => f.time >= clamped) - 1
+        );
+        const f = mouth[Math.min(Math.max(idx, 0), mouth.length - 1)];
+        m = f?.mouth_openness ?? 0;
+      }
+
+      // blink
+      let b = "open";
+      for (let i = 0; i < blinks.length; i++) {
+        const f = blinks[i];
+        if (Math.abs(f.time - clamped) < 0.06) {
+          b = f.eye_state;
+          break;
+        }
+      }
+
+      // head
+      let h = { x: 0, y: 0 };
+      if (heads.length > 0) {
+        const idx = Math.max(
+          0,
+          heads.findIndex((f) => f.time >= clamped) - 1
+        );
+        const f = heads[Math.min(Math.max(idx, 0), heads.length - 1)];
+        h = { x: (f?.head_x || 0) * 6, y: (f?.head_y || 0) * 6 };
+      }
+
+      setFrame({ mouth: m, blink: b, head: h });
+
+      if (t < total && AudioController.isSpeaking()) {
+        rafRef.current = requestAnimationFrame(loop);
+      }
+    };
+
+    // 啟動
+    rafRef.current = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [animationData?.metadata?.generated_at]); // 新一段動畫才重跑
+
+  return frame;
+}
+
+/** ====== 封裝呼叫 /api/chat/avatar/animate 並安全播放 ====== */
+async function fetchAnimation({ apiBase, text, botType }) {
+  const res = await fetch(`${apiBase}/api/chat/avatar/animate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, bot_type: botType }),
+  });
+  const data = await res.json();
+  if (!data?.success && !data?.audio_base64) {
+    const err = data?.error || "無法產生語音/動畫";
+    throw new Error(err);
+  }
+  return data;
+}
+
+/** ====== 主元件 ====== */
+export default function AvatarAnimation({
+  apiBase = import.meta.env.VITE_API_BASE || "https://emobot-backend.onrender.com",
+  text,
+  botType = "solution",
+  onError,
+}) {
+  const [anim, setAnim] = useState(null);
+  const [playing, setPlaying] = useState(false);
+  const [error, setError] = useState(null);
+  const lastReqIdRef = useRef(0);
+
+  const frame = useAnimationPlayer(anim);
+
+  useEffect(() => {
+    // 空訊息不觸發
+    if (!text || !text.trim()) return;
+
+    let cancelled = false;
+    const myReqId = ++lastReqIdRef.current;
+
+    // 避免同時送出多個請求：上一個還在播就先停
+    AudioController.stop();
+
+    (async () => {
+      try {
+        setError(null);
+        setPlaying(false);
+
+        const data = await fetchAnimation({ apiBase, text, botType });
+
+        if (cancelled || myReqId !== lastReqIdRef.current) return;
+
+        setAnim(data.animation_data || null);
+
+        if (data.audio_base64) {
+          setPlaying(true);
+          try {
+            await AudioController.play(data.audio_base64);
+          } catch (e) {
+            // 吸收 AbortError；其它錯誤丟給 UI
+            if (!e || e.name !== "AbortError") {
+              throw e;
+            }
+          } finally {
+            setPlaying(false);
+          }
+        } else {
+          // 沒聲音：讓動畫跑一段時間即可
+          setPlaying(false);
+        }
+      } catch (e) {
+        const msg = e?.message || "播放失敗";
+        setError(msg);
+        if (onError) onError(msg);
+        setPlaying(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      // 中止本次播放（會讓舊 play 的 promise 走 AbortError，已處理）
+      AudioController.stop();
+    };
+  }, [text, botType, apiBase]);
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      <div
+        style={{
+          width: 220,
+          height: 220,
+          borderRadius: 16,
+          background: "#fff",
+          boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+          display: "grid",
+          placeItems: "center",
+        }}
+      >
+        <Face mouth={frame.mouth} blink={frame.blink} head={frame.head} />
+      </div>
+
+      <div style={{ fontSize: 14, color: "#334" }}>
+        <div>狀態：{playing ? "說話中..." : "待機"}</div>
+        {error && <div style={{ color: "#c00" }}>錯誤：{error}</div>}
+        <div style={{ opacity: 0.7 }}>
+          來源：{anim?.meta?.provider || "pending"}
+        </div>
+      </div>
+    </div>
+  );
+}
