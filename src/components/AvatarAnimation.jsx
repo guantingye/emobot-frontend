@@ -1,10 +1,14 @@
-// AvatarAnimation.jsx - 穩定播放版（單例播放器 + 競態防護 + SVG修正）
+// AvatarAnimation.jsx - TTS-only 版（停用 demo 影片 fallback）
+// - 單例音訊播放器避免 AbortError
+// - 沒有 audio 也不播 demo，只顯示動畫（靜默或之後有聲都 ok）
+// - 修正 <svg height="auto"> 警告，改為 width/height="100%" + viewBox
+
 import React, { useEffect, useRef, useState } from "react";
 
-/** ====== 單例音訊控制器（避免多 audio 元件互搶） ====== */
+/** ====== 單例音訊控制器（避免多 audio 互搶） ====== */
 const AudioController = (() => {
-  let audio = null;       // HTMLAudioElement
-  let playingToken = 0;   // 用來確保只播放最新的音檔
+  let audio = null;
+  let playingToken = 0;
 
   function ensure() {
     if (!audio) {
@@ -13,29 +17,16 @@ const AudioController = (() => {
     }
     return audio;
   }
-
-  /** 播放 base64 dataURL；只允許最新 token 播放，舊的會被停掉 */
   async function play(dataUrl) {
     const a = ensure();
     const myToken = ++playingToken;
-
     try {
-      // 停掉舊播放
       a.pause();
       a.currentTime = 0;
-
-      // 設定新來源
       a.src = dataUrl;
-      // iOS/Safari 容易卡住，顯式 load
       a.load();
-
-      // 嘗試播放；若在期間有新的 token 產生，直接中止
-      const playPromise = a.play();
-      if (playPromise && typeof playPromise.then === "function") {
-        await playPromise;
-      }
-
-      // 僅當我仍是最新 token 時才監聽 ended
+      const p = a.play();
+      if (p && typeof p.then === "function") await p;
       if (myToken === playingToken) {
         await new Promise((resolve) => {
           const onEnd = () => {
@@ -46,54 +37,36 @@ const AudioController = (() => {
         });
       }
     } catch (err) {
-      // 常見：AbortError（被 pause 中斷），直接忽略
-      if (err && err.name === "AbortError") return;
-      // 其它錯誤丟上層讓 UI 顯示
+      if (err?.name === "AbortError") return;
       throw err;
     }
   }
-
   function stop() {
     const a = ensure();
-    playingToken++; // 讓任何等待中的播放失效
+    playingToken++;
     a.pause();
   }
-
   function isSpeaking() {
     const a = ensure();
     return !a.paused;
   }
-
-  function currentTime() {
-    const a = ensure();
-    return a.currentTime || 0;
-  }
-
-  return { play, stop, isSpeaking, currentTime };
+  return { play, stop, isSpeaking };
 })();
 
-/** ====== Avatar 渲染：SVG 不再使用 height="auto" ====== */
+/** ====== Avatar SVG（不使用 height="auto"） ====== */
 function Face({ mouth = 0, blink = "open", head = { x: 0, y: 0 } }) {
-  // 將嘴型 0~1 映射到下巴位移
-  const jaw = 4 + mouth * 10; // px
+  const jaw = 4 + mouth * 10;
   const isClosed = blink === "closed";
-
   return (
     <svg
       viewBox="0 0 200 200"
-      width="100%"                 // ✅ 不用 auto
-      height="100%"                // ✅ 不用 auto
+      width="100%"
+      height="100%"
       preserveAspectRatio="xMidYMid meet"
-      style={{
-        maxWidth: 220,
-        maxHeight: 220,
-        display: "block",
-      }}
+      style={{ maxWidth: 220, maxHeight: 220, display: "block" }}
     >
       <g transform={`translate(${head.x}, ${head.y})`}>
-        {/* 臉底 */}
         <circle cx="100" cy="100" r="90" fill="#F5F7FB" stroke="#DDE3EE" />
-        {/* 眼睛 */}
         <g>
           {isClosed ? (
             <>
@@ -107,7 +80,6 @@ function Face({ mouth = 0, blink = "open", head = { x: 0, y: 0 } }) {
             </>
           )}
         </g>
-        {/* 嘴巴 */}
         <path
           d={`M 70 ${120 + mouth * 2} Q 100 ${120 + jaw} 130 ${120 + mouth * 2}`}
           stroke="#333"
@@ -120,13 +92,12 @@ function Face({ mouth = 0, blink = "open", head = { x: 0, y: 0 } }) {
   );
 }
 
-/** ====== 將後端 animation_data 播放成逐幀屬性 ====== */
+/** ====== 將 animation_data 播成逐幀 ====== */
 function useAnimationPlayer(animationData) {
   const [frame, setFrame] = useState({ mouth: 0, blink: "open", head: { x: 0, y: 0 } });
   const rafRef = useRef(null);
   const startRef = useRef(null);
 
-  // 預處理時間軸（避免每次 render 做線性搜尋）
   const mouth = animationData?.mouth_animation || [];
   const blinks = animationData?.blink_animation || [];
   const heads = animationData?.head_animation || [];
@@ -137,21 +108,17 @@ function useAnimationPlayer(animationData) {
     startRef.current = performance.now();
 
     const loop = () => {
-      const t = (performance.now() - startRef.current) / 1000; // 秒
+      const t = (performance.now() - startRef.current) / 1000;
       const clamped = Math.min(t, total);
 
-      // 找 mouth 最接近 clamped 的一個幀
       let m = 0;
       if (mouth.length > 0) {
-        const idx = Math.max(
-          0,
-          mouth.findIndex((f) => f.time >= clamped) - 1
-        );
-        const f = mouth[Math.min(Math.max(idx, 0), mouth.length - 1)];
-        m = f?.mouth_openness ?? 0;
+        let idx = mouth.findIndex((f) => f.time >= clamped);
+        if (idx === -1) idx = mouth.length - 1;
+        idx = Math.max(0, idx - 1);
+        m = mouth[idx]?.mouth_openness ?? 0;
       }
 
-      // blink
       let b = "open";
       for (let i = 0; i < blinks.length; i++) {
         const f = blinks[i];
@@ -161,34 +128,32 @@ function useAnimationPlayer(animationData) {
         }
       }
 
-      // head
       let h = { x: 0, y: 0 };
       if (heads.length > 0) {
-        const idx = Math.max(
-          0,
-          heads.findIndex((f) => f.time >= clamped) - 1
-        );
-        const f = heads[Math.min(Math.max(idx, 0), heads.length - 1)];
+        let idx = heads.findIndex((f) => f.time >= clamped);
+        if (idx === -1) idx = heads.length - 1;
+        idx = Math.max(0, idx - 1);
+        const f = heads[idx];
         h = { x: (f?.head_x || 0) * 6, y: (f?.head_y || 0) * 6 };
       }
 
       setFrame({ mouth: m, blink: b, head: h });
 
-      if (t < total && AudioController.isSpeaking()) {
+      // 只要還在說話就繼續跑；若是靜默模式也讓它跑到 total 即停
+      if (t < total && (AudioController.isSpeaking() || t < total)) {
         rafRef.current = requestAnimationFrame(loop);
       }
     };
 
-    // 啟動
     rafRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [animationData?.metadata?.generated_at]); // 新一段動畫才重跑
+    // 以 generated_at 作為「新一次動畫」的依賴
+  }, [animationData?.metadata?.generated_at]);
 
   return frame;
 }
 
-/** ====== 封裝呼叫 /api/chat/avatar/animate 並安全播放 ====== */
+/** ====== 呼叫後端 ====== */
 async function fetchAnimation({ apiBase, text, botType }) {
   const res = await fetch(`${apiBase}/api/chat/avatar/animate`, {
     method: "POST",
@@ -196,10 +161,7 @@ async function fetchAnimation({ apiBase, text, botType }) {
     body: JSON.stringify({ text, bot_type: botType }),
   });
   const data = await res.json();
-  if (!data?.success && !data?.audio_base64) {
-    const err = data?.error || "無法產生語音/動畫";
-    throw new Error(err);
-  }
+  // ✅ 關掉 demo：即使沒有 audio_base64 也視為可播放（以純動畫呈現）
   return data;
 }
 
@@ -218,13 +180,12 @@ export default function AvatarAnimation({
   const frame = useAnimationPlayer(anim);
 
   useEffect(() => {
-    // 空訊息不觸發
     if (!text || !text.trim()) return;
 
     let cancelled = false;
     const myReqId = ++lastReqIdRef.current;
 
-    // 避免同時送出多個請求：上一個還在播就先停
+    // 每次開始新一句前，先停掉舊的
     AudioController.stop();
 
     (async () => {
@@ -233,7 +194,6 @@ export default function AvatarAnimation({
         setPlaying(false);
 
         const data = await fetchAnimation({ apiBase, text, botType });
-
         if (cancelled || myReqId !== lastReqIdRef.current) return;
 
         setAnim(data.animation_data || null);
@@ -243,28 +203,24 @@ export default function AvatarAnimation({
           try {
             await AudioController.play(data.audio_base64);
           } catch (e) {
-            // 吸收 AbortError；其它錯誤丟給 UI
-            if (!e || e.name !== "AbortError") {
-              throw e;
-            }
+            if (!e || e.name !== "AbortError") throw e;
           } finally {
             setPlaying(false);
           }
         } else {
-          // 沒聲音：讓動畫跑一段時間即可
+          // ❌ 不播 demo；純動畫照跑即可
           setPlaying(false);
         }
       } catch (e) {
         const msg = e?.message || "播放失敗";
         setError(msg);
-        if (onError) onError(msg);
+        onError?.(msg);
         setPlaying(false);
       }
     })();
 
     return () => {
       cancelled = true;
-      // 中止本次播放（會讓舊 play 的 promise 走 AbortError，已處理）
       AudioController.stop();
     };
   }, [text, botType, apiBase]);
