@@ -366,7 +366,7 @@ export default function MoodTrail() {
           </RightTop>
 
           <RightBottom>
-            <SectionTitle>高風險提示語</SectionTitle>
+            <SectionTitle>小提醒</SectionTitle>
             <Placeholder>⚠️ 依 AI 摘要生成的提醒敘述</Placeholder>
           </RightBottom>
         </GridPanel>

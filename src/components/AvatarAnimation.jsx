@@ -1,44 +1,46 @@
-// AvatarAnimation.jsx - TTS-only + 安全偵測 API_BASE（避免 import.meta 未定義）
+// AvatarAnimation.jsx - 長方形容器填滿 + 內外雙層強烈呼吸光暈 + 靜音切換；支援分段 TTS
 import React, { useEffect, useRef, useState } from "react";
 
 /** ====== 安全取得 API Base ====== */
 function getApiBase(propApiBase) {
   if (propApiBase && typeof propApiBase === "string") return propApiBase;
 
-  // 1) runtime 全域（可在 index.html 設定 <script>window.API_BASE='...'</script>）
   if (typeof window !== "undefined" && typeof window.API_BASE === "string" && window.API_BASE) {
-    return window.API_BASE;
+    return window.API_BASE.replace(/\/+$/, "");
   }
-
-  // 2) 嘗試讀取 Vite 環境變數（可能不存在；用 try/catch 防爆）
   try {
-    // 某些 bundler 會在這裡直接 throw
     const v = (import.meta && import.meta.env && import.meta.env.VITE_API_BASE) || "";
-    if (v) return v;
-  } catch (_) {
-    // ignore
-  }
-
-  // 3) CRA/webpack define 選項
+    if (v) return v.replace(/\/+$/, "");
+  } catch (_) {}
   if (typeof process !== "undefined" && process.env && typeof process.env.API_BASE === "string" && process.env.API_BASE) {
-    return process.env.API_BASE;
+    return process.env.API_BASE.replace(/\/+$/, "");
   }
-
-  // 4) 最後預設
   return "https://emobot-backend.onrender.com";
 }
 
-/** ====== 單例音訊控制器（避免多 audio 互搶） ====== */
+/** ====== 單例音訊控制器（避免多 audio 互搶；支援分段播放；支援靜音） ====== */
 const AudioController = (() => {
   let audio = null;
   let playingToken = 0;
+  let muted = false;
 
   function ensure() {
     if (!audio) {
       audio = new Audio();
       audio.preload = "auto";
+      audio.muted = muted;
+      audio.volume = muted ? 0 : 1;
     }
     return audio;
+  }
+  function setMuted(m) {
+    muted = !!m;
+    const a = ensure();
+    a.muted = muted;
+    a.volume = muted ? 0 : 1;
+  }
+  function getMuted() {
+    return muted;
   }
   async function play(dataUrl) {
     const a = ensure();
@@ -60,120 +62,26 @@ const AudioController = (() => {
         });
       }
     } catch (err) {
-      if (err?.name === "AbortError") return; // 被 stop() 打斷屬正常
+      if (err?.name === "AbortError") return;
       throw err;
+    }
+  }
+  async function playQueue(segments = []) {
+    for (let i = 0; i < segments.length; i++) {
+      await play(segments[i]);
     }
   }
   function stop() {
     const a = ensure();
-    playingToken++; // 使既有播放 promise 失效
+    playingToken++;
     a.pause();
   }
   function isSpeaking() {
     const a = ensure();
     return !a.paused;
   }
-  return { play, stop, isSpeaking };
+  return { play, playQueue, stop, isSpeaking, setMuted, getMuted };
 })();
-
-/** ====== Avatar SVG（不使用 height="auto"） ====== */
-function Face({ mouth = 0, blink = "open", head = { x: 0, y: 0 } }) {
-  const jaw = 4 + mouth * 10;
-  const isClosed = blink === "closed";
-  return (
-    <svg
-      viewBox="0 0 200 200"
-      width="100%"
-      height="100%"
-      preserveAspectRatio="xMidYMid meet"
-      style={{ maxWidth: 220, maxHeight: 220, display: "block" }}
-    >
-      <g transform={`translate(${head.x}, ${head.y})`}>
-        <circle cx="100" cy="100" r="90" fill="#F5F7FB" stroke="#DDE3EE" />
-        <g>
-          {isClosed ? (
-            <>
-              <line x1="70" y1="85" x2="90" y2="85" stroke="#333" strokeWidth="3" />
-              <line x1="110" y1="85" x2="130" y2="85" stroke="#333" strokeWidth="3" />
-            </>
-          ) : (
-            <>
-              <circle cx="80" cy="85" r="6" fill="#333" />
-              <circle cx="120" cy="85" r="6" fill="#333" />
-            </>
-          )}
-        </g>
-        <path
-          d={`M 70 ${120 + mouth * 2} Q 100 ${120 + jaw} 130 ${120 + mouth * 2}`}
-          stroke="#333"
-          strokeWidth="4"
-          fill="transparent"
-          strokeLinecap="round"
-        />
-      </g>
-    </svg>
-  );
-}
-
-/** ====== 將 animation_data 播成逐幀 ====== */
-function useAnimationPlayer(animationData) {
-  const [frame, setFrame] = useState({ mouth: 0, blink: "open", head: { x: 0, y: 0 } });
-  const rafRef = useRef(null);
-  const startRef = useRef(null);
-
-  const mouth = animationData?.mouth_animation || [];
-  const blinks = animationData?.blink_animation || [];
-  const heads = animationData?.head_animation || [];
-  const total = animationData?.total_duration || 3;
-
-  useEffect(() => {
-    cancelAnimationFrame(rafRef.current);
-    startRef.current = performance.now();
-
-    const loop = () => {
-      const t = (performance.now() - startRef.current) / 1000;
-      const clamped = Math.min(t, total);
-
-      let m = 0;
-      if (mouth.length > 0) {
-        let idx = mouth.findIndex((f) => f.time >= clamped);
-        if (idx === -1) idx = mouth.length - 1;
-        idx = Math.max(0, idx - 1);
-        m = mouth[idx]?.mouth_openness ?? 0;
-      }
-
-      let b = "open";
-      for (let i = 0; i < blinks.length; i++) {
-        const f = blinks[i];
-        if (Math.abs(f.time - clamped) < 0.06) {
-          b = f.eye_state;
-          break;
-        }
-      }
-
-      let h = { x: 0, y: 0 };
-      if (heads.length > 0) {
-        let idx = heads.findIndex((f) => f.time >= clamped);
-        if (idx === -1) idx = heads.length - 1;
-        idx = Math.max(0, idx - 1);
-        const f = heads[idx];
-        h = { x: (f?.head_x || 0) * 6, y: (f?.head_y || 0) * 6 };
-      }
-
-      setFrame({ mouth: m, blink: b, head: h });
-
-      // 靜默也跑到 total 即停
-      if (t < total && (AudioController.isSpeaking() || t < total)) {
-        rafRef.current = requestAnimationFrame(loop);
-      }
-    };
-
-    rafRef.current = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [animationData?.metadata?.generated_at]); // 新一段動畫才重跑
-
-  return frame;
-}
 
 /** ====== 呼叫後端 ====== */
 async function fetchAnimation({ apiBase, text, botType }) {
@@ -182,45 +90,82 @@ async function fetchAnimation({ apiBase, text, botType }) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text, bot_type: botType }),
   });
-  const data = await res.json();
-  return data; // 即使沒有 audio，也用動畫呈現（不播 demo）
+  if (!res.ok) {
+    const textErr = await res.text().catch(() => "");
+    throw new Error(`Animate API ${res.status}: ${textErr}`);
+  }
+  return res.json();
 }
+
+/** ====== SVG Icons ====== */
+const IconVolume = ({ muted }) => (
+  muted ? (
+    // volume-off
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M3 9v6h4l5 4V5L7 9H3z" fill="#fff" opacity=".9"/>
+      <path d="M16 9l5 5m0-5l-5 5" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  ) : (
+    // volume-on
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M3 9v6h4l5 4V5L7 9H3z" fill="#fff" opacity=".9"/>
+      <path d="M16 7a5 5 0 010 10" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M18.5 5a8 8 0 010 14" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity=".85"/>
+    </svg>
+  )
+);
 
 /** ====== 主元件 ====== */
 export default function AvatarAnimation({
-  apiBase,            // 建議從父層傳入；否則自動偵測
+  apiBase,
   text,
   botType = "solution",
+  avatarImageUrl,        // 使用者在會員專區選的頭像圖
   onError,
 }) {
   const resolvedApiBase = getApiBase(apiBase);
-  const [anim, setAnim] = useState(null);
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState(null);
+  const [provider, setProvider] = useState("pending");
+  const [muted, setMuted] = useState(AudioController.getMuted());
   const lastReqIdRef = useRef(0);
 
-  const frame = useAnimationPlayer(anim);
+  // 切換靜音
+  const toggleMute = () => {
+    const next = !muted;
+    setMuted(next);
+    AudioController.setMuted(next);
+  };
 
   useEffect(() => {
     if (!text || !text.trim()) return;
 
     let cancelled = false;
     const myReqId = ++lastReqIdRef.current;
-
-    // 每次開始新一句前，先停掉舊的
     AudioController.stop();
 
     (async () => {
       try {
         setError(null);
         setPlaying(false);
+        setProvider("pending");
 
         const data = await fetchAnimation({ apiBase: resolvedApiBase, text, botType });
         if (cancelled || myReqId !== lastReqIdRef.current) return;
 
-        setAnim(data.animation_data || null);
+        const p = data?.animation_data?.meta?.provider || "openai";
+        setProvider(p);
 
-        if (data.audio_base64) {
+        if (data.audio_segments?.length) {
+          setPlaying(true);
+          try {
+            await AudioController.playQueue(data.audio_segments);
+          } catch (e) {
+            if (!e || e.name !== "AbortError") throw e;
+          } finally {
+            setPlaying(false);
+          }
+        } else if (data.audio_base64) {
           setPlaying(true);
           try {
             await AudioController.play(data.audio_base64);
@@ -246,29 +191,182 @@ export default function AvatarAnimation({
     };
   }, [text, botType, resolvedApiBase]);
 
+  /* ====== 視覺：框架（Frame）縮小 + 內外雙層光暈 ======
+     - 父層仍滿版，但實際顯示的圖片框(Frame)往內縮 10px，留出可視空間給光暈
+     - OuterHalo：在 Frame 外緣（inset: 2px）強烈呼吸擴散
+     - EdgeHalo：緊貼 Frame 邊緣的內圈呼吸
+     - 兩層都只在 playing 時顯示（靜音時也顯示，方便辨識正在說話）
+  */
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        // 父層維持溢出裁切，光暈以「縮小 Frame」換取視覺空間，不需要超出舞台
+        overflow: "hidden",
+      }}
+    >
+      {/* 外框（不裁切），只負責放內縮的 Frame 與光暈 */}
+      {/* OuterHalo：圖片外緣的大面積光圈（強烈、擴散） */}
       <div
         style={{
-          width: 220,
-          height: 220,
-          borderRadius: 16,
+          position: "absolute",
+          // 內縮 2px，距離舞台邊 2px；讓它在 Frame 四周可見
+          top: 2, right: 2, bottom: 2, left: 2,
+          borderRadius: 24,
+          pointerEvents: "none",
+          zIndex: 1,
+          opacity: playing ? 1 : 0,
+          transition: "opacity .2s ease-out",
+          animation: playing ? "emobotOuterPulse 1.15s ease-in-out infinite" : "none",
+        }}
+      />
+
+      {/* EdgeHalo：緊貼圖片外緣的內圈高亮（更銳利） */}
+      <div
+        style={{
+          position: "absolute",
+          // 和 Frame 一樣縮 10px，剛好落在圖片外緣
+          top: 10, right: 10, bottom: 10, left: 10,
+          borderRadius: 20,
+          pointerEvents: "none",
+          zIndex: 2,
+          opacity: playing ? 1 : 0,
+          transition: "opacity .2s ease-out",
+          animation: playing ? "emobotEdgePulse 0.9s ease-in-out infinite" : "none",
+        }}
+      />
+
+      {/* 內縮的圖片框（真正裁切 + 陰影） */}
+      <div
+        style={{
+          position: "absolute",
+          top: 10, right: 10, bottom: 10, left: 10, // 內縮 10px，留出光暈可視空間
+          borderRadius: 20,
+          overflow: "hidden",
           background: "#fff",
-          boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
-          display: "grid",
-          placeItems: "center",
+          zIndex: 3,
+          boxShadow: "0 12px 40px rgba(0,0,0,.15)",
         }}
       >
-        <Face mouth={frame.mouth} blink={frame.blink} head={frame.head} />
+        <img
+          src={avatarImageUrl}
+          alt="avatar"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
       </div>
 
-      <div style={{ fontSize: 14, color: "#334" }}>
-        <div>狀態：{playing ? "說話中..." : "待機"}</div>
-        {error && <div style={{ color: "#c00" }}>錯誤：{error}</div>}
-        <div style={{ opacity: 0.7 }}>
-          來源：{anim?.meta?.provider || "pending"}
-        </div>
+      {/* 右上角：靜音切換（置於最上層） */}
+      <button
+        onClick={toggleMute}
+        aria-label={muted ? "取消靜音" : "靜音"}
+        title={muted ? "取消靜音" : "靜音"}
+        style={{
+          position: "absolute",
+          top: 16,
+          right: 16,
+          width: 38,
+          height: 38,
+          borderRadius: 12,
+          border: "1px solid rgba(255,255,255,.7)",
+          background: muted
+            ? "linear-gradient(135deg, rgba(30,30,30,.92), rgba(60,60,60,.92))"
+            : "linear-gradient(135deg, rgba(90,140,242,.95), rgba(122,194,221,.95))",
+          color: "#fff",
+          display: "grid",
+          placeItems: "center",
+          cursor: "pointer",
+          boxShadow: "0 8px 18px rgba(0,0,0,.28)",
+          backdropFilter: "blur(6px)",
+          zIndex: 5,
+        }}
+      >
+        <IconVolume muted={muted} />
+      </button>
+
+      {/* 右下角狀態徽章（可移除） */}
+      <div
+        style={{
+          position: "absolute",
+          right: 14,
+          bottom: 12,
+          padding: "6px 10px",
+          borderRadius: 12,
+          fontSize: 12,
+          color: "#334",
+          background: "rgba(255,255,255,.88)",
+          boxShadow: "0 2px 8px rgba(0,0,0,.12)",
+          zIndex: 5,
+        }}
+      >
+        狀態：{playing ? (muted ? "說話中 (靜音)" : "說話中...") : "待機"}　來源：{provider}
+        {error && <span style={{ color: "#c00", marginLeft: 8 }}>錯誤：{error}</span>}
       </div>
+
+      {/* 光暈動畫定義：外圈更柔和擴散、內圈更銳利脈衝 */}
+      <style>{`
+        /* 外圈：大面積擴散，帶模糊層疊與色彩層次 */
+        @keyframes emobotOuterPulse {
+          0% {
+            box-shadow:
+              0 0 0 0 rgba(90,140,242,0.46),
+              0 0 22px 8px rgba(90,140,242,0.35),
+              0 0 62px 24px rgba(90,140,242,0.18),
+              inset 0 0 0 0 rgba(122,194,221,0.18);
+            transform: scale(0.995);
+            filter: blur(0.2px);
+          }
+          50% {
+            box-shadow:
+              0 0 0 0 rgba(90,140,242,0.62),
+              0 0 36px 14px rgba(90,140,242,0.45),
+              0 0 120px 44px rgba(90,140,242,0.26),
+              inset 0 0 0 2px rgba(122,194,221,0.22);
+            transform: scale(1.01);
+            filter: blur(0.6px);
+          }
+          100% {
+            box-shadow:
+              0 0 0 0 rgba(90,140,242,0.46),
+              0 0 22px 8px rgba(90,140,242,0.35),
+              0 0 62px 24px rgba(90,140,242,0.18),
+              inset 0 0 0 0 rgba(122,194,221,0.18);
+            transform: scale(0.995);
+            filter: blur(0.2px);
+          }
+        }
+
+        /* 內圈：靠近圖片邊緣的銳利脈衝，帶「描邊發光」感 */
+        @keyframes emobotEdgePulse {
+          0% {
+            box-shadow:
+              0 0 0 0 rgba(122,194,221,0.0),
+              0 0 0 0 rgba(90,140,242,0.0),
+              inset 0 0 0 0 rgba(90,140,242,0.0);
+            transform: scale(1);
+          }
+          50% {
+            box-shadow:
+              0 0 10px 2px rgba(122,194,221,0.28),
+              0 0 28px 9px rgba(90,140,242,0.32),
+              inset 0 0 0 2px rgba(90,140,242,0.28);
+            transform: scale(1.005);
+          }
+          100% {
+            box-shadow:
+              0 0 0 0 rgba(122,194,221,0.0),
+              0 0 0 0 rgba(90,140,242,0.0),
+              inset 0 0 0 0 rgba(90,140,242,0.0);
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 }
