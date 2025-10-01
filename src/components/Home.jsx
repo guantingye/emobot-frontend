@@ -12,7 +12,7 @@ import bot6 from "../assets/bot6.png";
 import bot4 from "../assets/bot4.png";
 import userIcon from "../assets/profile.png";
 import { MdEmojiPeople, MdChat, MdFavorite, MdPsychology } from "react-icons/md";
-import { FiX, FiMail, FiCopy, FiCheck, FiFileText, FiShield } from "react-icons/fi";
+import { FiX, FiMail, FiFileText, FiShield } from "react-icons/fi";
 import logoIcon from "../assets/logofig.png";
 import PersonaModal from "./PersonaModal";
 import personas from "../data/botPersonas";
@@ -398,7 +398,7 @@ const AboutContent = styled.div` flex: 1; `;
 const AboutTitle = styled.h2` font-size: 50px; font-weight: 700; color: #000; margin-bottom: 24px; `;
 const AboutText = styled.p` font-size: 22px; color: #333; line-height: 2; white-space: pre-line; `;
 
-/* ====== 底部（調整：拿掉「國家」，加版本） ====== */
+/* ====== 底部（只留「隱私政策/聯絡我們」 + 版本） ====== */
 const Footer = styled.footer`
   background: #c2c2c2; color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 18px;
   @media (max-width: 768px) { padding: 16px 20px; font-size: 16px; flex-direction: column; gap: 12px; text-align: center; }
@@ -414,7 +414,7 @@ const VersionTag = styled.span`
   font-weight: 800; letter-spacing: .4px; background: rgba(0,0,0,.18); padding: 4px 10px; border-radius: 999px; font-size: 12px;
 `;
 
-/* ====== Contact Modal（矩形長條 & 更精緻） ====== */
+/* ====== Modal 共用：聯絡/隱私 ====== */
 const Overlay = styled.div`
   position: fixed; inset: 0; z-index: 1000;
   background: rgba(20, 24, 40, 0.45);
@@ -426,7 +426,7 @@ const ModalShell = styled.div`
   width: min(840px, 94vw);  /* 長條矩形 */
   background: linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(247,250,255,0.98) 100%);
   border: 1px solid rgba(43, 57, 147, 0.12);
-  border-radius: 14px; /* 更矩形的外觀 */
+  border-radius: 14px; /* 矩形外觀 */
   box-shadow: 0 24px 80px rgba(18, 28, 80, 0.28), 0 6px 20px rgba(0,0,0,0.08);
   overflow: hidden; animation: ${fadeIn} .26s ease both;
 `;
@@ -463,8 +463,10 @@ const Label = styled.div`
 const Value = styled.div`
   font-size: 16px; color: #2a334d; display: flex; align-items: center; gap: 10px;
   a { color: #324ab2; text-decoration: none; border-bottom: 1px dashed #b7c2ff; }
-  white-space: nowrap; /* 不換行 */
-  overflow: hidden; text-overflow: ellipsis;
+  /* 響應式可斷行，避免被蓋住 */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 `;
 const RowActions = styled.div` display:flex; gap:8px; `;
 const GhostBtn = styled.button`
@@ -496,10 +498,9 @@ export default function Home() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(null);
 
-  // 新增：聯絡/隱私 視窗狀態
+  // 視窗狀態
   const [contactOpen, setContactOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const VERSION = "v1.0.0";
 
@@ -573,17 +574,6 @@ export default function Home() {
     const el = e.currentTarget;
     el.style.setProperty("--tiltX", `0deg`);
     el.style.setProperty("--tiltY", `0deg`);
-  };
-
-  // 複製 email
-  const copyEmail = async () => {
-    try {
-      await navigator.clipboard.writeText("emobotplus@gmail.com");
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
-    } catch {
-      alert("複製失敗，請手動選取複製。");
-    }
   };
 
   return (
@@ -718,7 +708,7 @@ export default function Home() {
       <Footer>
         <div style={{display:"flex", alignItems:"center", gap:12}}>
           <span>Copyright © 2025 Emobot+</span>
-          <VersionTag>{VERSION}</VersionTag>
+          <VersionTag>v1.0.0</VersionTag>
         </div>
         <FooterLinks>
           <div onClick={() => setPrivacyOpen(true)}><FiShield /> 隱私政策</div>
@@ -737,7 +727,7 @@ export default function Home() {
         accentEnd={active?.accentEnd || "#764ba2"}
       />
 
-      {/* ====== 聯絡我們：長條矩形視窗 ====== */}
+      {/* ====== 聯絡我們：長條矩形視窗（Email 可自動換行；移除複製按鈕） ====== */}
       <Overlay
         open={contactOpen}
         onClick={(e) => e.target === e.currentTarget && setContactOpen(false)}
@@ -748,7 +738,7 @@ export default function Home() {
           <ModalHead>
             <ModalTitleGroup>
               <h3>聯絡我們</h3>
-              <small>{VERSION}</small>
+              <small>v1.0.0</small>
             </ModalTitleGroup>
             <CloseBtn aria-label="關閉" onClick={() => setContactOpen(false)}>
               <FiX size={20} />
@@ -767,11 +757,7 @@ export default function Home() {
               <Value>
                 <a href="mailto:emobotplus@gmail.com" title="點我用預設郵件程式開啟">emobotplus@gmail.com</a>
               </Value>
-              <RowActions>
-                <GhostBtn onClick={copyEmail} aria-live="polite">
-                  {copied ? (<><FiCheck /> 已複製</>) : (<><FiCopy /> 複製 Email</>)}
-                </GhostBtn>
-              </RowActions>
+              <RowActions /> {/* 不再顯示任何按鈕 */}
             </Row>
           </ModalBody>
 
@@ -781,7 +767,7 @@ export default function Home() {
         </ModalShell>
       </Overlay>
 
-      {/* ====== 隱私政策：專業閱讀樣式視窗 ====== */}
+      {/* ====== 隱私政策：專業閱讀樣式視窗（維持） ====== */}
       <Overlay
         open={privacyOpen}
         onClick={(e) => e.target === e.currentTarget && setPrivacyOpen(false)}
@@ -792,7 +778,7 @@ export default function Home() {
           <ModalHead>
             <ModalTitleGroup>
               <h3>隱私政策</h3>
-              <small>{VERSION}</small>
+              <small>v1.0.0</small>
             </ModalTitleGroup>
             <CloseBtn aria-label="關閉" onClick={() => setPrivacyOpen(false)}>
               <FiX size={20} />

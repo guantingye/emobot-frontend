@@ -1,528 +1,445 @@
-// src/api/client.js
-// 簡化版本 - 專注解決 CORS 和連線問題
+// src/api/client.js - 完整版本
 
-// ★ 修復：將所有 import 移到檔案頂部
-import { useState, useEffect, useRef } from 'react';
-
-const API_BASE = "https://emobot-backend.onrender.com"; // ★ 請替換成你的實際後端 URL
-
-console.log("API_BASE:", API_BASE);
-
-function authHeader() {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
+// 安全地取得 API Base URL
+function getApiBaseUrl() {
+  // 方法1: 檢查 import.meta (Vite)
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    return import.meta.env.VITE_API_BASE || 'https://emobot-backend.onrender.com';
+  }
+  
+  // 方法2: 檢查 process.env (Webpack/CRA)
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env.REACT_APP_API_BASE || process.env.VITE_API_BASE || 'https://emobot-backend.onrender.com';
+  }
+  
+  // 方法3: 檢查 window 全局變數
+  if (typeof window !== 'undefined' && window.VITE_API_BASE) {
+    return window.VITE_API_BASE;
+  }
+  
+  // 預設值
+  return 'https://emobot-backend.onrender.com';
 }
 
-// 格式化錯誤訊息
-function formatError(data, status) {
-  if (!data) return `HTTP ${status}`;
-  if (Array.isArray(data.detail)) {
-    const messages = data.detail.map(err => {
-      const field = Array.isArray(err.loc) ? err.loc.join('.') : 'field';
-      return `${field}: ${err.msg}`;
-    });
-    return `驗證錯誤: ${messages.join(', ')}`;
-  }
-  if (typeof data.detail === "string") return data.detail;
-  if (data.message) return data.message;
-  if (data.error) return data.error;
-  return `HTTP ${status}`;
-}
+const BASE_URL = getApiBaseUrl();
 
-// ★ 簡化的 request 函數
-async function request(path, options = {}) {
-  const base = API_BASE.replace(/\/+$/, "");
-  const url = `${base}${path}`;
+// ============================================================================
+// 輔助函數
+// ============================================================================
 
-  let { method = "GET", headers = {}, body, retries = 2 } = options;
-
-  // 準備請求體
-  if (body != null && typeof body !== "string") {
-    body = JSON.stringify(body);
-  }
-  const httpMethod = method.toUpperCase();
-  if (!body && ["POST", "PUT", "PATCH"].includes(httpMethod)) {
-    body = "{}";
-  }
-
-  // 準備標頭
-  const finalHeaders = {
-    "Accept": "application/json",
-    "Content-Type": "application/json",
-    ...authHeader(),
-    ...headers,
+/**
+ * 取得認證 headers
+ */
+function getAuthHeaders() {
+  const token = localStorage.getItem('token');
+  const headers = {
+    'Content-Type': 'application/json',
   };
-
-  console.log(`🌐 ${httpMethod} ${url}`);
-  if (body && body !== "{}") {
-    console.log("📤 Request body:", body.substring(0, 100) + (body.length > 100 ? "..." : ""));
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
-
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const response = await fetch(url, {
-        method: httpMethod,
-        headers: finalHeaders,
-        body: body || undefined,
-        credentials: 'include',
-      });
-
-      console.log(`📥 Response: ${response.status} ${response.statusText}`);
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("✅ Success:", data);
-        return data;
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = formatError(errorData, response.status);
-        throw new Error(errorMessage);
-      }
-    } catch (error) {
-      console.error(`❌ Attempt ${attempt + 1} failed:`, error.message);
-      
-      if (attempt === retries) {
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-          throw new Error(`無法連接到伺服器，請檢查：
-1. 伺服器離線或重啟中
-2. 網路連線問題
-3. CORS 設定問題
-請稍後再試或聯繫管理員。`);
-        }
-        
-        throw error;
-      }
-    }
-  }
+  
+  return headers;
 }
 
-// ====== 基本 API ======
-export async function testConnection() {
-  try {
-    const result = await request("/api/health");
-    console.log("✅ Connection test passed:", result);
-    return result;
-  } catch (error) {
-    console.error("❌ Connection test failed:", error.message);
-    throw error;
+/**
+ * 處理 API 回應
+ */
+async function handleResponse(response) {
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: '請求失敗' }));
+    throw new Error(error.detail || `HTTP ${response.status}`);
   }
+  return response.json();
 }
 
+// ============================================================================
+// 認證相關 API
+// ============================================================================
+
+/**
+ * 登入/註冊
+ */
 export async function apiJoin(pid, nickname) {
-  try {
-    console.log("🔐 Attempting login:", { pid, nickname });
-    const result = await request("/api/auth/join", {
-      method: "POST",
-      body: { pid, nickname },
-    });
-    
-    if (result?.token) {
-      localStorage.setItem("token", result.token);
-      console.log("✅ Token stored");
-    }
-    if (result?.user) {
-      localStorage.setItem("user", JSON.stringify(result.user));
-      console.log("✅ User info stored:", result.user);
-    }
-    return result;
-  } catch (error) {
-    console.error("❌ Login failed:", error.message);
-    throw error;
-  }
+  const response = await fetch(`${BASE_URL}/api/auth/join`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pid, nickname }),
+  });
+  return handleResponse(response);
 }
 
+/**
+ * 取得用戶資料
+ */
 export async function apiMe() {
-  try {
-    return await request("/api/user/profile");
-  } catch (error) {
-    console.error("❌ Get profile failed:", error.message);
-    throw error;
-  }
+  const response = await fetch(`${BASE_URL}/api/user/profile`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
 }
 
-// ====== 測評相關 ======
-export async function saveAssessment(data) {
-  try {
-    console.log("💾 Saving assessment:", data);
-    const processedData = {
-      ...data,
-      submittedAt: data.submittedAt || new Date().toISOString()
-    };
-    
-    // 處理 MBTI 格式
-    if (data.mbti && typeof data.mbti === 'object') {
-      processedData.mbti_raw = data.mbti.raw;
-      processedData.mbti_encoded = data.mbti.encoded;
-      delete processedData.mbti;
-    }
-    
-    const result = await request("/api/assessments/upsert", {
-      method: "POST",
-      body: processedData,
-    });
-    console.log("✅ Assessment saved:", result);
-    return result;
-  } catch (error) {
-    console.error("❌ Save assessment failed:", error.message);
-    throw error;
-  }
+// ============================================================================
+// 心理測驗相關 API
+// ============================================================================
+
+/**
+ * 儲存/更新測驗結果
+ */
+export async function apiUpsertAssessment(payload) {
+  const response = await fetch(`${BASE_URL}/api/assessments/upsert`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(response);
 }
 
-export async function saveAssessmentMBTI(mbtiString, encodedArray) {
-  try {
-    console.log("💾 Saving MBTI:", { mbtiString, encodedArray });
-    
-    const mbti_raw = String(mbtiString).toUpperCase();
-    const mbti_encoded = Array.isArray(encodedArray) ?
-      encodedArray.map(v => parseFloat(v) || 0) : 
-      [0, 0, 0, 0];
-    
-    const result = await request("/api/assessments/upsert", {
-      method: "POST",
-      body: { mbti_raw, mbti_encoded },
-    });
-    console.log("✅ MBTI saved:", result);
-    return result;
-  } catch (error) {
-    console.error("❌ Save MBTI failed:", error.message);
-    throw error;
-  }
+/**
+ * 取得我的測驗結果
+ */
+export async function apiGetMyAssessment() {
+  const response = await fetch(`${BASE_URL}/api/assessments/me`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
 }
 
+// ============================================================================
+// 機器人推薦相關 API
+// ============================================================================
+
+/**
+ * 執行推薦演算法
+ */
+export async function apiRecommend() {
+  const response = await fetch(`${BASE_URL}/api/match/recommend`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+}
+
+/**
+ * 執行推薦演算法 (別名,為了向後兼容)
+ */
 export async function runMatching() {
-  try {
-    const result = await request("/api/match/recommend", {
-      method: "POST",
-    });
-    console.log("✅ Matching completed:", result);
-    return result;
-  } catch (error) {
-    console.error("❌ Matching failed:", error.message);
-    throw error;
-  }
+  return apiRecommend();
 }
 
+/**
+ * 選擇機器人
+ */
+export async function apiChooseBot(botType) {
+  const response = await fetch(`${BASE_URL}/api/match/choose`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ bot_type: botType }),
+  });
+  return handleResponse(response);
+}
+
+/**
+ * 選擇機器人 (別名,為了向後兼容)
+ */
 export async function commitChoice(botType) {
-  try {
-    const result = await request("/api/match/choose", {
-      method: "POST",
-      body: { bot_type: botType },
-    });
-    console.log("✅ Choice committed:", result);
-    return result;
-  } catch (error) {
-    console.error("❌ Commit choice failed:", error.message);
-    throw error;
-  }
+  return apiChooseBot(botType);
 }
 
-// ====== 聊天相關 ======
-export async function sendChatMessage(message, botType = "solution", mode = "text", history = []) {
+// ============================================================================
+// 聊天相關 API
+// ============================================================================
+
+/**
+ * 發送聊天訊息
+ * @param {string} message - 用戶訊息內容
+ * @param {string} botType - 機器人類型 (empathy/insight/solution/cognitive)
+ * @param {string} mode - 對話模式 (text/video)
+ * @param {Array} history - 對話歷史記錄
+ * @param {boolean} demo - 是否為演示模式
+ * @param {string} sessionId - HeyGen 會話 ID (video 模式使用)
+ */
+export async function sendChatMessage(
+  message, 
+  botType = 'solution', 
+  mode = 'text', 
+  history = [], 
+  demo = false,
+  sessionId = null
+) {
   try {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const userId = user.id || 0;
-    
-    const result = await request("/api/chat/send", {
-      method: "POST",
-      headers: {
-        "X-User-Id": String(userId),
-      },
-      body: {
+    const response = await fetch(`${BASE_URL}/api/chat/send`, {
+      method: 'POST',
+      headers: getAuthHeaders(), // 使用 JWT Bearer token
+      body: JSON.stringify({
         message,
         bot_type: botType,
         mode,
         history,
-        demo: false
-      },
+        demo,
+        session_id: sessionId,
+      }),
     });
+
+    return await handleResponse(response);
     
-    console.log("✅ Chat sent:", { 
-      ok: result.ok, 
-      hasReply: !!result.reply,
-      sessionId: result.session_id 
-    });
-    
-    return result;
   } catch (error) {
-    console.error("❌ Chat send failed:", error.message);
+    console.error('Chat API error:', error);
     throw error;
   }
 }
 
-// ====== 舊版聊天 API（向後相容）======
-export async function saveChatMessage(content, role = "user", botType = null, userMood = null, moodIntensity = null) {
-  try {
-    return await request("/api/chat/messages", {
-      method: "POST",
-      body: {
-        content,
-        role,
-        bot_type: botType,
-        mode: "text",
-        user_mood: userMood,
-        mood_intensity: moodIntensity
-      },
-    });
-  } catch (error) {
-    console.error("❌ Save chat message failed:", error.message);
-    throw error;
-  }
+/**
+ * 取得聊天歷史記錄
+ */
+export async function apiGetChatHistory(limit = 50) {
+  const response = await fetch(`${BASE_URL}/api/chat/history?limit=${limit}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
 }
 
-export async function getChatHistory(limit = 50) {
-  try {
-    return await request(`/api/chat/messages?limit=${limit}`);
-  } catch (error) {
-    console.error("❌ Get chat history failed:", error.message);
-    throw error;
-  }
+/**
+ * 取得聊天統計資訊
+ */
+export async function apiGetChatStats() {
+  const response = await fetch(`${BASE_URL}/api/chat/stats`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
 }
 
-// ====== 心情記錄 ======
-export async function saveMoodRecord(mood, intensity, note = null) {
-  try {
-    return await request("/api/mood/records", {
-      method: "POST",
-      body: { mood, intensity, note },
-    });
-  } catch (error) {
-    console.error("❌ Save mood failed:", error.message);
-    throw error;
-  }
+// ============================================================================
+// HeyGen 視訊相關 API
+// ============================================================================
+
+/**
+ * 創建 HeyGen 會話
+ */
+export async function apiCreateHeyGenSession(avatarId = null, voice = null) {
+  const response = await fetch(`${BASE_URL}/api/chat/heygen/create_session`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      avatar_id: avatarId,
+      voice: voice,
+      quality: 'medium',
+      language: 'zh-TW',
+    }),
+  });
+  return handleResponse(response);
 }
 
-export async function getMoodHistory(days = 30) {
-  try {
-    return await request(`/api/mood/records?days=${days}`);
-  } catch (error) {
-    console.error("❌ Get mood history failed:", error.message);
-    throw error;
-  }
+/**
+ * 發送文字到 HeyGen
+ */
+export async function apiSendTextToHeyGen(sessionId, text, emotion = 'friendly', rate = 1.0) {
+  const response = await fetch(`${BASE_URL}/api/chat/heygen/send_text`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      session_id: sessionId,
+      text,
+      emotion,
+      rate,
+    }),
+  });
+  return handleResponse(response);
 }
 
-// ====== 會話管理 API ======
-export async function endChatSession(reason = "user_ended") {
-  try {
-    return await request("/api/chat/session/end", {
-      method: "POST",
-      body: { reason },
-    });
-  } catch (error) {
-    console.error("❌ End chat session failed:", error.message);
-    throw error;
-  }
+/**
+ * 關閉 HeyGen 會話
+ */
+export async function apiCloseHeyGenSession(sessionId) {
+  const response = await fetch(`${BASE_URL}/api/chat/heygen/close_session`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ session_id: sessionId }),
+  });
+  return handleResponse(response);
 }
 
-export async function getChatSessions(activeOnly = false) {
-  try {
-    return await request(`/api/admin/chat-sessions?active_only=${activeOnly}`);
-  } catch (error) {
-    console.error("❌ Get chat sessions failed:", error.message);
-    throw error;
-  }
+// ============================================================================
+// 心情記錄相關 API
+// ============================================================================
+
+/**
+ * 儲存心情記錄
+ */
+export async function apiSaveMood(score, note = '', tags = []) {
+  const response = await fetch(`${BASE_URL}/api/moods`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ score, note, tags }),
+  });
+  return handleResponse(response);
 }
 
-export async function cleanupInactiveSessions(timeoutMinutes = 5) {
-  try {
-    return await request(`/api/admin/chat-sessions/cleanup?timeout_minutes=${timeoutMinutes}`, {
-      method: "POST",
-    });
-  } catch (error) {
-    console.error("❌ Cleanup sessions failed:", error.message);
-    throw error;
-  }
+/**
+ * 取得我的心情記錄
+ */
+export async function apiGetMyMoods(limit = 30) {
+  const response = await fetch(`${BASE_URL}/api/moods/me?limit=${limit}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
 }
 
-// ====== PID 管理 API ======
+// ============================================================================
+// 管理員相關 API
+// ============================================================================
+
+/**
+ * 取得允許的 PID 清單
+ */
 export async function getAllowedPids(activeOnly = true) {
-  try {
-    return await request(`/api/admin/allowed-pids?active_only=${activeOnly}`);
-  } catch (error) {
-    console.error("❌ Get allowed PIDs failed:", error.message);
-    throw error;
-  }
+  const response = await fetch(
+    `${BASE_URL}/api/admin/allowed-pids${activeOnly ? '?active_only=true' : ''}`,
+    {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    }
+  );
+  return handleResponse(response);
 }
 
-export async function createAllowedPid(pid, description = null) {
-  try {
-    return await request("/api/admin/allowed-pids", {
-      method: "POST",
-      body: { pid, description },
-    });
-  } catch (error) {
-    console.error("❌ Create allowed PID failed:", error.message);
-    throw error;
-  }
+/**
+ * 新增允許的 PID
+ */
+export async function createAllowedPid(pid, description = '') {
+  const response = await fetch(`${BASE_URL}/api/admin/allowed-pids`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ pid, description }),
+  });
+  return handleResponse(response);
 }
 
-export async function updateAllowedPid(pidId, updates) {
-  try {
-    return await request(`/api/admin/allowed-pids/${pidId}`, {
-      method: "PUT",
-      body: updates,
-    });
-  } catch (error) {
-    console.error("❌ Update allowed PID failed:", error.message);
-    throw error;
-  }
+/**
+ * 更新允許的 PID
+ */
+export async function updateAllowedPid(pidId, data) {
+  const response = await fetch(`${BASE_URL}/api/admin/allowed-pids/${pidId}`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
 }
 
+/**
+ * 刪除允許的 PID
+ */
 export async function deleteAllowedPid(pidId) {
-  try {
-    return await request(`/api/admin/allowed-pids/${pidId}`, {
-      method: "DELETE",
-    });
-  } catch (error) {
-    console.error("❌ Delete allowed PID failed:", error.message);
-    throw error;
-  }
+  const response = await fetch(`${BASE_URL}/api/admin/allowed-pids/${pidId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
 }
 
-// ====== 統計資料 API ======
+/**
+ * 取得聊天會話列表
+ */
+export async function getChatSessions(activeOnly = true) {
+  const response = await fetch(
+    `${BASE_URL}/api/admin/chat-sessions${activeOnly ? '?active_only=true' : ''}`,
+    {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    }
+  );
+  return handleResponse(response);
+}
+
+/**
+ * 清理非活躍會話
+ */
+export async function cleanupInactiveSessions(timeoutMinutes = 30) {
+  const response = await fetch(
+    `${BASE_URL}/api/admin/cleanup-sessions?timeout_minutes=${timeoutMinutes}`,
+    {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    }
+  );
+  return handleResponse(response);
+}
+
+/**
+ * 取得系統統計資訊
+ */
 export async function getSystemStatistics() {
-  try {
-    return await request("/api/admin/statistics");
-  } catch (error) {
-    console.error("❌ Get statistics failed:", error.message);
-    throw error;
-  }
+  const response = await fetch(`${BASE_URL}/api/admin/stats`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
 }
 
-// ====== 其他 API ======
-export async function getMyAssessment() {
-  try {
-    return await request("/api/assessments/me");
-  } catch (error) {
-    console.error("❌ Get assessment failed:", error.message);
-    throw error;
-  }
-}
+// ============================================================================
+// 向後兼容的別名
+// ============================================================================
 
-export async function getMyMatchChoice() {
-  try {
-    return await request("/api/match/me");
-  } catch (error) {
-    console.error("❌ Get match failed:", error.message);
-    throw error;
-  }
-}
+// 為了兼容舊代碼,提供一些別名
+export const apiSendChat = sendChatMessage;
+export const apiAddAllowedPid = createAllowedPid;
+export const apiDeleteAllowedPid = deleteAllowedPid;
 
-export async function debugDbTest() {
-  try {
-    return await request("/api/debug/db-test");
-  } catch (error) {
-    console.error("❌ DB test failed:", error.message);
-    throw error;
-  }
-}
+// 測驗相關的別名
+export const saveAssessmentMBTI = apiUpsertAssessment;
+export const saveAssessment = apiUpsertAssessment;
 
-// ====== 會話管理 Hook (React) ======
-export function useSessionManager() {
-  const [sessionId, setSessionId] = useState(null);
-  const [isActive, setIsActive] = useState(false);
-  const lastActivityRef = useRef(Date.now());
-  const timeoutRef = useRef(null);
+// ============================================================================
+// 預設導出
+// ============================================================================
 
-  const TIMEOUT_MINUTES = 5;
-  const TIMEOUT_MS = TIMEOUT_MINUTES * 60 * 1000;
-
-  // 更新活動時間
-  const updateActivity = () => {
-    lastActivityRef.current = Date.now();
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    
-    // 設定新的超時
-    timeoutRef.current = setTimeout(() => {
-      handleSessionTimeout();
-    }, TIMEOUT_MS);
-  };
-
-  // 處理會話超時
-  const handleSessionTimeout = async () => {
-    if (isActive) {
-      try {
-        await endChatSession("timeout");
-        setIsActive(false);
-        setSessionId(null);
-        console.log("🕐 會話因超時自動結束");
-      } catch (error) {
-        console.error("❌ 自動結束會話失敗:", error);
-      }
-    }
-  };
-
-  // 開始新會話
-  const startSession = (newSessionId) => {
-    setSessionId(newSessionId);
-    setIsActive(true);
-    updateActivity();
-  };
-
-  // 手動結束會話
-  const endSession = async (reason = "user_ended") => {
-    if (isActive) {
-      try {
-        await endChatSession(reason);
-        setIsActive(false);
-        setSessionId(null);
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-        console.log(`✅ 會話已結束 (${reason})`);
-      } catch (error) {
-        console.error("❌ 結束會話失敗:", error);
-      }
-    }
-  };
-
-  // 清理
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
-  return {
-    sessionId,
-    isActive,
-    startSession,
-    endSession,
-    updateActivity,
-    timeoutMinutes: TIMEOUT_MINUTES
-  };
-}
-
-// ★ 修復：預設匯出使用物件變數
-const apiClient = {
-  testConnection,
+export default {
+  // 認證
   apiJoin,
   apiMe,
-  saveAssessment,
-  saveAssessmentMBTI,
+  
+  // 測驗
+  apiUpsertAssessment,
+  apiGetMyAssessment,
+  saveAssessmentMBTI,  // 別名
+  saveAssessment,      // 別名
+  
+  // 推薦
+  apiRecommend,
   runMatching,
+  apiChooseBot,
   commitChoice,
+  
+  // 聊天
   sendChatMessage,
-  saveChatMessage,
-  getChatHistory,
-  saveMoodRecord,
-  getMoodHistory,
-  getMyAssessment,
-  getMyMatchChoice,
-  debugDbTest,
-  // 新增的函數
-  endChatSession,
-  getChatSessions,
-  cleanupInactiveSessions,
+  apiSendChat,
+  apiGetChatHistory,
+  apiGetChatStats,
+  
+  // HeyGen
+  apiCreateHeyGenSession,
+  apiSendTextToHeyGen,
+  apiCloseHeyGenSession,
+  
+  // 心情
+  apiSaveMood,
+  apiGetMyMoods,
+  
+  // 管理員
   getAllowedPids,
   createAllowedPid,
+  apiAddAllowedPid,
   updateAllowedPid,
   deleteAllowedPid,
+  apiDeleteAllowedPid,
+  getChatSessions,
+  cleanupInactiveSessions,
   getSystemStatistics,
-  useSessionManager,
 };
-
-export default apiClient;
