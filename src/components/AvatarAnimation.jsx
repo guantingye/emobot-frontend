@@ -1,24 +1,16 @@
-// AvatarAnimation.jsx - 長方形容器填滿 + 內外雙層強烈呼吸光暈 + 靜音切換；支援分段 TTS
-import React, { useEffect, useRef, useState } from "react";
+// src/components/AvatarAnimation.jsx
+import React, { useEffect, useRef, useState, useMemo } from "react";
+import styled, { keyframes, css } from "styled-components";
+import { HiVolumeUp, HiVolumeOff } from "react-icons/hi";
 
-/** ====== 安全取得 API Base ====== */
-function getApiBase(propApiBase) {
-  if (propApiBase && typeof propApiBase === "string") return propApiBase;
+const BOT_COLORS = {
+  empathy:  { start: "#FFB6C1", end: "#FF8FB1" },
+  insight:  { start: "#7AC2DD", end: "#5A8CF2" },
+  solution: { start: "#3AA87A", end: "#9AE6B4" },
+  cognitive:{ start: "#7A4DC8", end: "#B794F4" },
+  default:  { start: "#667eea", end: "#764ba2" },
+};
 
-  if (typeof window !== "undefined" && typeof window.API_BASE === "string" && window.API_BASE) {
-    return window.API_BASE.replace(/\/+$/, "");
-  }
-  try {
-    const v = (import.meta && import.meta.env && import.meta.env.VITE_API_BASE) || "";
-    if (v) return v.replace(/\/+$/, "");
-  } catch (_) {}
-  if (typeof process !== "undefined" && process.env && typeof process.env.API_BASE === "string" && process.env.API_BASE) {
-    return process.env.API_BASE.replace(/\/+$/, "");
-  }
-  return "https://emobot-backend.onrender.com";
-}
-
-/** ====== 單例音訊控制器（避免多 audio 互搶；支援分段播放；支援靜音） ====== */
 const AudioController = (() => {
   let audio = null;
   let playingToken = 0;
@@ -28,19 +20,10 @@ const AudioController = (() => {
     if (!audio) {
       audio = new Audio();
       audio.preload = "auto";
+      audio.crossOrigin = "anonymous";
       audio.muted = muted;
-      audio.volume = muted ? 0 : 1;
     }
     return audio;
-  }
-  function setMuted(m) {
-    muted = !!m;
-    const a = ensure();
-    a.muted = muted;
-    a.volume = muted ? 0 : 1;
-  }
-  function getMuted() {
-    return muted;
   }
   async function play(dataUrl) {
     const a = ensure();
@@ -49,9 +32,11 @@ const AudioController = (() => {
       a.pause();
       a.currentTime = 0;
       a.src = dataUrl;
+      a.muted = muted;
       a.load();
       const p = a.play();
       if (p && typeof p.then === "function") await p;
+
       if (myToken === playingToken) {
         await new Promise((resolve) => {
           const onEnd = () => {
@@ -66,11 +51,6 @@ const AudioController = (() => {
       throw err;
     }
   }
-  async function playQueue(segments = []) {
-    for (let i = 0; i < segments.length; i++) {
-      await play(segments[i]);
-    }
-  }
   function stop() {
     const a = ensure();
     playingToken++;
@@ -80,293 +60,431 @@ const AudioController = (() => {
     const a = ensure();
     return !a.paused;
   }
-  return { play, playQueue, stop, isSpeaking, setMuted, getMuted };
+  function setMuted(v) {
+    muted = !!v;
+    const a = ensure();
+    a.muted = muted;
+  }
+  function getMuted() {
+    return muted;
+  }
+  return { play, stop, isSpeaking, setMuted, getMuted };
 })();
 
-/** ====== 呼叫後端 ====== */
+const breathe = keyframes`
+  0%   { transform: scale(1) translateZ(0); opacity: .22; }
+  50%  { transform: scale(1.4) translateZ(0); opacity: .4; }
+  100% { transform: scale(1) translateZ(0); opacity: .22; }
+`;
+
+const ripple = keyframes`
+  0%   { transform: scale(0.8) translateZ(0); opacity: .4; }
+  80%  { transform: scale(2.5) translateZ(0); opacity: 0; }
+  100% { transform: scale(2.5) translateZ(0); opacity: 0; }
+`;
+
+const pulse = keyframes`
+  0%,100% { transform: scale(1) translateZ(0); }
+  50%     { transform: scale(1.04) translateZ(0); }
+`;
+
+const float = keyframes`
+  0%,100% { transform: translateY(0px) translateZ(0); }
+  50%     { transform: translateY(-2px) translateZ(0); }
+`;
+
+const shimmer = keyframes`
+  0%   { transform: translateX(-100%) translateZ(0); }
+  100% { transform: translateX(100%) translateZ(0); }
+`;
+
+const rotate = keyframes`
+  from { transform: rotate(0deg) translateZ(0); }
+  to   { transform: rotate(360deg) translateZ(0); }
+`;
+
+const AvatarContainer = styled.div`
+  position: relative;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const GlowStage = styled.div`
+  position: absolute;
+  inset: -45px;
+  display: ${p => p.$speaking ? 'grid' : 'none'};
+  place-items: center;
+  pointer-events: none;
+  z-index: 0;
+  opacity: ${p => p.$speaking ? 1 : 0};
+  transition: opacity .4s ease;
+`;
+
+const GlowCore = styled.div`
+  position: absolute;
+  width: 145px;
+  height: 145px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    ${p => p.$start}32 0%,
+    ${p => p.$end}20 35%,
+    ${p => p.$start}10 60%,
+    transparent 80%
+  );
+  filter: blur(32px);
+  will-change: transform, opacity;
+  ${css`animation: ${breathe} 2.8s ease-in-out infinite;`}
+`;
+
+const GlowSecondary = styled.div`
+  position: absolute;
+  width: 165px;
+  height: 165px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    transparent 25%,
+    ${p => p.$color}15 55%,
+    transparent 80%
+  );
+  filter: blur(42px);
+  animation-delay: .2s;
+  will-change: transform, opacity;
+  ${css`animation: ${breathe} 3.2s ease-in-out infinite;`}
+`;
+
+const Ripple = styled.div`
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: 1px solid ${p => p.$color}35;
+  opacity: 0;
+  animation-delay: ${p => p.$delay || "0s"};
+  will-change: transform, opacity;
+  ${css`animation: ${ripple} 2.6s cubic-bezier(.4,0,.6,1) infinite;`}
+`;
+
+const ParticleOrbit = styled.div`
+  position: absolute;
+  width: 85px;
+  height: 85px;
+  will-change: transform, opacity;
+  ${css`animation: ${rotate} 13s linear infinite;`}
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: ${p => p.$color};
+    box-shadow: 0 0 10px ${p => p.$color}90;
+    opacity: .2;
+  }
+`;
+
+const AvatarWrapper = styled.div`
+  position: relative;
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
+  backdrop-filter: blur(12px) saturate(1.3);
+  box-shadow: 
+    0 6px 24px rgba(0,0,0,.11),
+    0 2px 8px rgba(0,0,0,.07),
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -1px 0 rgba(0,0,0,.04);
+  transition: all .35s cubic-bezier(.4,0,.2,1);
+  will-change: transform;
+  ${p => p.$speaking 
+    ? css`animation: ${pulse} 2.6s ease-in-out infinite, ${float} 4.2s ease-in-out infinite;`
+    : css`animation: ${float} 5.5s ease-in-out infinite;`
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255,255,255,.35), rgba(255,255,255,.08));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: .6;
+  }
+  
+  &:hover {
+    transform: scale(1.06) translateZ(0);
+    box-shadow: 
+      0 10px 32px rgba(0,0,0,.14),
+      0 4px 12px rgba(0,0,0,.09),
+      inset 0 1px 0 rgba(255,255,255,.35);
+  }
+`;
+
+const AvatarImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+`;
+
+const AvatarFallback = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${p => p.$bg || "linear-gradient(135deg, #7AC2DD, #5A8CF2)"};
+  color: #fff;
+  font-weight: 800;
+  font-size: 28px;
+  text-shadow: 0 2px 8px rgba(0,0,0,.22);
+  letter-spacing: -0.5px;
+`;
+
+const AudioControl = styled.button`
+  position: absolute;
+  bottom: -7px;
+  right: -7px;
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  background: ${p => p.$muted 
+    ? 'linear-gradient(135deg, rgba(156,163,175,.96), rgba(107,114,128,.96))'
+    : `linear-gradient(135deg, ${p.$start}f8, ${p.$end}f8)`
+  };
+  backdrop-filter: blur(12px) saturate(1.4);
+  border: 0;
+  color: #fff;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 
+    0 3px 12px rgba(0,0,0,.18),
+    0 1px 4px rgba(0,0,0,.12),
+    inset 0 1px 0 rgba(255,255,255,.32);
+  transition: all .25s cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
+  will-change: transform;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      transparent 0%,
+      rgba(255,255,255,.28) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    transition: transform .45s ease;
+  }
+  
+  &:hover {
+    transform: scale(1.12) translateY(-1px) translateZ(0);
+    box-shadow: 
+      0 5px 18px rgba(0,0,0,.22),
+      0 2px 6px rgba(0,0,0,.15),
+      inset 0 1px 0 rgba(255,255,255,.42);
+    
+    &::before {
+      ${css`animation: ${shimmer} 1.1s ease;`}
+    }
+  }
+  
+  &:active {
+    transform: scale(1.03) translateZ(0);
+  }
+`;
+
+const StatusDot = styled.div`
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10B981, #34D399);
+  box-shadow: 
+    0 0 0 2.5px rgba(255,255,255,.95),
+    0 2px 8px rgba(16,185,129,.45);
+  opacity: ${p => p.$visible ? 1 : 0};
+  transform: scale(${p => p.$visible ? 1 : 0.8});
+  transition: all .35s cubic-bezier(.4,0,.2,1);
+  z-index: 10;
+  will-change: opacity, transform;
+  ${p => p.$visible && css`animation: ${pulse} 2.2s ease-in-out infinite;`}
+`;
+
 async function fetchAnimation({ apiBase, text, botType }) {
-  const res = await fetch(`${apiBase}/api/chat/avatar/animate`, {
+  console.log("🎤 Fetching animation with botType:", botType);
+  
+  const res = await fetch(`${apiBase.replace(/\/+$/, "")}/api/chat/avatar/animate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, bot_type: botType }),
+    body: JSON.stringify({ 
+      text: text,
+      bot_type: botType
+    }),
   });
-  if (!res.ok) {
-    const textErr = await res.text().catch(() => "");
-    throw new Error(`Animate API ${res.status}: ${textErr}`);
-  }
-  return res.json();
+  
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  
+  console.log("🎤 API Response meta:", data.meta);
+  return data;
 }
 
-/** ====== SVG Icons ====== */
-const IconVolume = ({ muted }) => (
-  muted ? (
-    // volume-off
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M3 9v6h4l5 4V5L7 9H3z" fill="#fff" opacity=".9"/>
-      <path d="M16 9l5 5m0-5l-5 5" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
-    </svg>
-  ) : (
-    // volume-on
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M3 9v6h4l5 4V5L7 9H3z" fill="#fff" opacity=".9"/>
-      <path d="M16 7a5 5 0 010 10" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
-      <path d="M18.5 5a8 8 0 010 14" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity=".85"/>
-    </svg>
-  )
-);
-
-/** ====== 主元件 ====== */
 export default function AvatarAnimation({
-  apiBase,
+  apiBase = import.meta.env.VITE_API_BASE || "https://emobot-backend.onrender.com",
   text,
-  botType = "solution",
-  avatarImageUrl,        // 使用者在會員專區選的頭像圖
+  botType = (localStorage.getItem("selectedBotType") || "solution"),
+  avatarSrc = (localStorage.getItem("selectedBotImage") || ""),
   onError,
+  showAudioControl = true,
 }) {
-  const resolvedApiBase = getApiBase(apiBase);
-  const [playing, setPlaying] = useState(false);
-  const [error, setError] = useState(null);
-  const [provider, setProvider] = useState("pending");
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [muted, setMuted] = useState(AudioController.getMuted());
-  const lastReqIdRef = useRef(0);
-
-  // 切換靜音
-  const toggleMute = () => {
-    const next = !muted;
-    setMuted(next);
-    AudioController.setMuted(next);
-  };
+  const [colors, setColors] = useState(BOT_COLORS[botType] || BOT_COLORS.default);
+  const lastReqRef = useRef(0);
+  const lastTextRef = useRef(""); // 追蹤上次處理的文字
 
   useEffect(() => {
-    if (!text || !text.trim()) return;
+    const c = BOT_COLORS[botType] || BOT_COLORS.default;
+    setColors(c);
+  }, [botType]);
 
+  useEffect(() => {
+    // 關鍵修正：只有當 text 真正改變且不為空時才觸發
+    const trimmedText = (text || "").trim();
+    
+    // 如果文字為空或與上次相同，不處理
+    if (!trimmedText || trimmedText === lastTextRef.current) {
+      return;
+    }
+    
+    // 更新上次處理的文字
+    lastTextRef.current = trimmedText;
+    
     let cancelled = false;
-    const myReqId = ++lastReqIdRef.current;
+    const myId = ++lastReqRef.current;
+
+    console.log("🔊 Starting TTS for:", trimmedText.substring(0, 50));
     AudioController.stop();
 
     (async () => {
       try {
-        setError(null);
-        setPlaying(false);
-        setProvider("pending");
+        const data = await fetchAnimation({ apiBase, text: trimmedText, botType });
+        if (cancelled || myId !== lastReqRef.current) return;
 
-        const data = await fetchAnimation({ apiBase: resolvedApiBase, text, botType });
-        if (cancelled || myReqId !== lastReqIdRef.current) return;
+        const b64 = data?.audio_base64;
+        const speaking = !!b64;
+        setIsSpeaking(speaking);
 
-        const p = data?.animation_data?.meta?.provider || "openai";
-        setProvider(p);
-
-        if (data.audio_segments?.length) {
-          setPlaying(true);
+        if (b64) {
           try {
-            await AudioController.playQueue(data.audio_segments);
-          } catch (e) {
-            if (!e || e.name !== "AbortError") throw e;
+            await AudioController.play(b64);
           } finally {
-            setPlaying(false);
-          }
-        } else if (data.audio_base64) {
-          setPlaying(true);
-          try {
-            await AudioController.play(data.audio_base64);
-          } catch (e) {
-            if (!e || e.name !== "AbortError") throw e;
-          } finally {
-            setPlaying(false);
+            if (!cancelled && myId === lastReqRef.current) {
+              setIsSpeaking(false);
+            }
           }
         } else {
-          setPlaying(false);
+          setIsSpeaking(false);
         }
       } catch (e) {
-        const msg = e?.message || "播放失敗";
-        setError(msg);
+        const msg = e?.message || "動畫/語音取得失敗";
         onError?.(msg);
-        setPlaying(false);
+        setIsSpeaking(false);
       }
     })();
 
     return () => {
       cancelled = true;
       AudioController.stop();
+      setIsSpeaking(false);
     };
-  }, [text, botType, resolvedApiBase]);
+  }, [text, botType, apiBase, onError]); // 只依賴真正需要的值
 
-  /* ====== 視覺：框架（Frame）縮小 + 內外雙層光暈 ======
-     - 父層仍滿版，但實際顯示的圖片框(Frame)往內縮 10px，留出可視空間給光暈
-     - OuterHalo：在 Frame 外緣（inset: 2px）強烈呼吸擴散
-     - EdgeHalo：緊貼 Frame 邊緣的內圈呼吸
-     - 兩層都只在 playing 時顯示（靜音時也顯示，方便辨識正在說話）
-  */
+  const toggleMute = () => {
+    const v = !muted;
+    AudioController.setMuted(v);
+    setMuted(v);
+  };
+
+  const usedAvatar = useMemo(() => {
+    if (avatarSrc && typeof avatarSrc === "string" && avatarSrc.startsWith("data:")) return avatarSrc;
+    if (avatarSrc && typeof avatarSrc === "string" && avatarSrc.length > 4) return avatarSrc;
+    return "";
+  }, [avatarSrc]);
+
+  const botLetter = useMemo(() => {
+    const typeMap = {
+      empathy: "L",
+      insight: "S",
+      solution: "N",
+      cognitive: "C"
+    };
+    return typeMap[botType] || "A";
+  }, [botType]);
+
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        position: "relative",
-        // 父層維持溢出裁切，光暈以「縮小 Frame」換取視覺空間，不需要超出舞台
-        overflow: "hidden",
-      }}
-    >
-      {/* 外框（不裁切），只負責放內縮的 Frame 與光暈 */}
-      {/* OuterHalo：圖片外緣的大面積光圈（強烈、擴散） */}
-      <div
-        style={{
-          position: "absolute",
-          // 內縮 2px，距離舞台邊 2px；讓它在 Frame 四周可見
-          top: 2, right: 2, bottom: 2, left: 2,
-          borderRadius: 24,
-          pointerEvents: "none",
-          zIndex: 1,
-          opacity: playing ? 1 : 0,
-          transition: "opacity .2s ease-out",
-          animation: playing ? "emobotOuterPulse 1.15s ease-in-out infinite" : "none",
-        }}
-      />
+    <AvatarContainer>
+      {isSpeaking && (
+        <GlowStage $speaking={isSpeaking} aria-hidden="true">
+          <GlowCore $start={colors.start} $end={colors.end} />
+          <GlowSecondary $color={colors.end} />
+          <Ripple $color={colors.start} $delay="0s" />
+          <Ripple $color={colors.end}   $delay=".45s" />
+          <Ripple $color={colors.start} $delay=".9s" />
+          <ParticleOrbit $color={colors.start} />
+        </GlowStage>
+      )}
 
-      {/* EdgeHalo：緊貼圖片外緣的內圈高亮（更銳利） */}
-      <div
-        style={{
-          position: "absolute",
-          // 和 Frame 一樣縮 10px，剛好落在圖片外緣
-          top: 10, right: 10, bottom: 10, left: 10,
-          borderRadius: 20,
-          pointerEvents: "none",
-          zIndex: 2,
-          opacity: playing ? 1 : 0,
-          transition: "opacity .2s ease-out",
-          animation: playing ? "emobotEdgePulse 0.9s ease-in-out infinite" : "none",
-        }}
-      />
+      <AvatarWrapper $speaking={isSpeaking}>
+        {usedAvatar ? (
+          <AvatarImage src={usedAvatar} alt="avatar" />
+        ) : (
+          <AvatarFallback $bg={`linear-gradient(135deg, ${colors.start}, ${colors.end})`}>
+            {botLetter}
+          </AvatarFallback>
+        )}
+      </AvatarWrapper>
 
-      {/* 內縮的圖片框（真正裁切 + 陰影） */}
-      <div
-        style={{
-          position: "absolute",
-          top: 10, right: 10, bottom: 10, left: 10, // 內縮 10px，留出光暈可視空間
-          borderRadius: 20,
-          overflow: "hidden",
-          background: "#fff",
-          zIndex: 3,
-          boxShadow: "0 12px 40px rgba(0,0,0,.15)",
-        }}
-      >
-        <img
-          src={avatarImageUrl}
-          alt="avatar"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            display: "block",
-          }}
-        />
-      </div>
+      <StatusDot $visible={isSpeaking} />
 
-      {/* 右上角：靜音切換（置於最上層） */}
-      <button
-        onClick={toggleMute}
-        aria-label={muted ? "取消靜音" : "靜音"}
-        title={muted ? "取消靜音" : "靜音"}
-        style={{
-          position: "absolute",
-          top: 16,
-          right: 16,
-          width: 38,
-          height: 38,
-          borderRadius: 12,
-          border: "1px solid rgba(255,255,255,.7)",
-          background: muted
-            ? "linear-gradient(135deg, rgba(30,30,30,.92), rgba(60,60,60,.92))"
-            : "linear-gradient(135deg, rgba(90,140,242,.95), rgba(122,194,221,.95))",
-          color: "#fff",
-          display: "grid",
-          placeItems: "center",
-          cursor: "pointer",
-          boxShadow: "0 8px 18px rgba(0,0,0,.28)",
-          backdropFilter: "blur(6px)",
-          zIndex: 5,
-        }}
-      >
-        <IconVolume muted={muted} />
-      </button>
-
-      {/* 右下角狀態徽章（可移除） */}
-      <div
-        style={{
-          position: "absolute",
-          right: 14,
-          bottom: 12,
-          padding: "6px 10px",
-          borderRadius: 12,
-          fontSize: 12,
-          color: "#334",
-          background: "rgba(255,255,255,.88)",
-          boxShadow: "0 2px 8px rgba(0,0,0,.12)",
-          zIndex: 5,
-        }}
-      >
-        狀態：{playing ? (muted ? "說話中 (靜音)" : "說話中...") : "待機"}　來源：{provider}
-        {error && <span style={{ color: "#c00", marginLeft: 8 }}>錯誤：{error}</span>}
-      </div>
-
-      {/* 光暈動畫定義：外圈更柔和擴散、內圈更銳利脈衝 */}
-      <style>{`
-        /* 外圈：大面積擴散，帶模糊層疊與色彩層次 */
-        @keyframes emobotOuterPulse {
-          0% {
-            box-shadow:
-              0 0 0 0 rgba(90,140,242,0.46),
-              0 0 22px 8px rgba(90,140,242,0.35),
-              0 0 62px 24px rgba(90,140,242,0.18),
-              inset 0 0 0 0 rgba(122,194,221,0.18);
-            transform: scale(0.995);
-            filter: blur(0.2px);
-          }
-          50% {
-            box-shadow:
-              0 0 0 0 rgba(90,140,242,0.62),
-              0 0 36px 14px rgba(90,140,242,0.45),
-              0 0 120px 44px rgba(90,140,242,0.26),
-              inset 0 0 0 2px rgba(122,194,221,0.22);
-            transform: scale(1.01);
-            filter: blur(0.6px);
-          }
-          100% {
-            box-shadow:
-              0 0 0 0 rgba(90,140,242,0.46),
-              0 0 22px 8px rgba(90,140,242,0.35),
-              0 0 62px 24px rgba(90,140,242,0.18),
-              inset 0 0 0 0 rgba(122,194,221,0.18);
-            transform: scale(0.995);
-            filter: blur(0.2px);
-          }
-        }
-
-        /* 內圈：靠近圖片邊緣的銳利脈衝，帶「描邊發光」感 */
-        @keyframes emobotEdgePulse {
-          0% {
-            box-shadow:
-              0 0 0 0 rgba(122,194,221,0.0),
-              0 0 0 0 rgba(90,140,242,0.0),
-              inset 0 0 0 0 rgba(90,140,242,0.0);
-            transform: scale(1);
-          }
-          50% {
-            box-shadow:
-              0 0 10px 2px rgba(122,194,221,0.28),
-              0 0 28px 9px rgba(90,140,242,0.32),
-              inset 0 0 0 2px rgba(90,140,242,0.28);
-            transform: scale(1.005);
-          }
-          100% {
-            box-shadow:
-              0 0 0 0 rgba(122,194,221,0.0),
-              0 0 0 0 rgba(90,140,242,0.0),
-              inset 0 0 0 0 rgba(90,140,242,0.0);
-            transform: scale(1);
-          }
-        }
-      `}</style>
-    </div>
+      {showAudioControl && (
+        <AudioControl 
+          onClick={toggleMute} 
+          $start={colors.start} 
+          $end={colors.end}
+          $muted={muted}
+          title={muted ? "取消靜音" : "靜音"}
+          aria-label={muted ? "取消靜音" : "靜音"}
+        >
+          {muted ? <HiVolumeOff /> : <HiVolumeUp />}
+        </AudioControl>
+      )}
+    </AvatarContainer>
   );
 }

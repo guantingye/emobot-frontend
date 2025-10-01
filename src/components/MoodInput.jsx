@@ -1,14 +1,13 @@
-// src/components/MoodInput.jsx - AvatarStage 為 block，讓 AvatarAnimation 100% 填滿
+// src/components/MoodInput.jsx
 import React, { useState, useRef, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import botTemp from "../assets/bot_temp.png";
 import { IoSend } from "react-icons/io5";
-import { FiChevronLeft, FiMic } from "react-icons/fi";
+import { FiChevronLeft, FiMic, FiInfo } from "react-icons/fi";
 import { sendChatMessage } from "../api/client";
 import AvatarAnimation from "./AvatarAnimation";
 
-/* ================= API Base 工具 ================= */
 function getApiBase() {
   if (typeof window !== "undefined" && typeof window.API_BASE === "string" && window.API_BASE) {
     return window.API_BASE.replace(/\/+$/, "");
@@ -27,7 +26,6 @@ function getApiBase() {
 }
 const API_BASE = getApiBase();
 
-/* ================= 動畫定義與樣式 ================= */
 const float = keyframes`0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}`;
 const fadeIn = keyframes`from{opacity:0}to{opacity:1}`;
 const fadeInDown = keyframes`from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}`;
@@ -36,157 +34,407 @@ const fadeInBubble = keyframes`from{opacity:0;transform:scale(.95) translateY(10
 const pulse = keyframes`0%{box-shadow:0 0 0 0 rgba(122,194,221,.4)}70%{box-shadow:0 0 0 10px rgba(122,194,221,0)}100%{box-shadow:0 0 0 0 rgba(122,194,221,0)}`;
 const recording = keyframes`0%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.8)}100%{transform:scale(1);opacity:1}`;
 const fadeInStagger = keyframes`from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}`;
+const shimmer = keyframes`0%{transform:translateX(-100%)}100%{transform:translateX(100%)}`;
+const auraPulse = keyframes`0%,100%{transform:scale(.96);opacity:.22}50%{transform:scale(1.04);opacity:.32}`;
 
 const Container = styled.div`
   display:flex;flex-direction:column;width:100vw;height:100vh;
   background:linear-gradient(135deg,#f5f7fa 0%,#eef1f5 100%);font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,sans-serif;
   position:relative;overflow:hidden;
-  @media (max-width:768px){overflow-y:auto;background-size:140%;background-position:center 30%;}
+  @media (max-width:768px){overflow-y:auto;}
 `;
+
 const Header = styled.header`
   position:fixed;top:0;left:0;right:0;height:70px;display:flex;align-items:center;justify-content:space-between;
-  padding:0 30px;background:linear-gradient(135deg,rgba(255,255,255,.95) 0%,rgba(248,250,252,.95) 100%);
-  backdrop-filter:blur(15px);border-bottom:1px solid rgba(43,57,147,.1);box-shadow:0 4px 20px rgba(43,57,147,.08),0 2px 8px rgba(0,0,0,.04);
+  padding:0 30px;background:linear-gradient(135deg,rgba(255,255,255,.96) 0%,rgba(248,250,252,.96) 100%);
+  backdrop-filter:blur(20px) saturate(1.3);border-bottom:1px solid rgba(43,57,147,.08);
+  box-shadow:0 2px 16px rgba(43,57,147,.06),0 1px 4px rgba(0,0,0,.02);
   z-index:100;animation:${fadeInDown} .8s ease-out both;animation-delay:.3s;
-  @media (max-width:768px){height:55px;padding:0 12px;}
+  @media (max-width:768px){height:60px;padding:0 16px;}
 `;
+
 const BackButton = styled.button`
-  background:transparent;color:#2e2f5e;display:flex;align-items:center;gap:8px;padding:12px 20px;border-radius:12px;font-weight:600;font-size:16px;
-  border:1px solid rgba(46,47,94,.2);cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;
-  &:before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.2) 50%,transparent 100%);transition:left .6s ease;}
-  &:hover{background:rgba(46,47,94,.05);transform:translateX(-2px) scale(1.02);box-shadow:0 4px 12px rgba(46,47,94,.15);&:before{left:100%;}}
+  background:transparent;color:#2e2f5e;display:flex;align-items:center;gap:8px;padding:11px 20px;border-radius:12px;font-weight:600;font-size:15px;
+  border:1px solid rgba(46,47,94,.15);cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;
+  &:before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.3) 50%,transparent 100%);transition:left .6s ease;}
+  &:hover{background:rgba(46,47,94,.04);transform:translateX(-2px);box-shadow:0 4px 12px rgba(46,47,94,.12);&:before{left:100%;}}
   &:active{transform:translateX(-1px) scale(.98);}
-  @media (max-width:768px){font-size:14px;padding:8px 14px;}
+  @media (max-width:768px){font-size:14px;padding:9px 16px;}
 `;
-const ModeSelect = styled.div`
-  background:rgba(255,255,255,.9);padding:6px;border-radius:14px;display:flex;gap:4px;box-shadow:0 4px 20px rgba(0,0,0,.06);backdrop-filter:blur(10px);
-  @media (max-width:320px){display:none;}
-`;
-const ModeButton = styled.button`
-  padding:10px 22px;border-radius:10px;font-weight:600;font-size:15px;border:none;cursor:pointer;position:relative;overflow:hidden;
-  background:${p=>p.$active?'linear-gradient(45deg,#2e2f5e,#5a5b9f)':'transparent'};
-  color:${p=>p.$active?'#fff':'#555'};
-  &:hover{background:${p=>p.$active?'linear-gradient(45deg,#2e2f5e,#5a5b9f)':'rgba(0,0,0,.05)'};transform:translateY(-1px);}
-`;
+
 const AvatarContainer = styled.div`display:flex;align-items:center;gap:12px;`;
+
 const BotAvatar = styled.div`
-  width:50px;height:50px;border-radius:50%;
+  width:48px;height:48px;border-radius:50%;
   background:${p=>p.$bg||'linear-gradient(45deg,#7AC2DD,#5A8CF2)'};display:flex;align-items:center;justify-content:center;
-  color:#fff;font-weight:bold;font-size:20px;box-shadow:0 4px 12px rgba(90,140,242,.3);
+  color:#fff;font-weight:bold;font-size:19px;box-shadow:0 4px 12px rgba(90,140,242,.28);transition:all .3s ease;
+  cursor:pointer;position:relative;
+  &:hover{transform:scale(1.05);}
 `;
+
+const InfoButton = styled.button`
+  position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;
+  background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(248,250,252,.95));
+  border:1.5px solid rgba(46,47,94,.2);color:#2e2f5e;font-size:11px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .25s ease;box-shadow:0 2px 6px rgba(0,0,0,.15);
+  &:hover{transform:scale(1.1);background:linear-gradient(135deg,#fff,#f8fafc);box-shadow:0 3px 10px rgba(0,0,0,.2);}
+`;
+
 const BotInfo = styled.div`display:flex;flex-direction:column;@media (max-width:480px){display:none;}`;
-const BotName = styled.span`font-weight:700;font-size:16px;color:#2e2f5e;`;
-const BotStatus = styled.span`font-size:13px;color:#65B741;`;
+const BotName = styled.span`font-weight:700;font-size:16px;color:#2e2f5e;letter-spacing:0.3px;`;
+const BotStatus = styled.span`font-size:12px;color:#65B741;font-weight:500;`;
+
 const Layout = styled.div`
-  flex:1;display:flex;padding:100px 40px 140px;box-sizing:border-box;overflow:hidden;gap:30px;
-  @media (max-width:768px){flex-direction:column;padding:70px 16px 150px;gap:16px;}
+  flex:1;display:flex;justify-content:center;padding:100px 60px 145px;box-sizing:border-box;overflow:hidden;
+  @media (max-width:1200px){padding:100px 40px 145px;}
+  @media (max-width:768px){padding:75px 16px 155px;}
 `;
-const VideoColumn = styled.div`
-  position:relative;top:60px;width:45%;max-width:520px;display:${p=>p.$show?'block':'none'};padding-right:30px;
-  @media (max-width:768px){width:100%;top:0;padding-right:0;margin-bottom:20px;order:1;}
+
+const ChatColumn = styled.div`
+  flex:1;max-width:1400px;display:flex;flex-direction:column;overflow-y:auto;position:relative;scroll-behavior:smooth;
+  @media (max-width:768px){max-width:100%;}
 `;
-const AvatarStage = styled.div`
-  position:relative;width:100%;height:85vh;max-height:700px;border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.15);
-  background:#fff;display:block; /* 讓子元件能 100% 填滿 */
-  @media (max-width:768px){height:260px;max-height:320px;border-radius:12px;}
-`;
-const ChatColumn = styled.div`flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative;scroll-behavior:smooth;`;
+
 const FadeWrapper = styled.div`display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1;animation:${fadeIn} 1s ease-out forwards;padding:20px;text-align:center;`;
-const Description = styled.div`margin:auto;text-align:center;max-width:600px;animation:${fadeIn} 1s ease-out forwards;`;
+
+const Description = styled.div`margin:auto;text-align:center;max-width:620px;animation:${fadeIn} 1s ease-out forwards;`;
+
 const Title = styled.h1`
-  font-size:42px;font-weight:800;margin-bottom:16px;background:linear-gradient(45deg,#2e2f5e 30%,#5A8CF2 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2;text-shadow:0 2px 4px rgba(0,0,0,.1);
-  @media (max-width:768px){font-size:30px;}
+  font-size:44px;font-weight:800;margin-bottom:18px;background:linear-gradient(45deg,#2e2f5e 30%,#5A8CF2 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2;letter-spacing:-0.5px;
+  @media (max-width:768px){font-size:32px;}
 `;
+
 const Subtitle = styled.p`
-  font-size:22px;color:#666;line-height:1.7;opacity:0;animation:${fadeIn} 1s ease-out .5s forwards;
+  font-size:20px;color:#666;line-height:1.75;opacity:0;animation:${fadeIn} 1s ease-out .5s forwards;font-weight:400;
   @media (max-width:768px){font-size:17px;}
 `;
+
 const IntroBar = styled.div`
-  margin:0 auto 24px;padding:20px 28px;background:linear-gradient(135deg,rgba(122,194,221,.1) 0%,rgba(90,140,242,.08) 100%);
-  border:1px solid rgba(122,194,221,.2);border-radius:16px;box-shadow:0 8px 32px rgba(122,194,221,.12),0 4px 16px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.6);
-  font-size:16px;font-weight:600;line-height:1.6;animation:${fadeInDown} .6s ease-out, ${float} 4s ease-in-out 1s infinite;max-width:600px;text-align:center;color:#2e2f5e;
+  margin:0 auto 28px;padding:18px 28px;
+  background:linear-gradient(135deg,rgba(122,194,221,.08) 0%,rgba(90,140,242,.06) 100%);
+  border:1px solid rgba(122,194,221,.16);border-radius:16px;
+  box-shadow:0 4px 18px rgba(122,194,221,.08),0 2px 6px rgba(0,0,0,.02),inset 0 1px 0 rgba(255,255,255,.6);
+  font-size:15px;font-weight:600;line-height:1.6;
+  animation:${fadeInDown} .6s ease-out, ${float} 4.5s ease-in-out 1s infinite;
+  max-width:780px;text-align:center;color:#2e2f5e;letter-spacing:0.25px;
+  position:relative;overflow:hidden;
+  
+  &:before{
+    content:'';position:absolute;inset:0;border-radius:inherit;
+    background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.4) 50%,transparent 70%);
+    opacity:0;transition:opacity .4s ease;
+  }
+  
+  &:hover:before{
+    animation:${shimmer} 2s ease-in-out;opacity:1;
+  }
+  
+  @media (max-width:768px){
+    font-size:14px;padding:16px 24px;
+  }
+  @media (max-width:480px){
+    font-size:13px;padding:14px 20px;margin-bottom:20px;
+  }
 `;
-const DateDivider = styled.div`text-align:center;margin:20px 0;position:relative;&:before{content:"";position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.1);z-index:-1;}`;
-const DateLabel = styled.span`background:#f0f4f8;padding:4px 12px;border-radius:20px;font-size:13px;color:#666;box-shadow:0 2px 4px rgba(0,0,0,.05);`;
-const ChatBox = styled.div`display:flex;flex-direction:column;gap:16px;padding-right:10px;padding-bottom:20px;overflow-y:auto;animation:${slideInLTR} .4s ease-out both;`;
+
+const DateDivider = styled.div`text-align:center;margin:24px 0;position:relative;&:before{content:"";position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.08);z-index:-1;}`;
+
+const DateLabel = styled.span`
+  background:linear-gradient(135deg,#f8f9fb,#f0f3f7);padding:6px 16px;border-radius:22px;font-size:13px;color:#666;
+  box-shadow:0 2px 6px rgba(0,0,0,.04);font-weight:500;letter-spacing:0.2px;
+`;
+
+const ChatBox = styled.div`
+  display:flex;flex-direction:column;gap:22px;padding:28px 10px 24px;overflow-y:auto;animation:${slideInLTR} .4s ease-out both;
+`;
+
 const BubbleWrapper = styled.div`
   display:flex;flex-direction:column;align-items:${p=>p.$sender==='user'?'flex-end':'flex-start'};
-  max-width:85%;align-self:${p=>p.$sender==='user'?'flex-end':'flex-start'};
-`;
-const BubbleHeader = styled.div`font-size:12px;color:#888;margin-bottom:4px;padding:0 12px;display:flex;align-items:center;gap:6px;`;
-const SenderAvatar = styled.div`
-  width:24px;height:24px;border-radius:50%;background:${p=>p.$sender==='user'?'#5A8CF2':'linear-gradient(135deg,#7AC2DD,#5A8CF2)'};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.1);
-`;
-const ChatBubble = styled.div`
-  background:${p=>p.$sender==='user'?'linear-gradient(135deg,#5A8CF2,#7A72E0)':'#fff'};
-  color:${p=>p.$sender==='user'?'#fff':'#333'};padding:14px 20px;border-radius:${p=>p.$sender==='user'?'18px 18px 4px 18px':'18px 18px 18px 4px'};
-  box-shadow:${p=>p.$sender==='user'?'0 4px 12px rgba(90,140,242,.2)':'0 4px 12px rgba(0,0,0,.08)'};white-space:pre-wrap;animation:${fadeInBubble} .3s ease-out;line-height:1.5;font-size:15px;
-`;
-const MessageTime = styled.span`font-size:11px;color:#999;`;
-const TypingBubble = styled(ChatBubble)`width:60px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;gap:4px;`;
-const TypingDot = styled.div`
-  width:8px;height:8px;background:#888;border-radius:50%;opacity:.8;animation:${p=>keyframes`0%,100%{transform:translateY(0);opacity:.8;}50%{transform:translateY(-4px);opacity:1;}`} ${p=>p.$delay}s infinite ease-in-out;
-`;
-const InputArea = styled.div`
-  position:fixed;bottom:35px;left:${p=>p.$isVideoMode?'70%':'50%'};transform:translateX(-50%);width:${p=>p.$isVideoMode?'50%':'90%'};
-  background:${p=>p.$disabled?'rgba(240,240,240,.95)':'rgba(255,255,255,.98)'};border-radius:14px;display:flex;align-items:center;padding:6px 10px;
-  backdrop-filter:blur(15px);box-shadow:0 10px 40px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.8);
-  border:1px solid rgba(0,0,0,.05);z-index:100;transition:all .3s cubic-bezier(.4,0,.2,1);
-  @media (max-width:768px){left:50%;width:94%;}
-`;
-const InputField = styled.input`
-  flex:1;font-size:16px;background:transparent;border:none;outline:none;padding:14px 20px;color:${p=>p.$disabled?'#999':'#333'};
-  &::placeholder{color:${p=>p.$disabled?'#aaa':'#999'};font-style:italic;}
-`;
-const InputButtons = styled.div`display:flex;align-items:center;gap:12px;padding-right:8px;`;
-const ActionButton = styled.button`
-  width:44px;height:44px;background:${p=>p.$isRecording?'rgba(234,84,85,.1)':'transparent'};border-radius:50%;border:none;color:${p=>p.$isRecording?'#EA5455':'#888'};
-  font-size:20px;display:flex;align-items:center;justify-content:center;cursor:${p=>p.$disabled?'not-allowed':'pointer'};transition:all .3s cubic-bezier(.4,0,.2,1);
-  animation:${p=>p.$isRecording?recording:'none'} 1.5s infinite;opacity:${p=>p.$disabled?.5:1};
-`;
-const SendButton = styled.button`
-  width:50px;height:50px;background:${p=>p.$disabled?'#ccc':'linear-gradient(135deg,#7AC2DD,#5A8CF2)'};border-radius:50%;border:none;color:#fff;font-size:22px;
-  display:flex;align-items:center;justify-content:center;cursor:${p=>p.$disabled?'not-allowed':'pointer'};transition:all .3s cubic-bezier(.4,0,.2,1);
-  animation:${p=>p.$active&&!p.$disabled?pulse:'none'} 1.5s infinite;opacity:${p=>p.$disabled?.7:1};box-shadow:0 4px 12px rgba(122,194,221,.3);
-`;
-const StatusMessage = styled.div`
-  position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 20px;border-radius:24px;font-size:14px;z-index:101;
-  animation:${fadeInDown} .3s ease-out;backdrop-filter:blur(10px);box-shadow:0 4px 16px rgba(0,0,0,.2);max-width:90%;text-align:center;
-`;
-const WelcomeAnimation = styled.div`
-  position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(255,255,255,.95) 0%,rgba(248,250,252,.95) 100%);
-  display:flex;justify-content:center;align-items:center;font-size:80px;font-weight:bold;color:#2b3993;z-index:200;opacity:${p=>p.$visible?1:0};visibility:${p=>p.$visible?'visible':'hidden'};
-  transition:all .5s cubic-bezier(.4,0,.2,1);text-shadow:0 4px 8px rgba(43,57,147,.2);
-`;
-const IntroTextOverlay = styled.div`
-  position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(248,250,252,.95));
-  display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding:200px 40px 40px;text-align:center;z-index:200;
-  opacity:${p=>p.$visible?1:0};visibility:${p=>p.$visible?'visible':'hidden'};transition:opacity .6s cubic-bezier(.4,0,.2,1),visibility .6s;
-`;
-const TipHeader = styled.h2`
-  font-size:38px;font-weight:700;background:linear-gradient(45deg,#2e2f5e 30%,#5A8CF2 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px;animation:${fadeInStagger} .8s ease-out;
-`;
-const IntroContent = styled.div`
-  max-width:680px;width:100%;padding:32px;background:rgba(255,255,255,.9);border-radius:20px;border:1px solid rgba(255,255,255,.3);
-  box-shadow:0 8px 32px rgba(0,0,0,.1),0 4px 16px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.5);animation:${fadeInStagger} .8s ease-out .4s both;
-`;
-const IntroText = styled.p`font-size:23px;color:#4a5568;line-height:1.8;margin:0;font-weight:400;`;
-const Disclaimer = styled.div`
-  position:fixed;bottom:4px;left:${p=>p.$isVideoMode?'70%':'50%'};transform:translateX(-50%);width:90%;max-width:1440px;font-size:12px;color:#666;text-align:center;padding:4px 8px;z-index:100;
-  transition:left .3s ease;
+  max-width:72%;align-self:${p=>p.$sender==='user'?'flex-end':'flex-start'};
+  @media (max-width:768px){max-width:85%;}
 `;
 
-/* ================== Bot 定義 ================== */
+const BubbleHeader = styled.div`
+  font-size:12px;color:#888;margin-bottom:7px;padding:0 12px;display:flex;align-items:center;gap:7px;font-weight:500;
+`;
+
+const SenderAvatar = styled.div`
+  width:24px;height:24px;border-radius:50%;
+  background:${p=>p.$sender==='user'?'#5A8CF2':'linear-gradient(135deg,#7AC2DD,#5A8CF2)'};
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.12);
+`;
+
+const ChatBubble = styled.div`
+  background:${p=>p.$sender==='user'?'linear-gradient(135deg,#5A8CF2,#7A72E0)':'linear-gradient(135deg,#fff,#fafbfc)'};
+  color:${p=>p.$sender==='user'?'#fff':'#2d3748'};padding:17px 24px;
+  border-radius:${p=>p.$sender==='user'?'22px 22px 6px 22px':'22px 22px 22px 6px'};
+  box-shadow:${p=>p.$sender==='user'
+    ?'0 4px 14px rgba(90,140,242,.22),0 2px 6px rgba(90,140,242,.1)'
+    :'0 3px 12px rgba(0,0,0,.07),0 1px 4px rgba(0,0,0,.04)'
+  };
+  white-space:pre-wrap;animation:${fadeInBubble} .35s cubic-bezier(.4,0,.2,1);line-height:1.65;font-size:15px;
+  letter-spacing:0.2px;position:relative;
+  ${p=>p.$sender==='ai'&&`
+    &:before{
+      content:'';position:absolute;inset:0;border-radius:inherit;
+      background:linear-gradient(135deg,rgba(255,255,255,.6),transparent);
+      opacity:.5;pointer-events:none;
+    }
+  `}
+`;
+
+const MessageTime = styled.span`font-size:11px;color:#999;font-weight:400;`;
+
+const TypingBubble = styled(ChatBubble)`width:62px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;gap:5px;`;
+
+const TypingDot = styled.div`
+  width:7px;height:7px;background:#888;border-radius:50%;opacity:.75;
+  animation:${p=>keyframes`0%,100%{transform:translateY(0);opacity:.75;}50%{transform:translateY(-4px);opacity:1;}`} ${p=>p.$delay}s infinite ease-in-out;
+`;
+
+const InputArea = styled.div`
+  position:fixed;bottom:38px;left:50%;transform:translateX(-50%);width:90%;max-width:1400px;
+  background:${p=>p.$disabled?'rgba(240,242,245,.97)':'rgba(255,255,255,.98)'};
+  border-radius:16px;display:flex;align-items:center;padding:7px 12px;
+  backdrop-filter:blur(20px) saturate(1.4);
+  box-shadow:0 8px 32px rgba(0,0,0,.07),0 3px 12px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.9);
+  border:1px solid rgba(0,0,0,.04);z-index:100;transition:all .35s cubic-bezier(.4,0,.2,1);
+  @media (max-width:768px){width:94%;bottom:32px;}
+  &:focus-within{
+    box-shadow:0 10px 40px rgba(90,140,242,.15),0 4px 16px rgba(90,140,242,.08),inset 0 1px 0 rgba(255,255,255,.95);
+    border-color:rgba(90,140,242,.2);
+  }
+`;
+
+const InputField = styled.input`
+  flex:1;font-size:16px;background:transparent;border:none;outline:none;padding:15px 22px;
+  color:${p=>p.$disabled?'#999':'#2d3748'};font-weight:400;letter-spacing:0.2px;
+  &::placeholder{color:${p=>p.$disabled?'#aaa':'#999'};font-style:italic;font-weight:400;}
+`;
+
+const InputButtons = styled.div`display:flex;align-items:center;gap:10px;padding-right:6px;`;
+
+const ActionButton = styled.button`
+  width:46px;height:46px;background:${p=>p.$isRecording?'rgba(234,84,85,.12)':'transparent'};
+  border-radius:50%;border:none;color:${p=>p.$isRecording?'#EA5455':'#888'};
+  font-size:20px;display:flex;align-items:center;justify-content:center;
+  cursor:${p=>p.$disabled?'not-allowed':'pointer'};transition:all .3s cubic-bezier(.4,0,.2,1);
+  animation:${p=>p.$isRecording?recording:'none'} 1.5s infinite;opacity:${p=>p.$disabled?.5:1};
+  &:hover:not(:disabled){background:${p=>p.$isRecording?'rgba(234,84,85,.18)':'rgba(0,0,0,.04)'};}
+`;
+
+const SendButton = styled.button`
+  width:52px;height:52px;
+  background:${p=>p.$disabled?'linear-gradient(135deg,#ccc,#bbb)':'linear-gradient(135deg,#7AC2DD,#5A8CF2)'};
+  border-radius:50%;border:none;color:#fff;font-size:22px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:${p=>p.$disabled?'not-allowed':'pointer'};transition:all .3s cubic-bezier(.4,0,.2,1);
+  animation:${p=>p.$active&&!p.$disabled?pulse:'none'} 1.5s infinite;
+  opacity:${p=>p.$disabled?.65:1};
+  box-shadow:${p=>p.$disabled
+    ?'0 3px 10px rgba(0,0,0,.1)'
+    :'0 4px 14px rgba(122,194,221,.32),0 2px 6px rgba(122,194,221,.18)'
+  };
+  position:relative;overflow:hidden;
+  &:before{
+    content:'';position:absolute;inset:0;border-radius:inherit;
+    background:linear-gradient(135deg,rgba(255,255,255,.3),transparent);
+    opacity:0;transition:opacity .3s ease;
+  }
+  &:hover:not(:disabled){
+    transform:scale(1.04);
+    box-shadow:0 6px 18px rgba(122,194,221,.38),0 3px 8px rgba(122,194,221,.22);
+    &:before{opacity:1;}
+  }
+  &:active:not(:disabled){transform:scale(0.96);}
+`;
+
+const StatusMessage = styled.div`
+  position:fixed;bottom:110px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.85);color:#fff;padding:13px 22px;border-radius:26px;font-size:14px;z-index:101;
+  animation:${fadeInDown} .3s ease-out;backdrop-filter:blur(12px);
+  box-shadow:0 4px 18px rgba(0,0,0,.24);max-width:90%;text-align:center;font-weight:500;letter-spacing:0.3px;
+`;
+
+const WelcomeAnimation = styled.div`
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  background:linear-gradient(135deg,rgba(255,255,255,.96) 0%,rgba(248,250,252,.96) 100%);
+  display:flex;justify-content:center;align-items:center;
+  font-size:84px;font-weight:800;color:#2b3993;z-index:200;
+  opacity:${p=>p.$visible?1:0};visibility:${p=>p.$visible?'visible':'hidden'};
+  transition:all .5s cubic-bezier(.4,0,.2,1);text-shadow:0 4px 12px rgba(43,57,147,.18);letter-spacing:-1px;
+  
+  @media (max-width:768px){font-size:48px;}
+  @media (max-width:480px){font-size:36px;}
+`;
+
+const IntroTextOverlay = styled.div`
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(248,250,252,.96));
+  display:flex;flex-direction:column;justify-content:flex-start;align-items:center;
+  padding:180px 40px 40px;text-align:center;z-index:200;
+  opacity:${p=>p.$visible?1:0};visibility:${p=>p.$visible?'visible':'hidden'};
+  transition:opacity .6s cubic-bezier(.4,0,.2,1),visibility .6s;
+  
+  @media (max-width:768px){padding:140px 28px 28px;}
+  @media (max-width:480px){padding:110px 20px 20px;}
+`;
+
+const TipHeader = styled.h2`
+  font-size:38px;font-weight:700;
+  background:linear-gradient(45deg,#2e2f5e 30%,#5A8CF2 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:16px;animation:${fadeInStagger} .8s ease-out;letter-spacing:-0.5px;
+  
+  @media (max-width:768px){font-size:30px;}
+  @media (max-width:480px){font-size:24px;}
+`;
+
+const IntroContent = styled.div`
+  max-width:680px;width:100%;padding:32px;
+  background:rgba(255,255,255,.92);border-radius:20px;
+  border:1px solid rgba(255,255,255,.4);
+  box-shadow:0 8px 32px rgba(0,0,0,.1),0 4px 16px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.6);
+  animation:${fadeInStagger} .8s ease-out .4s both;backdrop-filter:blur(10px);
+  
+  @media (max-width:768px){padding:26px;max-width:88%;}
+  @media (max-width:480px){padding:22px 18px;max-width:92%;}
+`;
+
+const IntroText = styled.p`
+  font-size:19px;color:#4a5568;line-height:1.8;margin:0;
+  font-weight:400;letter-spacing:0.3px;
+  
+  @media (max-width:768px){font-size:17px;line-height:1.7;}
+  @media (max-width:480px){font-size:15px;line-height:1.65;}
+`;
+
+const Disclaimer = styled.div`
+  position:fixed;bottom:6px;left:50%;transform:translateX(-50%);
+  width:90%;max-width:1440px;font-size:12px;color:#888;
+  text-align:center;padding:5px 8px;z-index:100;
+  font-weight:400;letter-spacing:0.2px;
+  
+  @media (max-width:768px){font-size:10.5px;}
+  @media (max-width:480px){font-size:9px;width:94%;}
+`;
+
+const AIBubbleWithAvatar = styled.div`
+  display:flex;gap:15px;align-items:flex-start;max-width:72%;
+  @media (max-width:768px){max-width:85%;}
+`;
+
+const Overlay = styled.div`
+  position:fixed;inset:0;background:rgba(20,24,40,.45);backdrop-filter:blur(6px);
+  display:${p=>p.$open?'flex':'none'};align-items:center;justify-content:center;z-index:1000;
+`;
+
+const Modal = styled.div`
+  width:min(740px,92vw);
+  background:linear-gradient(145deg,rgba(255,255,255,.98) 0%,rgba(247,250,255,.98) 100%);
+  border:1px solid rgba(43,57,147,.12);border-radius:20px;
+  box-shadow:0 24px 80px rgba(18,28,80,.28),0 6px 20px rgba(0,0,0,.08);
+  overflow:hidden;position:relative;
+`;
+
+const TopBar = styled.div`
+  height:6px;
+  background:linear-gradient(135deg,${p=>p.$start} 0%,${p=>p.$end} 100%);
+`;
+
+const ModalContent = styled.div`
+  display:grid;grid-template-columns:180px 1fr;gap:24px;padding:24px;
+  @media (max-width:640px){grid-template-columns:1fr;}
+`;
+
+const ModalAvatarWrap = styled.div`position:relative;display:grid;place-items:center;`;
+
+const ModalAvatar = styled.img`
+  width:160px;height:180px;object-fit:cover;border-radius:16px;
+  box-shadow:0 14px 38px rgba(0,0,0,.18);
+  @media (max-width:640px){width:130px;height:150px;}
+`;
+
+const ModalAura = styled.div`
+  position:absolute;width:240px;height:240px;border-radius:50%;
+  background:radial-gradient(circle,${p=>p.$start} 0%,${p=>p.$end} 60%,transparent 70%);
+  filter:blur(24px);opacity:.25;z-index:-1;
+  animation:${auraPulse} 5s ease-in-out infinite;
+`;
+
+const ModalTitle = styled.h3`margin:0 0 6px 0;font-size:24px;color:#1b2748;`;
+const ModalSub = styled.div`font-size:14px;color:#6b7aa0;margin-bottom:10px;`;
+
+const ModalQuote = styled.div`
+  margin:12px 0 18px 0;padding:10px 14px;border-radius:12px;
+  background:rgba(103,126,234,.07);border:1px solid rgba(103,126,234,.18);
+  color:#445;font-weight:600;
+`;
+
+const ModalPara = styled.p`
+  font-size:15px;line-height:1.8;color:#2a334d;margin:8px 0 0 0;white-space:pre-line;
+`;
+
+const ModalRow = styled.div`display:grid;gap:10px;margin-top:12px;`;
+
+const ModalActions = styled.div`
+  display:flex;justify-content:flex-end;gap:12px;
+  padding:16px 20px;border-top:1px solid rgba(0,0,0,.06);
+  @media (max-width:640px){justify-content:center;flex-wrap:wrap;}
+`;
+
+const GhostBtn = styled.button`
+  background:transparent;color:#445;border:1px solid rgba(68,85,170,.25);
+  padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:700;
+  &:hover{background:rgba(68,85,170,.08);}
+`;
+
 const BOT_MAP = {
-  empathy: { name: "Lumi", letter: "L", avatarBg: "linear-gradient(45deg, #FFB6C1, #FF8FB1)", tagline: "Lumi — 用溫柔與共感陪你說說話。", subtitle: "溫暖陪伴、情緒承接與安撫，讓你被好好地聆聽與理解。"},
-  insight:  { name: "Solin", letter: "S", avatarBg: "linear-gradient(45deg, #7AC2DD, #5A8CF2)", tagline: "Solin — 一起澄清、看見新的可能。", subtitle: "以溫柔的提問與澄清，幫助梳理線索、找出關鍵與洞見。"},
-  solution: { name: "Niko", letter: "N", avatarBg: "linear-gradient(45deg, #7AC2DD, #5A8CF2)", tagline: "Niko — 一起做點能改變的事。", subtitle: "聚焦可行步驟與微目標，幫助把感受轉成行動與支撐。"},
-  cognitive:{ name: "Clara", letter: "C", avatarBg: "linear-gradient(45deg, #8D8DF2, #5A5B9F)", tagline: "Clara — 一起練習看見思緒的樣子。", subtitle: "以認知重建、想法檢核、替代想法等，幫你和腦內小劇場溫柔共桌。"},
+  empathy: {
+    name:"Lumi",letter:"L",avatarBg:"linear-gradient(45deg,#FFB6C1,#FF8FB1)",
+    tagline:"Lumi — 用溫柔與共感陪你說說話。",
+    subtitle:"溫暖陪伴、情緒承接與安撫,讓你被好好地聆聽與理解。",
+    title:"同理型 AI",tone:"溫柔傾聽、深度理解",
+    quote:"在你的感受裡,我看見了你的勇氣。",
+    story:"Lumi 是一位溫暖的陪伴者,擅長建立安全、接納的氛圍,引導使用者覺察情緒並與之共處。",
+    suitable:"孤獨感、低自尊、情感失落、自我懷疑、親密關係議題",
+    accentStart:"#FFB6C1",accentEnd:"#FF8FB1"
+  },
+  insight:{
+    name:"Solin",letter:"S",avatarBg:"linear-gradient(45deg,#7AC2DD,#5A8CF2)",
+    tagline:"Solin — 一起澄清、看見新的可能。",
+    subtitle:"以溫柔的提問與澄清,幫助梳理線索、找出關鍵與洞見。",
+    title:"洞察型 AI",tone:"溫和探索、啟發思考",
+    quote:"也許,我們可以從另一個角度看看這件事。",
+    story:"Solin 擅長以溫柔的提問引導深層探索,幫助使用者看見潛意識的模式與內在動機。",
+    suitable:"反覆的人際模式、創傷經驗、自我價值疑問、夢境探索、內在空虛感",
+    accentStart:"#7AC2DD",accentEnd:"#5A8CF2"
+  },
+  solution:{
+    name:"Niko",letter:"N",avatarBg:"linear-gradient(45deg,#3AA87A,#9AE6B4)",
+    tagline:"Niko — 一起做點能改變的事。",
+    subtitle:"聚焦可行步驟與微目標,幫助把感受轉成行動與支持。",
+    title:"解決型 AI",tone:"務實行動、目標導向",
+    quote:"我們一起找到下一步可以做的事。",
+    story:"Niko 擅長將情緒轉化為具體行動,幫助使用者設定目標、活用資源,快速聚焦在問題解決上。",
+    suitable:"職場壓力、衝突處理、時間管理、短期決策困難、日常壓力應對",
+    accentStart:"#3AA87A",accentEnd:"#9AE6B4"
+  },
+  cognitive:{
+    name:"Clara",letter:"C",avatarBg:"linear-gradient(45deg,#7A4DC8,#B794F4)",
+    tagline:"Clara — 一起練習看見思緒的樣子。",
+    subtitle:"以認知重建、想法檢核、替代想法等,幫你和腦內小劇場溫柔共桌。",
+    title:"認知型 AI",tone:"理性清晰、邏輯引導",
+    quote:"讓我們一起檢視這個想法,看看它是否站得住腳。",
+    story:"Clara 擅長分析非理性思考並提供認知重建步驟,幫助使用者建立更健康的思維模式。",
+    suitable:"負面自我對話、焦慮、完美主義、拖延、情緒管理",
+    accentStart:"#7A4DC8",accentEnd:"#B794F4"
+  },
 };
 
-/* ====== 文字加粗 ====== */
 const renderEmphasis = (text="")=>{
   const parts = text.split(/(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|『[^』]+』|「[^」]+」|《[^》]+》|〈[^〉]+〉)/g);
   return parts.map((seg,i)=>{
@@ -201,7 +449,7 @@ const renderEmphasis = (text="")=>{
 export default function MoodInput() {
   const navigate = useNavigate();
 
-  const [mode, setMode] = useState("video");
+  const mode = "video";
   const [inputValue, setInputValue] = useState("");
   const [chatStarted, setChatStarted] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -211,10 +459,13 @@ export default function MoodInput() {
   const [statusMessage, setStatusMessage] = useState(null);
   const [showWelcome, setShowWelcome] = useState(true);
   const [showIntroText, setShowIntroText] = useState(false);
+  const [showBotModal, setShowBotModal] = useState(false);
 
   const chatBoxRef = useRef(null);
+  const inputRef = useRef(null);
 
   const [avatarText, setAvatarText] = useState("");
+  const [currentSpeakingIndex, setCurrentSpeakingIndex] = useState(-1);
 
   const selectedBotType = (localStorage.getItem("selectedBotType") || "solution");
   const bot = BOT_MAP[selectedBotType] || BOT_MAP.solution;
@@ -240,60 +491,113 @@ export default function MoodInput() {
     if (chatBoxRef.current) chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
   }, [messages, isTyping]);
 
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") setShowBotModal(false); };
+    if (showBotModal) document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [showBotModal]);
+
   const startConversation = async () => {
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const firstText = `嗨 ${nickname}，我是 ${bot.name}。今天想從哪裡開始呢？`;
+    const firstText = `嗨 ${nickname},我是 ${bot.name}。今天想從哪裡開始呢?`;
     const first = { sender: "ai", content: firstText, timestamp: now };
     setMessages([first]);
     setChatStarted(true);
-    if (mode === "video") setAvatarText(firstText);
+    setAvatarText(firstText);
+    setCurrentSpeakingIndex(0);
     await sendChatMessage(firstText, selectedBotType, mode, [{ role: "assistant", content: firstText }], true);
   };
 
   useEffect(() => {
-    const handleSpace = e => { if (e.code === 'Space' && !chatStarted) { e.preventDefault(); startConversation(); } };
+    const handleSpace = e => { 
+      if (e.code === 'Space' && !chatStarted && document.activeElement !== inputRef.current) { 
+        e.preventDefault(); 
+        startConversation(); 
+      } 
+    };
     window.addEventListener('keydown', handleSpace);
     return () => window.removeEventListener('keydown', handleSpace);
-  }, [chatStarted]); // eslint-disable-line
+  }, [chatStarted]);
 
   const handleSend = async () => {
-    if (!inputValue.trim() && !isRecording) return;
-    if (!chatStarted) { await startConversation(); return; }
+    const trimmedInput = inputValue.trim();
+    if (!trimmedInput && !isRecording) return;
+    if (!chatStarted) { 
+      await startConversation(); 
+      return; 
+    }
 
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const userMsgText = isRecording ? "[語音訊息]" : inputValue;
+    const userMsgText = isRecording ? "[語音訊息]" : trimmedInput;
 
-    setMessages(prev => [...prev, { sender: "user", content: userMsgText, timestamp: now }]);
+    // 立即清空所有輸入相關狀態和 DOM
     setInputValue("");
+    if (inputRef.current) {
+      inputRef.current.value = "";
+      inputRef.current.blur(); // 移除焦點避免觸發
+    }
+    
     setInputDisabled(true);
     setIsTyping(true);
     if (isRecording) setIsRecording(false);
+    
+    // 清空當前的 avatar text，避免重複觸發
+    setAvatarText("");
+    setCurrentSpeakingIndex(-1);
+    
+    const newUserMsg = { sender: "user", content: userMsgText, timestamp: now };
+    setMessages(prev => [...prev, newUserMsg]);
 
-    const history = [...messages, { sender: "user", content: userMsgText, timestamp: now }]
+    const history = [...messages, newUserMsg]
       .map(m => ({ role: m.sender === "user" ? "user" : "assistant", content: m.content }));
 
     try {
-      const result = await sendChatMessage(userMsgText, localStorage.getItem("selectedBotType") || "solution", mode, history);
+      const result = await sendChatMessage(userMsgText, selectedBotType, mode, history);
+      
       if (result?.ok && result.reply) {
         const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const aiMsg = { sender: "ai", content: result.reply, timestamp: replyTime };
+        
+        // 先更新訊息列表
         setMessages(prev => [...prev, aiMsg]);
-        if (mode === "video") setAvatarText(result.reply);
+        
+        // 計算新的 AI 訊息索引
+        const newAiIndex = messages.filter(m => m.sender === "ai").length;
+        
+        // 使用 setTimeout 確保狀態更新後才觸發 TTS
+        setTimeout(() => {
+          setCurrentSpeakingIndex(newAiIndex);
+          setAvatarText(result.reply);
+        }, 50);
+        
       } else {
         throw new Error(result?.error || "API 回傳格式錯誤");
       }
     } catch (error) {
       console.error("Chat API failed:", error);
       const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const fallbackReply = mode === "video"
-        ? "我在這裡，先一起做個小小的深呼吸。想和我說說剛剛最在意的一件事嗎？"
-        : "收到，讓我們一步一步來。想先從今天最困擾你的情境開始聊聊嗎？";
+      const fallbackReply = "我在這裡,先一起做個小小的深呼吸。想和我說說剛剛最在意的一件事嗎?";
+      
       setMessages(prev => [...prev, { sender: "ai", content: fallbackReply, timestamp: replyTime }]);
-      if (mode === "video") setAvatarText(fallbackReply);
+      
+      const newAiIndex = messages.filter(m => m.sender === "ai").length;
+      setTimeout(() => {
+        setCurrentSpeakingIndex(newAiIndex);
+        setAvatarText(fallbackReply);
+      }, 50);
+    } finally {
+      setIsTyping(false);
+      setInputDisabled(false);
+      
+      // 確保輸入框完全清空並恢復焦點
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          inputRef.current.value = "";
+          inputRef.current.focus();
+        }
+        setInputValue("");
+      });
     }
-
-    setIsTyping(false);
-    setInputDisabled(false);
   };
 
   const handleVoiceButton = () => {
@@ -311,18 +615,27 @@ export default function MoodInput() {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !inputDisabled && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
   const today = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+  const aiMessages = messages.filter(m => m.sender === "ai");
 
   return (
     <Container>
       <WelcomeAnimation $visible={showWelcome}>Welcome Emobot+</WelcomeAnimation>
+      
       <IntroTextOverlay $visible={showIntroText}>
         <TipHeader>溫馨提醒</TipHeader>
         <IntroContent>
           <IntroText>
-            當你結束這段對話時，<br/>
+            當你結束這段對話時,<br/>
             系統會詢問你是否願意分享今天的聊天內容。<br/>
-            只有在你同意的情況下，這些紀錄才會提供給心理專業人員，<br/>
+            只有在你同意的情況下,這些紀錄才會提供給心理專業人員,<br/>
             幫助你獲得更適切的支持與關懷。<br/>
             我們會溫柔守護你的每一份選擇。
           </IntroText>
@@ -332,15 +645,8 @@ export default function MoodInput() {
       <Header>
         <BackButton onClick={() => navigate("/dashboard")}>
           <FiChevronLeft size={18} />
-          {chatStarted ? '離開對話' : '離開'}
+          {chatStarted ? '離開對話' : '返回'}
         </BackButton>
-
-        {!chatStarted && (
-          <ModeSelect>
-            <ModeButton $active={mode === "text"} onClick={() => setMode("text")}>文字模式</ModeButton>
-            <ModeButton $active={mode === "video"} onClick={() => setMode("video")}>影像模式</ModeButton>
-          </ModeSelect>
-        )}
 
         {chatStarted && (
           <AvatarContainer>
@@ -348,31 +654,22 @@ export default function MoodInput() {
               <BotName>{bot.name}</BotName>
               <BotStatus>線上</BotStatus>
             </BotInfo>
-            <BotAvatar $bg={bot.avatarBg}>{bot.letter}</BotAvatar>
+            <BotAvatar $bg={bot.avatarBg}>
+              {bot.letter}
+              <InfoButton onClick={() => setShowBotModal(true)} title={`關於 ${bot.name}`}>
+                <FiInfo />
+              </InfoButton>
+            </BotAvatar>
           </AvatarContainer>
         )}
       </Header>
 
       <Layout>
-        {mode === "video" && (
-          <VideoColumn $show={true}>
-            <AvatarStage>
-              <AvatarAnimation
-                apiBase={API_BASE}
-                text={avatarText}
-                botType={selectedBotType}
-                avatarImageUrl={localStorage.getItem("selectedBotImage") || botTemp}
-                onError={(msg)=>showStatus(msg,2000)}
-              />
-            </AvatarStage>
-          </VideoColumn>
-        )}
-
         <ChatColumn>
           {!chatStarted ? (
-            <FadeWrapper key={mode}>
+            <FadeWrapper>
               <Description>
-                <Title>分享一下今天的心情吧！</Title>
+                <Title>分享一下今天的心情吧!</Title>
                 <Subtitle>{bot.name} — {bot.subtitle}</Subtitle>
               </Description>
             </FadeWrapper>
@@ -382,26 +679,52 @@ export default function MoodInput() {
               <DateDivider><DateLabel>{today}</DateLabel></DateDivider>
               <ChatBox ref={chatBoxRef}>
                 {messages.map((m, i) => (
-                  <BubbleWrapper key={i} $sender={m.sender}>
-                    <BubbleHeader>
-                      <SenderAvatar $sender={m.sender}>
-                        {m.sender === "user" ? (nickname?.[0] || "你") : bot.letter}
-                      </SenderAvatar>
-                      {m.sender === "user" ? nickname : `${bot.name} AI`} <MessageTime> {m.timestamp}</MessageTime>
-                    </BubbleHeader>
-                    <ChatBubble $sender={m.sender}>{renderEmphasis(m.content)}</ChatBubble>
-                  </BubbleWrapper>
+                  m.sender === "user" ? (
+                    <BubbleWrapper key={i} $sender="user">
+                      <BubbleHeader>
+                        <SenderAvatar $sender="user">
+                          {nickname?.[0] || "你"}
+                        </SenderAvatar>
+                        {nickname} <MessageTime>{m.timestamp}</MessageTime>
+                      </BubbleHeader>
+                      <ChatBubble $sender="user">{renderEmphasis(m.content)}</ChatBubble>
+                    </BubbleWrapper>
+                  ) : (
+                    <AIBubbleWithAvatar key={i}>
+                      <AvatarAnimation
+                        apiBase={API_BASE}
+                        text={aiMessages.indexOf(m) === currentSpeakingIndex ? avatarText : ""}
+                        botType={selectedBotType}
+                        avatarSrc={selectedBotImage}
+                        onError={(msg) => showStatus(msg, 2000)}
+                      />
+                      <BubbleWrapper $sender="ai" style={{maxWidth:'calc(100% - 90px)'}}>
+                        <BubbleHeader>
+                          {bot.name} AI <MessageTime>{m.timestamp}</MessageTime>
+                        </BubbleHeader>
+                        <ChatBubble $sender="ai">{renderEmphasis(m.content)}</ChatBubble>
+                      </BubbleWrapper>
+                    </AIBubbleWithAvatar>
+                  )
                 ))}
                 {isTyping && (
-                  <BubbleWrapper $sender="ai">
-                    <BubbleHeader>
-                      <SenderAvatar $sender="ai">{bot.letter}</SenderAvatar>
-                      {bot.name} 正在輸入...
-                    </BubbleHeader>
-                    <TypingBubble $sender="ai">
-                      <TypingDot $delay={0.4} /><TypingDot $delay={0.6} /><TypingDot $delay={0.8} />
-                    </TypingBubble>
-                  </BubbleWrapper>
+                  <AIBubbleWithAvatar>
+                    <AvatarAnimation
+                      apiBase={API_BASE}
+                      text=""
+                      botType={selectedBotType}
+                      avatarSrc={selectedBotImage}
+                      onError={(msg) => showStatus(msg, 2000)}
+                    />
+                    <BubbleWrapper $sender="ai" style={{maxWidth:'calc(100% - 90px)'}}>
+                      <BubbleHeader>
+                        {bot.name} 正在輸入...
+                      </BubbleHeader>
+                      <TypingBubble $sender="ai">
+                        <TypingDot $delay={0.4} /><TypingDot $delay={0.6} /><TypingDot $delay={0.8} />
+                      </TypingBubble>
+                    </BubbleWrapper>
+                  </AIBubbleWithAvatar>
                 )}
               </ChatBox>
             </>
@@ -411,16 +734,15 @@ export default function MoodInput() {
 
       {statusMessage && <StatusMessage>{statusMessage}</StatusMessage>}
 
-      <InputArea
-        $disabled={inputDisabled}
-        $isVideoMode={mode === "video"}
-      >
+      <InputArea $disabled={inputDisabled}>
         <InputField
-          placeholder={inputDisabled ? "請等待回復..." : isRecording ? "正在錄製語音..." : "將你的心情寫在這裡吧！"}
+          ref={inputRef}
+          placeholder={inputDisabled ? "請等待回覆..." : isRecording ? "正在錄製語音..." : "將你的心情寫在這裡吧!"}
           value={inputValue}
           onChange={e => setInputValue(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && !inputDisabled && handleSend()}
+          onKeyDown={handleKeyDown}
           $disabled={inputDisabled || isRecording}
+          autoComplete="off"
         />
         <InputButtons>
           <ActionButton
@@ -444,9 +766,38 @@ export default function MoodInput() {
         </InputButtons>
       </InputArea>
 
-      <Disclaimer $isVideoMode={mode === "video"}>
-        AI夥伴無法取代心理診斷與治療，如需進一步幫助，請尋求專業資源。
+      <Disclaimer>
+        AI夥伴無法取代心理診斷與治療,如需進一步幫助,請尋求專業資源。
       </Disclaimer>
+
+      <Overlay $open={showBotModal} onClick={(e) => e.target === e.currentTarget && setShowBotModal(false)}>
+        <Modal role="dialog" aria-modal="true" aria-label={`${bot.name} 介紹`}>
+          <TopBar $start={bot.accentStart} $end={bot.accentEnd} />
+          <ModalContent>
+            <ModalAvatarWrap>
+              <ModalAura $start={bot.accentStart} $end={bot.accentEnd} />
+              <ModalAvatar src={selectedBotImage} alt={bot.title} />
+            </ModalAvatarWrap>
+            <div>
+              <ModalTitle>{bot.name} · {bot.title}</ModalTitle>
+              <ModalSub>{bot.tone}</ModalSub>
+              <ModalQuote>"{bot.quote}"</ModalQuote>
+
+              <ModalRow>
+                <strong>角色故事</strong>
+                <ModalPara>{bot.story}</ModalPara>
+              </ModalRow>
+              <ModalRow>
+                <strong>特別適合</strong>
+                <ModalPara>{bot.suitable}</ModalPara>
+              </ModalRow>
+            </div>
+          </ModalContent>
+          <ModalActions>
+            <GhostBtn onClick={() => setShowBotModal(false)}>關閉</GhostBtn>
+          </ModalActions>
+        </Modal>
+      </Overlay>
     </Container>
   );
 }

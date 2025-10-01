@@ -1,3 +1,4 @@
+// src/components/MemberDashboard.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
@@ -17,9 +18,12 @@ const Container = styled.div`
   font-family: "Noto Sans TC", sans-serif;
   overflow: hidden;
 
+  /* ✅ 修正：手機避免被底部UI吃掉，允許垂直捲動且使用更穩定的svh */
   @media (max-width: 768px) {
+    min-height: 100svh;
     overflow-y: auto;
     overflow-x: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 `;
 
@@ -198,13 +202,17 @@ const MainContentWrapper = styled.div`
   align-items: flex-start;
   padding: 12px;
 
+  /* ✅ 修正：手機用 100svh 並微幅左移，避免裁切與達成“往左一點點”的視覺 */
   @media (max-width: 768px) {
     margin-top: 60px;
     height: auto;
-    min-height: calc(100dvh - 60px);
+    min-height: calc(100svh - 60px);
     overflow-y: auto;
     padding: 20px 10px;
     align-items: stretch;
+
+    /* 輕微左移，並避免出現水平捲軸 */
+    margin-left: -6px;
   }
 `;
 
@@ -217,6 +225,8 @@ const ContentScaler = styled.div`
   @media (max-width: 768px) {
     transform: none;
     max-width: 100%;
+    /* ✅ 配合整體左移一點點 */
+    margin-left: -6px;
   }
 `;
 
@@ -308,7 +318,12 @@ const ProfileCard = styled.div`
     height: auto;
     min-height: 500px;
     padding: 24px;
-    
+
+    /* ✅ 更小裝置再收斂一點，避免左右被裁切 */
+    @media (max-width: 480px) {
+      max-width: 92vw;
+    }
+
     &:hover {
       transform: translateY(-5px);
     }
@@ -446,7 +461,12 @@ const AICard = styled.div`
     height: auto;
     min-height: 400px;
     padding: 24px;
-    
+
+    /* ✅ 更小裝置再收斂一點，避免左右被裁切 */
+    @media (max-width: 480px) {
+      max-width: 92vw;
+    }
+
     &:hover {
       transform: translateY(-5px);
     }
@@ -755,7 +775,7 @@ const TopRightLink = styled.button`
   &:active { transform: translateY(0); }
 `;
 
-// RadarChartSVG 組件保持不變，但添加響應式支持
+// RadarChartSVG 保持原樣（略）
 const RadarChartSVG = ({ scores }) => {
   if (!scores) return null;
 
