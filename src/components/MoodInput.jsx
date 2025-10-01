@@ -50,7 +50,7 @@ const Header = styled.header`
   backdrop-filter:blur(20px) saturate(1.3);border-bottom:1px solid rgba(43,57,147,.08);
   box-shadow:0 2px 16px rgba(43,57,147,.06),0 1px 4px rgba(0,0,0,.02);
   z-index:100;animation:${fadeInDown} .8s ease-out both;animation-delay:.3s;
-  @media (max-width:768px){height:60px;padding:0 16px;}
+  @media (max-width:768px){height:56px;padding:0 14px;}
 `;
 
 const BackButton = styled.button`
@@ -59,7 +59,7 @@ const BackButton = styled.button`
   &:before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.3) 50%,transparent 100%);transition:left .6s ease;}
   &:hover{background:rgba(46,47,94,.04);transform:translateX(-2px);box-shadow:0 4px 12px rgba(46,47,94,.12);&:before{left:100%;}}
   &:active{transform:translateX(-1px) scale(.98);}
-  @media (max-width:768px){font-size:14px;padding:9px 16px;}
+  @media (max-width:768px){font-size:13px;padding:8px 14px;gap:6px;}
 `;
 
 const AvatarContainer = styled.div`display:flex;align-items:center;gap:12px;`;
@@ -70,6 +70,7 @@ const BotAvatar = styled.div`
   color:#fff;font-weight:bold;font-size:19px;box-shadow:0 4px 12px rgba(90,140,242,.28);transition:all .3s ease;
   cursor:pointer;position:relative;
   &:hover{transform:scale(1.05);}
+  @media (max-width:768px){width:42px;height:42px;font-size:17px;}
 `;
 
 const InfoButton = styled.button`
@@ -79,16 +80,17 @@ const InfoButton = styled.button`
   display:flex;align-items:center;justify-content:center;cursor:pointer;
   transition:all .25s ease;box-shadow:0 2px 6px rgba(0,0,0,.15);
   &:hover{transform:scale(1.1);background:linear-gradient(135deg,#fff,#f8fafc);box-shadow:0 3px 10px rgba(0,0,0,.2);}
+  @media (max-width:768px){width:18px;height:18px;font-size:10px;}
 `;
 
 const BotInfo = styled.div`display:flex;flex-direction:column;@media (max-width:480px){display:none;}`;
-const BotName = styled.span`font-weight:700;font-size:16px;color:#2e2f5e;letter-spacing:0.3px;`;
-const BotStatus = styled.span`font-size:12px;color:#65B741;font-weight:500;`;
+const BotName = styled.span`font-weight:700;font-size:16px;color:#2e2f5e;letter-spacing:0.3px;@media (max-width:768px){font-size:15px;}`;
+const BotStatus = styled.span`font-size:12px;color:#65B741;font-weight:500;@media (max-width:768px){font-size:11px;}`;
 
 const Layout = styled.div`
   flex:1;display:flex;justify-content:center;padding:100px 60px 145px;box-sizing:border-box;overflow:hidden;
   @media (max-width:1200px){padding:100px 40px 145px;}
-  @media (max-width:768px){padding:75px 16px 155px;}
+  @media (max-width:768px){padding:70px 12px 135px;}
 `;
 
 const ChatColumn = styled.div`
@@ -103,12 +105,12 @@ const Description = styled.div`margin:auto;text-align:center;max-width:620px;ani
 const Title = styled.h1`
   font-size:44px;font-weight:800;margin-bottom:18px;background:linear-gradient(45deg,#2e2f5e 30%,#5A8CF2 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2;letter-spacing:-0.5px;
-  @media (max-width:768px){font-size:32px;}
+  @media (max-width:768px){font-size:28px;}
 `;
 
 const Subtitle = styled.p`
   font-size:20px;color:#666;line-height:1.75;opacity:0;animation:${fadeIn} 1s ease-out .5s forwards;font-weight:400;
-  @media (max-width:768px){font-size:17px;}
+  @media (max-width:768px){font-size:16px;}
 `;
 
 const IntroBar = styled.div`
@@ -131,12 +133,7 @@ const IntroBar = styled.div`
     animation:${shimmer} 2s ease-in-out;opacity:1;
   }
   
-  @media (max-width:768px){
-    font-size:14px;padding:16px 24px;
-  }
-  @media (max-width:480px){
-    font-size:13px;padding:14px 20px;margin-bottom:20px;
-  }
+  @media (max-width:768px){font-size:13px;padding:14px 20px;margin-bottom:20px;}
 `;
 
 const DateDivider = styled.div`text-align:center;margin:24px 0;position:relative;&:before{content:"";position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.08);z-index:-1;}`;
@@ -144,10 +141,12 @@ const DateDivider = styled.div`text-align:center;margin:24px 0;position:relative
 const DateLabel = styled.span`
   background:linear-gradient(135deg,#f8f9fb,#f0f3f7);padding:6px 16px;border-radius:22px;font-size:13px;color:#666;
   box-shadow:0 2px 6px rgba(0,0,0,.04);font-weight:500;letter-spacing:0.2px;
+  @media (max-width:768px){font-size:11px;padding:5px 12px;}
 `;
 
 const ChatBox = styled.div`
   display:flex;flex-direction:column;gap:22px;padding:28px 10px 24px;overflow-y:auto;animation:${slideInLTR} .4s ease-out both;
+  @media (max-width:768px){gap:18px;padding:20px 6px 20px;}
 `;
 
 const BubbleWrapper = styled.div`
@@ -158,6 +157,7 @@ const BubbleWrapper = styled.div`
 
 const BubbleHeader = styled.div`
   font-size:12px;color:#888;margin-bottom:7px;padding:0 12px;display:flex;align-items:center;gap:7px;font-weight:500;
+  @media (max-width:768px){font-size:11px;padding:0 8px;margin-bottom:5px;}
 `;
 
 const SenderAvatar = styled.div`
@@ -165,6 +165,7 @@ const SenderAvatar = styled.div`
   background:${p=>p.$sender==='user'?'#5A8CF2':'linear-gradient(135deg,#7AC2DD,#5A8CF2)'};
   display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:10px;
   box-shadow:0 2px 6px rgba(0,0,0,.12);
+  @media (max-width:768px){width:20px;height:20px;font-size:9px;}
 `;
 
 const ChatBubble = styled.div`
@@ -184,15 +185,17 @@ const ChatBubble = styled.div`
       opacity:.5;pointer-events:none;
     }
   `}
+  @media (max-width:768px){padding:14px 18px;font-size:14px;border-radius:${p=>p.$sender==='user'?'18px 18px 4px 18px':'18px 18px 18px 4px'};}
 `;
 
-const MessageTime = styled.span`font-size:11px;color:#999;font-weight:400;`;
+const MessageTime = styled.span`font-size:11px;color:#999;font-weight:400;@media (max-width:768px){font-size:10px;}`;
 
-const TypingBubble = styled(ChatBubble)`width:62px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;gap:5px;`;
+const TypingBubble = styled(ChatBubble)`width:62px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;gap:5px;@media (max-width:768px){width:56px;height:30px;}`;
 
 const TypingDot = styled.div`
   width:7px;height:7px;background:#888;border-radius:50%;opacity:.75;
   animation:${p=>keyframes`0%,100%{transform:translateY(0);opacity:.75;}50%{transform:translateY(-4px);opacity:1;}`} ${p=>p.$delay}s infinite ease-in-out;
+  @media (max-width:768px){width:6px;height:6px;}
 `;
 
 const InputArea = styled.div`
@@ -202,10 +205,18 @@ const InputArea = styled.div`
   backdrop-filter:blur(20px) saturate(1.4);
   box-shadow:0 8px 32px rgba(0,0,0,.07),0 3px 12px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.9);
   border:1px solid rgba(0,0,0,.04);z-index:100;transition:all .35s cubic-bezier(.4,0,.2,1);
-  @media (max-width:768px){width:94%;bottom:32px;}
+  
   &:focus-within{
     box-shadow:0 10px 40px rgba(90,140,242,.15),0 4px 16px rgba(90,140,242,.08),inset 0 1px 0 rgba(255,255,255,.95);
     border-color:rgba(90,140,242,.2);
+  }
+  
+  @media (max-width:768px){
+    width:94%;
+    bottom:20px;
+    padding:5px 8px;
+    border-radius:20px;
+    max-width:calc(100vw - 24px);
   }
 `;
 
@@ -213,9 +224,13 @@ const InputField = styled.input`
   flex:1;font-size:16px;background:transparent;border:none;outline:none;padding:15px 22px;
   color:${p=>p.$disabled?'#999':'#2d3748'};font-weight:400;letter-spacing:0.2px;
   &::placeholder{color:${p=>p.$disabled?'#aaa':'#999'};font-style:italic;font-weight:400;}
+  @media (max-width:768px){font-size:15px;padding:12px 14px;}
 `;
 
-const InputButtons = styled.div`display:flex;align-items:center;gap:10px;padding-right:6px;`;
+const InputButtons = styled.div`
+  display:flex;align-items:center;gap:10px;padding-right:6px;
+  @media (max-width:768px){gap:6px;padding-right:2px;}
+`;
 
 const ActionButton = styled.button`
   width:46px;height:46px;background:${p=>p.$isRecording?'rgba(234,84,85,.12)':'transparent'};
@@ -224,6 +239,7 @@ const ActionButton = styled.button`
   cursor:${p=>p.$disabled?'not-allowed':'pointer'};transition:all .3s cubic-bezier(.4,0,.2,1);
   animation:${p=>p.$isRecording?recording:'none'} 1.5s infinite;opacity:${p=>p.$disabled?.5:1};
   &:hover:not(:disabled){background:${p=>p.$isRecording?'rgba(234,84,85,.18)':'rgba(0,0,0,.04)'};}
+  @media (max-width:768px){width:38px;height:38px;font-size:18px;}
 `;
 
 const SendButton = styled.button`
@@ -250,6 +266,7 @@ const SendButton = styled.button`
     &:before{opacity:1;}
   }
   &:active:not(:disabled){transform:scale(0.96);}
+  @media (max-width:768px){width:44px;height:44px;font-size:19px;}
 `;
 
 const StatusMessage = styled.div`
@@ -257,6 +274,7 @@ const StatusMessage = styled.div`
   background:rgba(0,0,0,.85);color:#fff;padding:13px 22px;border-radius:26px;font-size:14px;z-index:101;
   animation:${fadeInDown} .3s ease-out;backdrop-filter:blur(12px);
   box-shadow:0 4px 18px rgba(0,0,0,.24);max-width:90%;text-align:center;font-weight:500;letter-spacing:0.3px;
+  @media (max-width:768px){bottom:90px;font-size:13px;padding:11px 18px;}
 `;
 
 const WelcomeAnimation = styled.div`
@@ -267,8 +285,7 @@ const WelcomeAnimation = styled.div`
   opacity:${p=>p.$visible?1:0};visibility:${p=>p.$visible?'visible':'hidden'};
   transition:all .5s cubic-bezier(.4,0,.2,1);text-shadow:0 4px 12px rgba(43,57,147,.18);letter-spacing:-1px;
   
-  @media (max-width:768px){font-size:48px;}
-  @media (max-width:480px){font-size:36px;}
+  @media (max-width:768px){font-size:42px;}
 `;
 
 const IntroTextOverlay = styled.div`
@@ -279,8 +296,7 @@ const IntroTextOverlay = styled.div`
   opacity:${p=>p.$visible?1:0};visibility:${p=>p.$visible?'visible':'hidden'};
   transition:opacity .6s cubic-bezier(.4,0,.2,1),visibility .6s;
   
-  @media (max-width:768px){padding:140px 28px 28px;}
-  @media (max-width:480px){padding:110px 20px 20px;}
+  @media (max-width:768px){padding:120px 20px 20px;}
 `;
 
 const TipHeader = styled.h2`
@@ -289,8 +305,7 @@ const TipHeader = styled.h2`
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   margin-bottom:16px;animation:${fadeInStagger} .8s ease-out;letter-spacing:-0.5px;
   
-  @media (max-width:768px){font-size:30px;}
-  @media (max-width:480px){font-size:24px;}
+  @media (max-width:768px){font-size:26px;}
 `;
 
 const IntroContent = styled.div`
@@ -300,16 +315,14 @@ const IntroContent = styled.div`
   box-shadow:0 8px 32px rgba(0,0,0,.1),0 4px 16px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.6);
   animation:${fadeInStagger} .8s ease-out .4s both;backdrop-filter:blur(10px);
   
-  @media (max-width:768px){padding:26px;max-width:88%;}
-  @media (max-width:480px){padding:22px 18px;max-width:92%;}
+  @media (max-width:768px){padding:24px 20px;max-width:90%;}
 `;
 
 const IntroText = styled.p`
   font-size:19px;color:#4a5568;line-height:1.8;margin:0;
   font-weight:400;letter-spacing:0.3px;
   
-  @media (max-width:768px){font-size:17px;line-height:1.7;}
-  @media (max-width:480px){font-size:15px;line-height:1.65;}
+  @media (max-width:768px){font-size:15px;line-height:1.7;}
 `;
 
 const Disclaimer = styled.div`
@@ -318,18 +331,18 @@ const Disclaimer = styled.div`
   text-align:center;padding:5px 8px;z-index:100;
   font-weight:400;letter-spacing:0.2px;
   
-  @media (max-width:768px){font-size:10.5px;}
-  @media (max-width:480px){font-size:9px;width:94%;}
+  @media (max-width:768px){font-size:10px;width:94%;bottom:4px;}
 `;
 
 const AIBubbleWithAvatar = styled.div`
   display:flex;gap:15px;align-items:flex-start;max-width:72%;
-  @media (max-width:768px){max-width:85%;}
+  @media (max-width:768px){max-width:85%;gap:10px;}
 `;
 
 const Overlay = styled.div`
   position:fixed;inset:0;background:rgba(20,24,40,.45);backdrop-filter:blur(6px);
   display:${p=>p.$open?'flex':'none'};align-items:center;justify-content:center;z-index:1000;
+  padding:20px;
 `;
 
 const Modal = styled.div`
@@ -337,7 +350,7 @@ const Modal = styled.div`
   background:linear-gradient(145deg,rgba(255,255,255,.98) 0%,rgba(247,250,255,.98) 100%);
   border:1px solid rgba(43,57,147,.12);border-radius:20px;
   box-shadow:0 24px 80px rgba(18,28,80,.28),0 6px 20px rgba(0,0,0,.08);
-  overflow:hidden;position:relative;
+  overflow:hidden;position:relative;max-height:90vh;overflow-y:auto;
 `;
 
 const TopBar = styled.div`
@@ -347,15 +360,18 @@ const TopBar = styled.div`
 
 const ModalContent = styled.div`
   display:grid;grid-template-columns:180px 1fr;gap:24px;padding:24px;
-  @media (max-width:640px){grid-template-columns:1fr;}
+  @media (max-width:640px){grid-template-columns:1fr;gap:16px;padding:20px;}
 `;
 
-const ModalAvatarWrap = styled.div`position:relative;display:grid;place-items:center;`;
+const ModalAvatarWrap = styled.div`
+  position:relative;display:grid;place-items:center;
+  @media (max-width:640px){margin:0 auto;}
+`;
 
 const ModalAvatar = styled.img`
   width:160px;height:180px;object-fit:cover;border-radius:16px;
   box-shadow:0 14px 38px rgba(0,0,0,.18);
-  @media (max-width:640px){width:130px;height:150px;}
+  @media (max-width:640px){width:120px;height:140px;}
 `;
 
 const ModalAura = styled.div`
@@ -363,19 +379,22 @@ const ModalAura = styled.div`
   background:radial-gradient(circle,${p=>p.$start} 0%,${p=>p.$end} 60%,transparent 70%);
   filter:blur(24px);opacity:.25;z-index:-1;
   animation:${auraPulse} 5s ease-in-out infinite;
+  @media (max-width:640px){width:180px;height:180px;}
 `;
 
-const ModalTitle = styled.h3`margin:0 0 6px 0;font-size:24px;color:#1b2748;`;
-const ModalSub = styled.div`font-size:14px;color:#6b7aa0;margin-bottom:10px;`;
+const ModalTitle = styled.h3`margin:0 0 6px 0;font-size:24px;color:#1b2748;@media (max-width:640px){font-size:20px;text-align:center;}`;
+const ModalSub = styled.div`font-size:14px;color:#6b7aa0;margin-bottom:10px;@media (max-width:640px){font-size:13px;text-align:center;}`;
 
 const ModalQuote = styled.div`
   margin:12px 0 18px 0;padding:10px 14px;border-radius:12px;
   background:rgba(103,126,234,.07);border:1px solid rgba(103,126,234,.18);
   color:#445;font-weight:600;
+  @media (max-width:640px){font-size:14px;padding:8px 12px;}
 `;
 
 const ModalPara = styled.p`
   font-size:15px;line-height:1.8;color:#2a334d;margin:8px 0 0 0;white-space:pre-line;
+  @media (max-width:640px){font-size:14px;}
 `;
 
 const ModalRow = styled.div`display:grid;gap:10px;margin-top:12px;`;
@@ -383,13 +402,14 @@ const ModalRow = styled.div`display:grid;gap:10px;margin-top:12px;`;
 const ModalActions = styled.div`
   display:flex;justify-content:flex-end;gap:12px;
   padding:16px 20px;border-top:1px solid rgba(0,0,0,.06);
-  @media (max-width:640px){justify-content:center;flex-wrap:wrap;}
+  @media (max-width:640px){justify-content:center;padding:14px 16px;}
 `;
 
 const GhostBtn = styled.button`
   background:transparent;color:#445;border:1px solid rgba(68,85,170,.25);
   padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:700;
   &:hover{background:rgba(68,85,170,.08);}
+  @media (max-width:640px){padding:9px 14px;font-size:14px;}
 `;
 
 const BOT_MAP = {
@@ -460,6 +480,7 @@ export default function MoodInput() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [showIntroText, setShowIntroText] = useState(false);
   const [showBotModal, setShowBotModal] = useState(false);
+  const [isComposing, setIsComposing] = useState(false);
 
   const chatBoxRef = useRef(null);
   const inputRef = useRef(null);
@@ -530,18 +551,16 @@ export default function MoodInput() {
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const userMsgText = isRecording ? "[語音訊息]" : trimmedInput;
 
-    // 立即清空所有輸入相關狀態和 DOM
     setInputValue("");
     if (inputRef.current) {
       inputRef.current.value = "";
-      inputRef.current.blur(); // 移除焦點避免觸發
+      inputRef.current.blur();
     }
     
     setInputDisabled(true);
     setIsTyping(true);
     if (isRecording) setIsRecording(false);
     
-    // 清空當前的 avatar text，避免重複觸發
     setAvatarText("");
     setCurrentSpeakingIndex(-1);
     
@@ -558,13 +577,10 @@ export default function MoodInput() {
         const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const aiMsg = { sender: "ai", content: result.reply, timestamp: replyTime };
         
-        // 先更新訊息列表
         setMessages(prev => [...prev, aiMsg]);
         
-        // 計算新的 AI 訊息索引
         const newAiIndex = messages.filter(m => m.sender === "ai").length;
         
-        // 使用 setTimeout 確保狀態更新後才觸發 TTS
         setTimeout(() => {
           setCurrentSpeakingIndex(newAiIndex);
           setAvatarText(result.reply);
@@ -589,7 +605,6 @@ export default function MoodInput() {
       setIsTyping(false);
       setInputDisabled(false);
       
-      // 確保輸入框完全清空並恢復焦點
       requestAnimationFrame(() => {
         if (inputRef.current) {
           inputRef.current.value = "";
@@ -616,10 +631,18 @@ export default function MoodInput() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !inputDisabled && !e.shiftKey) {
+    if (e.key === "Enter" && !inputDisabled && !e.shiftKey && !isComposing) {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleCompositionStart = () => {
+    setIsComposing(true);
+  };
+
+  const handleCompositionEnd = () => {
+    setIsComposing(false);
   };
 
   const today = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
@@ -741,6 +764,8 @@ export default function MoodInput() {
           value={inputValue}
           onChange={e => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
           $disabled={inputDisabled || isRecording}
           autoComplete="off"
         />

@@ -1,3 +1,4 @@
+// src/components/Home.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
@@ -11,6 +12,7 @@ import bot6 from "../assets/bot6.png";
 import bot4 from "../assets/bot4.png";
 import userIcon from "../assets/profile.png";
 import { MdEmojiPeople, MdChat, MdFavorite, MdPsychology } from "react-icons/md";
+import { FiX, FiMail, FiCopy, FiCheck, FiFileText, FiShield } from "react-icons/fi";
 import logoIcon from "../assets/logofig.png";
 import PersonaModal from "./PersonaModal";
 import personas from "../data/botPersonas";
@@ -27,6 +29,7 @@ const pulseGlow = keyframes`
 `;
 const floatY = keyframes` 0%,100% { transform: translateY(0) } 50% { transform: translateY(-2px) } `;
 const borderShift = keyframes` 0% { transform: rotate(0deg) } 100% { transform: rotate(360deg) } `;
+const fadeIn = keyframes` from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } `;
 
 /* ================ 基礎樣式（保留） ================ */
 const Container = styled.div`
@@ -237,7 +240,7 @@ const GlowBorder = styled.div`
     animation: ${borderShift} 8s linear infinite;
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor; mask-composite: exclude;
-    padding: 2px; /* 邊框厚度 */
+    padding: 2px;
   }
   @media (prefers-reduced-motion: reduce) { animation: none; }
 `;
@@ -395,16 +398,94 @@ const AboutContent = styled.div` flex: 1; `;
 const AboutTitle = styled.h2` font-size: 50px; font-weight: 700; color: #000; margin-bottom: 24px; `;
 const AboutText = styled.p` font-size: 22px; color: #333; line-height: 2; white-space: pre-line; `;
 
+/* ====== 底部（調整：拿掉「國家」，加版本） ====== */
 const Footer = styled.footer`
-  background: #c2c2c2; color: white; padding: 20px 40px; display: flex; justify-content: space-between; font-size: 18px;
+  background: #c2c2c2; color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 18px;
   @media (max-width: 768px) { padding: 16px 20px; font-size: 16px; flex-direction: column; gap: 12px; text-align: center; }
   @media (max-width: 480px) { padding: 12px 16px; font-size: 14px; gap: 8px; }
 `;
 const FooterLinks = styled.div`
-  display: flex; gap: 32px;
-  div { cursor: pointer; transition: opacity .3s ease; &:hover{ opacity:.8; } }
+  display: flex; gap: 32px; align-items: center;
+  div { cursor: pointer; transition: opacity .3s ease; &:hover{ opacity:.85; } display:flex; align-items:center; gap:6px; }
   @media (max-width: 768px){ gap: 20px; justify-content: center; }
-  @media (max-width: 480px){ gap: 16px; flex-direction: column; }
+  @media (max-width: 480px){ gap: 16px; }
+`;
+const VersionTag = styled.span`
+  font-weight: 800; letter-spacing: .4px; background: rgba(0,0,0,.18); padding: 4px 10px; border-radius: 999px; font-size: 12px;
+`;
+
+/* ====== Contact Modal（矩形長條 & 更精緻） ====== */
+const Overlay = styled.div`
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(20, 24, 40, 0.45);
+  backdrop-filter: blur(6px);
+  display: ${(p) => (p.open ? "flex" : "none")};
+  align-items: center; justify-content: center;
+`;
+const ModalShell = styled.div`
+  width: min(840px, 94vw);  /* 長條矩形 */
+  background: linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(247,250,255,0.98) 100%);
+  border: 1px solid rgba(43, 57, 147, 0.12);
+  border-radius: 14px; /* 更矩形的外觀 */
+  box-shadow: 0 24px 80px rgba(18, 28, 80, 0.28), 0 6px 20px rgba(0,0,0,0.08);
+  overflow: hidden; animation: ${fadeIn} .26s ease both;
+`;
+const ModalTopBar = styled.div`
+  height: 6px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+`;
+const ModalHead = styled.div`
+  padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,.06);
+`;
+const ModalTitleGroup = styled.div`
+  display:flex; align-items:center; gap:10px;
+  h3 { margin:0; font-size: 20px; font-weight: 800; color: #1b2748; letter-spacing:.3px; }
+  small { color:#6b7390; font-weight:800; background:#eef1ff; padding:2px 8px; border-radius:999px; }
+`;
+const CloseBtn = styled.button`
+  border: none; background: transparent; cursor: pointer; padding: 8px; border-radius: 10px;
+  color: #5d6a8a; transition: background .2s ease, transform .08s ease;
+  &:hover { background: rgba(103,126,234,.12); }
+  &:active { transform: scale(.96); }
+`;
+const ModalBody = styled.div`
+  padding: 18px 22px 12px 22px; display:flex; flex-direction:column; gap:12px;
+`;
+const Row = styled.div`
+  display: grid; grid-template-columns: 120px 1fr auto; align-items: center; gap: 12px;
+  padding: 12px 12px; border-radius: 12px; border: 1px solid rgba(43, 57, 147, 0.1);
+  background: rgba(255,255,255,.92);
+  @media (max-width: 620px){ grid-template-columns: 120px 1fr; }
+`;
+const Label = styled.div`
+  font-weight: 800; font-size: 13px; color: #2b3993; letter-spacing: .5px; display:flex; align-items:center; gap:8px;
+`;
+const Value = styled.div`
+  font-size: 16px; color: #2a334d; display: flex; align-items: center; gap: 10px;
+  a { color: #324ab2; text-decoration: none; border-bottom: 1px dashed #b7c2ff; }
+  white-space: nowrap; /* 不換行 */
+  overflow: hidden; text-overflow: ellipsis;
+`;
+const RowActions = styled.div` display:flex; gap:8px; `;
+const GhostBtn = styled.button`
+  background: transparent; color: #2a3350; border: 1px solid rgba(50,74,178,0.25);
+  padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 6px;
+  &:hover { background: rgba(50,74,178,0.08); }
+`;
+const ModalFoot = styled.div`
+  padding: 12px 22px 16px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid rgba(0,0,0,0.06);
+`;
+
+/* ====== Privacy Modal（專業閱讀樣式） ====== */
+const DocBody = styled.div`
+  padding: 18px 22px; max-height: min(56vh, 640px); overflow: auto;
+  line-height: 1.85; color: #27324a; font-size: 15.5px;
+  p { margin: 0 0 12px; }
+  h4 { margin: 14px 0 8px; font-size: 16px; color:#1b2545; }
+  ul { margin: 8px 0 12px 20px; }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; background:#f4f6ff; padding: 2px 6px; border-radius: 6px; }
+  strong { font-weight: 800; }
 `;
 
 /* =================== 主組件 =================== */
@@ -415,47 +496,18 @@ export default function Home() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(null);
 
+  // 新增：聯絡/隱私 視窗狀態
+  const [contactOpen, setContactOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const VERSION = "v1.0.0";
+
   const botCards = [
-    {
-      type: "empathy",
-      title: "同理型 AI",
-      name: "Lumi",
-      image: bot1,
-      features: "擅長建立溫暖、接納的氛圍，引導使用者覺察情緒並與之共處",
-      suitable: "孤獨感、低自尊、情感失落、自我懷疑、親密關係議題",
-      accentStart: "#FFB6C1",
-      accentEnd: "#FF8FB1",
-    },
-    {
-      type: "insight",
-      title: "洞察型 AI",
-      name: "Solin",
-      image: bot2,
-      features: "長於探索潛意識與潛藏動機，引導使用者對過往經驗進行深層理解",
-      suitable: "反覆的人際模式、創傷經驗、自我價值疑問、夢境探索、內在空虛感",
-      accentStart: "#7AC2DD",
-      accentEnd: "#5A8CF2",
-    },
-    {
-      type: "solution",
-      title: "解決型 AI",
-      name: "Niko",
-      image: bot6,
-      features: "現實導向，強調目標設定與資源活用，能快速聚焦在問題解決上",
-      suitable: "職場壓力、衝突處理、時間管理、短期決策困難、日常壓力應對",
-      accentStart: "#3AA87A",
-      accentEnd: "#9AE6B4",
-    },
-    {
-      type: "cognitive",
-      title: "認知型 AI",
-      name: "Clara",
-      image: bot4,
-      features: "結構明確、邏輯清晰，擅長分析非理性思考並提供認知重建步驟",
-      suitable: "負面自我對話、焦慮、完美主義、拖延、情緒管理",
-      accentStart: "#7A4DC8",
-      accentEnd: "#B794F4",
-    },
+    { type: "empathy", title: "同理型 AI", name: "Lumi", image: bot1, features: "擅長建立溫暖、接納的氛圍，引導使用者覺察情緒並與之共處", suitable: "孤獨感、低自尊、情感失落、自我懷疑、親密關係議題", accentStart: "#FFB6C1", accentEnd: "#FF8FB1" },
+    { type: "insight", title: "洞察型 AI", name: "Solin", image: bot2, features: "長於探索潛意識與潛藏動機，引導使用者對過往經驗進行深層理解", suitable: "反覆的人際模式、創傷經驗、自我價值疑問、夢境探索、內在空虛感", accentStart: "#7AC2DD", accentEnd: "#5A8CF2" },
+    { type: "solution", title: "解決型 AI", name: "Niko", image: bot6, features: "現實導向，強調目標設定與資源活用，能快速聚焦在問題解決上", suitable: "職場壓力、衝突處理、時間管理、短期決策困難、日常壓力應對", accentStart: "#3AA87A", accentEnd: "#9AE6B4" },
+    { type: "cognitive", title: "認知型 AI", name: "Clara", image: bot4, features: "結構明確、邏輯清晰，擅長分析非理性思考並提供認知重建步驟", suitable: "負面自我對話、焦慮、完美主義、拖延、情緒管理", accentStart: "#7A4DC8", accentEnd: "#B794F4" },
   ];
 
   const cardWidth = 340;
@@ -469,9 +521,7 @@ export default function Home() {
     { title: "連結更多專業的幫助", icon: <MdPsychology size={24} />, content: "如果需要，我們會在你的同意下，\n協助你快速找到校方的專業心理師，\n讓支持更及時到達你身邊。" },
   ];
 
-  useEffect(() => {
-    AOS.init({ duration: 800, once: true });
-  }, []);
+  useEffect(() => { AOS.init({ duration: 800, once: true }); }, []);
 
   // 保留原有 hash/狀態滾動
   useEffect(() => {
@@ -486,6 +536,18 @@ export default function Home() {
     });
   }, [location]);
 
+  // Esc 關閉（聯絡、隱私）
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setContactOpen(false);
+        setPrivacyOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   const scrollToCard = (direction) => {
     const ref = scrollRef.current;
     if (!ref) return;
@@ -496,14 +558,14 @@ export default function Home() {
   const openPersona = (card) => { setActive(card); setOpen(true); };
   const startWithPersona = (personaObj) => { navigate("/Login", { state: { preferredBot: personaObj?.key } }); };
 
-  // 3D tilt：依滑鼠位置設定 CSS 變數
+  // 3D tilt
   const handleTilt = (e) => {
     const el = e.currentTarget;
     const rect = el.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width;   // 0 ~ 1
-    const py = (e.clientY - rect.top) / rect.height;   // 0 ~ 1
-    const rotX = (0.5 - py) * 8; // 上下傾斜
-    const rotY = (px - 0.5) * 10; // 左右傾斜
+    const px = (e.clientX - rect.left) / rect.width;
+    const py = (e.clientY - rect.top) / rect.height;
+    const rotX = (0.5 - py) * 8;
+    const rotY = (px - 0.5) * 10;
     el.style.setProperty("--tiltX", `${rotX}deg`);
     el.style.setProperty("--tiltY", `${rotY}deg`);
   };
@@ -511,6 +573,17 @@ export default function Home() {
     const el = e.currentTarget;
     el.style.setProperty("--tiltX", `0deg`);
     el.style.setProperty("--tiltY", `0deg`);
+  };
+
+  // 複製 email
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText("emobotplus@gmail.com");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      alert("複製失敗，請手動選取複製。");
+    }
   };
 
   return (
@@ -551,49 +624,46 @@ export default function Home() {
 
         <ScrollWrapper ref={scrollRef}>
           <ScrollContainer>
-            {botCards.map((card, index) => {
-              return (
-                <ScrollCard
-                  key={card.type}
-                  $accentStart={card.accentStart}
-                  $accentEnd={card.accentEnd}
-                  data-aos="fade-up"
-                  data-aos-delay={100 + index * 100}
-                  tabIndex={0}
-                  aria-label={`${card.name || card.title} 卡片`}
-                  onClick={() => openPersona(card)}
-                  onKeyDown={(e) => e.key === "Enter" && openPersona(card)}
-                  onMouseMove={handleTilt}
-                  onMouseLeave={resetTilt}
-                >
-                  {/* 動效層 */}
-                  <ShimmerLayer aria-hidden="true" $accentStart={card.accentStart} $accentEnd={card.accentEnd} />
-                  <GlowBorderWrap aria-hidden="true">
-                    <GlowBorder $accentStart={card.accentStart} $accentEnd={card.accentEnd} />
-                  </GlowBorderWrap>
+            {botCards.map((card, index) => (
+              <ScrollCard
+                key={card.type}
+                $accentStart={card.accentStart}
+                $accentEnd={card.accentEnd}
+                data-aos="fade-up"
+                data-aos-delay={100 + index * 100}
+                tabIndex={0}
+                aria-label={`${card.name || card.title} 卡片`}
+                onClick={() => openPersona(card)}
+                onKeyDown={(e) => e.key === "Enter" && openPersona(card)}
+                onMouseMove={handleTilt}
+                onMouseLeave={resetTilt}
+              >
+                <ShimmerLayer aria-hidden="true" $accentStart={card.accentStart} $accentEnd={card.accentEnd} />
+                <GlowBorderWrap aria-hidden="true">
+                  <GlowBorder $accentStart={card.accentStart} $accentEnd={card.accentEnd} />
+                </GlowBorderWrap>
 
-                  <CardImageContainer>
-                    <Aura aria-hidden="true" $accentStart={card.accentStart} $accentEnd={card.accentEnd} />
-                    <CardImg src={card.image} alt={card.title} />
-                  </CardImageContainer>
+                <CardImageContainer>
+                  <Aura aria-hidden="true" $accentStart={card.accentStart} $accentEnd={card.accentEnd} />
+                  <CardImg src={card.image} alt={card.title} />
+                </CardImageContainer>
 
-                  {card.name && <BotName>{card.name}</BotName>}
-                  <CardTitle>{card.title}</CardTitle>
+                {card.name && <BotName>{card.name}</BotName>}
+                <CardTitle>{card.title}</CardTitle>
 
-                  <CardFeature>
-                    <FeatureLabel>特色能力</FeatureLabel>
-                    <FeatureText>{card.features}</FeatureText>
-                  </CardFeature>
+                <CardFeature>
+                  <FeatureLabel>特色能力</FeatureLabel>
+                  <FeatureText>{card.features}</FeatureText>
+                </CardFeature>
 
-                  <CardDivider />
+                <CardDivider />
 
-                  <CardFeature>
-                    <FeatureLabel>適合議題</FeatureLabel>
-                    <FeatureText>{card.suitable}</FeatureText>
-                  </CardFeature>
-                </ScrollCard>
-              );
-            })}
+                <CardFeature>
+                  <FeatureLabel>適合議題</FeatureLabel>
+                  <FeatureText>{card.suitable}</FeatureText>
+                </CardFeature>
+              </ScrollCard>
+            ))}
           </ScrollContainer>
         </ScrollWrapper>
 
@@ -644,16 +714,19 @@ export default function Home() {
         </AboutContent>
       </AboutSection>
 
+      {/* ====== Footer（只留兩個連結 + 版本） ====== */}
       <Footer>
-        <div>Copyright © 2025 Emobot+</div>
+        <div style={{display:"flex", alignItems:"center", gap:12}}>
+          <span>Copyright © 2025 Emobot+</span>
+          <VersionTag>{VERSION}</VersionTag>
+        </div>
         <FooterLinks>
-          <div>隱私政策</div>
-          <div>聯絡我們</div>
-          <div>國家</div>
+          <div onClick={() => setPrivacyOpen(true)}><FiShield /> 隱私政策</div>
+          <div onClick={() => setContactOpen(true)}><FiMail /> 聯絡我們</div>
         </FooterLinks>
       </Footer>
 
-      {/* Persona Modal */}
+      {/* Persona Modal（保留） */}
       <PersonaModal
         open={open}
         onClose={() => setOpen(false)}
@@ -663,6 +736,113 @@ export default function Home() {
         accentStart={active?.accentStart || "#667eea"}
         accentEnd={active?.accentEnd || "#764ba2"}
       />
+
+      {/* ====== 聯絡我們：長條矩形視窗 ====== */}
+      <Overlay
+        open={contactOpen}
+        onClick={(e) => e.target === e.currentTarget && setContactOpen(false)}
+        aria-hidden={!contactOpen}
+      >
+        <ModalShell role="dialog" aria-modal="true" aria-label="聯絡我們">
+          <ModalTopBar />
+          <ModalHead>
+            <ModalTitleGroup>
+              <h3>聯絡我們</h3>
+              <small>{VERSION}</small>
+            </ModalTitleGroup>
+            <CloseBtn aria-label="關閉" onClick={() => setContactOpen(false)}>
+              <FiX size={20} />
+            </CloseBtn>
+          </ModalHead>
+
+          <ModalBody>
+            <Row>
+              <Label><FiFileText /> Team</Label>
+              <Value>Emobot+</Value>
+              <RowActions />
+            </Row>
+
+            <Row>
+              <Label><FiMail /> Email</Label>
+              <Value>
+                <a href="mailto:emobotplus@gmail.com" title="點我用預設郵件程式開啟">emobotplus@gmail.com</a>
+              </Value>
+              <RowActions>
+                <GhostBtn onClick={copyEmail} aria-live="polite">
+                  {copied ? (<><FiCheck /> 已複製</>) : (<><FiCopy /> 複製 Email</>)}
+                </GhostBtn>
+              </RowActions>
+            </Row>
+          </ModalBody>
+
+          <ModalFoot>
+            <GhostBtn onClick={() => setContactOpen(false)}>關閉</GhostBtn>
+          </ModalFoot>
+        </ModalShell>
+      </Overlay>
+
+      {/* ====== 隱私政策：專業閱讀樣式視窗 ====== */}
+      <Overlay
+        open={privacyOpen}
+        onClick={(e) => e.target === e.currentTarget && setPrivacyOpen(false)}
+        aria-hidden={!privacyOpen}
+      >
+        <ModalShell role="dialog" aria-modal="true" aria-label="隱私政策">
+          <ModalTopBar />
+          <ModalHead>
+            <ModalTitleGroup>
+              <h3>隱私政策</h3>
+              <small>{VERSION}</small>
+            </ModalTitleGroup>
+            <CloseBtn aria-label="關閉" onClick={() => setPrivacyOpen(false)}>
+              <FiX size={20} />
+            </CloseBtn>
+          </ModalHead>
+
+          <DocBody>
+            <h4>使用目的與測試性質</h4>
+            <p>
+              本程式專案目前處於<strong>測試階段</strong>，目的在於驗證介面設計、互動流程與系統穩定性。請勿將平台提供之任何內容視為醫療或心理治療之專業建議。
+            </p>
+
+            <h4>非醫療建議聲明</h4>
+            <p>
+              若您出現焦慮、憂鬱、恐慌、自傷或其他急迫心理症狀，請<strong>立即</strong>尋求專業協助（校園諮商中心、醫療院所或當地緊急聯絡資源）。
+            </p>
+
+            <h4>資料處理與去識別化</h4>
+            <p>
+              平台上的測驗作答、對話內容、互動紀錄<strong>皆採去識別化與匿名處理</strong>，僅用於模型與功能之研究與改良；不蒐集可直接識別您身分之敏感資訊。
+            </p>
+
+            <h4>資料保存與安全</h4>
+            <ul>
+              <li>研究資料以最小化原則保存，並採取合理之技術與管理措施降低未授權存取風險。</li>
+              <li>除法律要求或安全性稽核外，不會對外揭露個別使用者內容。</li>
+            </ul>
+
+            <h4>第三方服務</h4>
+            <p>
+              於測試階段，可能使用第三方雲端與分析工具以改善系統體驗；其處理遵循各工具之隱私條款並以<strong>研究測試</strong>為限。
+            </p>
+
+            <h4>使用者權益</h4>
+            <ul>
+              <li>您可隨時停止使用本平台。</li>
+              <li>如欲瞭解或刪除測試階段所留資料，請來信 <span className="mono">emobotplus@gmail.com</span> 與我們聯繫。</li>
+            </ul>
+
+            <h4>聯絡方式</h4>
+            <p>
+              Team：<strong>Emobot+</strong>　｜　Email：<a href="mailto:emobotplus@gmail.com">emobotplus@gmail.com</a>
+            </p>
+          </DocBody>
+
+          <ModalFoot>
+            <GhostBtn onClick={() => setPrivacyOpen(false)}>關閉</GhostBtn>
+          </ModalFoot>
+        </ModalShell>
+      </Overlay>
     </Container>
   );
 }

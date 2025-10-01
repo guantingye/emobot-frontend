@@ -111,6 +111,11 @@ const AvatarContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  
+  @media (max-width: 768px) {
+    width: 56px;
+    height: 56px;
+  }
 `;
 
 const GlowStage = styled.div`
@@ -122,6 +127,10 @@ const GlowStage = styled.div`
   z-index: 0;
   opacity: ${p => p.$speaking ? 1 : 0};
   transition: opacity .4s ease;
+  
+  @media (max-width: 768px) {
+    inset: -38px;
+  }
 `;
 
 const GlowCore = styled.div`
@@ -139,6 +148,12 @@ const GlowCore = styled.div`
   filter: blur(32px);
   will-change: transform, opacity;
   ${css`animation: ${breathe} 2.8s ease-in-out infinite;`}
+  
+  @media (max-width: 768px) {
+    width: 120px;
+    height: 120px;
+    filter: blur(28px);
+  }
 `;
 
 const GlowSecondary = styled.div`
@@ -156,6 +171,12 @@ const GlowSecondary = styled.div`
   animation-delay: .2s;
   will-change: transform, opacity;
   ${css`animation: ${breathe} 3.2s ease-in-out infinite;`}
+  
+  @media (max-width: 768px) {
+    width: 135px;
+    height: 135px;
+    filter: blur(36px);
+  }
 `;
 
 const Ripple = styled.div`
@@ -168,6 +189,11 @@ const Ripple = styled.div`
   animation-delay: ${p => p.$delay || "0s"};
   will-change: transform, opacity;
   ${css`animation: ${ripple} 2.6s cubic-bezier(.4,0,.6,1) infinite;`}
+  
+  @media (max-width: 768px) {
+    width: 90px;
+    height: 90px;
+  }
 `;
 
 const ParticleOrbit = styled.div`
@@ -189,6 +215,16 @@ const ParticleOrbit = styled.div`
     background: ${p => p.$color};
     box-shadow: 0 0 10px ${p => p.$color}90;
     opacity: .2;
+  }
+  
+  @media (max-width: 768px) {
+    width: 70px;
+    height: 70px;
+    
+    &::before {
+      width: 3px;
+      height: 3px;
+    }
   }
 `;
 
@@ -233,6 +269,12 @@ const AvatarWrapper = styled.div`
       0 4px 12px rgba(0,0,0,.09),
       inset 0 1px 0 rgba(255,255,255,.35);
   }
+  
+  @media (max-width: 768px) {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+  }
 `;
 
 const AvatarImage = styled.img`
@@ -256,6 +298,10 @@ const AvatarFallback = styled.div`
   font-size: 28px;
   text-shadow: 0 2px 8px rgba(0,0,0,.22);
   letter-spacing: -0.5px;
+  
+  @media (max-width: 768px) {
+    font-size: 24px;
+  }
 `;
 
 const AudioControl = styled.button`
@@ -315,6 +361,14 @@ const AudioControl = styled.button`
   &:active {
     transform: scale(1.03) translateZ(0);
   }
+  
+  @media (max-width: 768px) {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+    bottom: -6px;
+    right: -6px;
+  }
 `;
 
 const StatusDot = styled.div`
@@ -334,6 +388,13 @@ const StatusDot = styled.div`
   z-index: 10;
   will-change: opacity, transform;
   ${p => p.$visible && css`animation: ${pulse} 2.2s ease-in-out infinite;`}
+  
+  @media (max-width: 768px) {
+    width: 11px;
+    height: 11px;
+    top: -4px;
+    right: -4px;
+  }
 `;
 
 async function fetchAnimation({ apiBase, text, botType }) {
@@ -367,7 +428,7 @@ export default function AvatarAnimation({
   const [muted, setMuted] = useState(AudioController.getMuted());
   const [colors, setColors] = useState(BOT_COLORS[botType] || BOT_COLORS.default);
   const lastReqRef = useRef(0);
-  const lastTextRef = useRef(""); // 追蹤上次處理的文字
+  const lastTextRef = useRef("");
 
   useEffect(() => {
     const c = BOT_COLORS[botType] || BOT_COLORS.default;
@@ -375,15 +436,12 @@ export default function AvatarAnimation({
   }, [botType]);
 
   useEffect(() => {
-    // 關鍵修正：只有當 text 真正改變且不為空時才觸發
     const trimmedText = (text || "").trim();
     
-    // 如果文字為空或與上次相同，不處理
     if (!trimmedText || trimmedText === lastTextRef.current) {
       return;
     }
     
-    // 更新上次處理的文字
     lastTextRef.current = trimmedText;
     
     let cancelled = false;
@@ -424,7 +482,7 @@ export default function AvatarAnimation({
       AudioController.stop();
       setIsSpeaking(false);
     };
-  }, [text, botType, apiBase, onError]); // 只依賴真正需要的值
+  }, [text, botType, apiBase, onError]);
 
   const toggleMute = () => {
     const v = !muted;
