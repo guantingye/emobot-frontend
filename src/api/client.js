@@ -1,4 +1,4 @@
-// src/api/client.js - 完整版本
+// src/api/client.js - 完整版本（修正 MBTI 儲存邏輯）
 
 // 安全地取得 API Base URL
 function getApiBaseUrl() {
@@ -74,7 +74,7 @@ export async function apiJoin(pid, nickname) {
  * 取得用戶資料
  */
 export async function apiMe() {
-  const response = await fetch(`${BASE_URL}/api/user/profile`, {
+  const response = await fetch(`${BASE_URL}/api/user/me`, {
     method: 'GET',
     headers: getAuthHeaders(),
   });
@@ -86,15 +86,59 @@ export async function apiMe() {
 // ============================================================================
 
 /**
- * 儲存/更新測驗結果
+ * 儲存 MBTI 資料 (Step1 專用)
+ * @param {string} mbtiString - MBTI 字串 (例如: "ISFJ")
+ * @param {number[]} mbtiEncoded - 編碼陣列 [0/1, 0/1, 0/1, 0/1]
  */
-export async function apiUpsertAssessment(payload) {
+export async function saveAssessmentMBTI(mbtiString, mbtiEncoded) {
+  console.log('saveAssessmentMBTI called:', { mbtiString, mbtiEncoded });
+  
   const response = await fetch(`${BASE_URL}/api/assessments/upsert`, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      mbti_raw: mbtiString,           // 後端期望 mbti_raw (字串)
+      mbti_encoded: mbtiEncoded,      // 後端期望 mbti_encoded (陣列)
+      is_retest: localStorage.getItem('isRetest') === 'true'
+    }),
   });
+  
   return handleResponse(response);
+}
+
+/**
+ * 儲存/更新測驗結果 (通用,支援所有 steps)
+ * @param {Object} payload - 測驗資料物件
+ */
+export async function saveAssessment(payload) {
+  console.log('saveAssessment called:', payload);
+  
+  // 轉換欄位名稱 (camelCase → snake_case)
+  const requestBody = {
+    mbti_raw: payload.mbti_raw || payload.mbtiRaw || null,
+    mbti_encoded: payload.mbti_encoded || payload.mbtiEncoded || null,
+    step2_answers: payload.step2_answers || payload.step2Answers || null,
+    step3_answers: payload.step3_answers || payload.step3Answers || null,
+    step4_answers: payload.step4_answers || payload.step4Answers || null,
+    ai_preference: payload.ai_preference || payload.aiPreference || null,
+    submittedAt: payload.submittedAt || null,
+    is_retest: payload.is_retest || localStorage.getItem('isRetest') === 'true'
+  };
+  
+  const response = await fetch(`${BASE_URL}/api/assessments/upsert`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(requestBody),
+  });
+  
+  return handleResponse(response);
+}
+
+/**
+ * 儲存/更新測驗結果 (別名,為了向後兼容)
+ */
+export async function apiUpsertAssessment(payload) {
+  return saveAssessment(payload);
 }
 
 /**
@@ -173,7 +217,7 @@ export async function sendChatMessage(
   try {
     const response = await fetch(`${BASE_URL}/api/chat/send`, {
       method: 'POST',
-      headers: getAuthHeaders(), // 使用 JWT Bearer token
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         message,
         bot_type: botType,
@@ -191,6 +235,11 @@ export async function sendChatMessage(
     throw error;
   }
 }
+
+/**
+ * 發送聊天訊息 (別名)
+ */
+export const apiSendChat = sendChatMessage;
 
 /**
  * 取得聊天歷史記錄
@@ -322,6 +371,11 @@ export async function createAllowedPid(pid, description = '') {
 }
 
 /**
+ * 新增允許的 PID (別名)
+ */
+export const apiAddAllowedPid = createAllowedPid;
+
+/**
  * 更新允許的 PID
  */
 export async function updateAllowedPid(pidId, data) {
@@ -343,6 +397,11 @@ export async function deleteAllowedPid(pidId) {
   });
   return handleResponse(response);
 }
+
+/**
+ * 刪除允許的 PID (別名)
+ */
+export const apiDeleteAllowedPid = deleteAllowedPid;
 
 /**
  * 取得聊天會話列表
@@ -384,19 +443,6 @@ export async function getSystemStatistics() {
 }
 
 // ============================================================================
-// 向後兼容的別名
-// ============================================================================
-
-// 為了兼容舊代碼,提供一些別名
-export const apiSendChat = sendChatMessage;
-export const apiAddAllowedPid = createAllowedPid;
-export const apiDeleteAllowedPid = deleteAllowedPid;
-
-// 測驗相關的別名
-export const saveAssessmentMBTI = apiUpsertAssessment;
-export const saveAssessment = apiUpsertAssessment;
-
-// ============================================================================
 // 預設導出
 // ============================================================================
 
@@ -406,10 +452,10 @@ export default {
   apiMe,
   
   // 測驗
+  saveAssessmentMBTI,
+  saveAssessment,
   apiUpsertAssessment,
   apiGetMyAssessment,
-  saveAssessmentMBTI,  // 別名
-  saveAssessment,      // 別名
   
   // 推薦
   apiRecommend,
