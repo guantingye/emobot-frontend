@@ -1,4 +1,4 @@
-// src/components/MoodTrail.jsx - 完整版（修正錯誤提示樣式）
+// src/components/MoodTrail.jsx - 完整優化版
 import React, { useRef, useEffect, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 
 // ============================================================================
-// 動畫 (保留原設計)
+// 動畫
 // ============================================================================
 
 const fadeIn = keyframes`
@@ -27,7 +27,7 @@ const float = keyframes`
 `;
 
 // ============================================================================
-// Styled Components (完整保留原有設計)
+// Styled Components
 // ============================================================================
 
 const Wrap = styled.div`
@@ -37,6 +37,7 @@ const Wrap = styled.div`
   font-family: "Noto Sans TC", sans-serif;
   display: flex;
   flex-direction: column;
+  position: relative;
 `;
 
 const Header = styled.div`
@@ -130,15 +131,6 @@ const DownloadBtn = styled(Btn)`
   }
 `;
 
-const RefreshBtn = styled(Btn)`
-  background: #5A8CF2;
-  margin-right: 55px;
-
-  @media (max-width: 768px) {
-    margin-right: 0;
-  }
-`;
-
 const PageTitle = styled.div`
   font-weight: 800;
   font-size: 20px;
@@ -151,7 +143,6 @@ const PageTitle = styled.div`
 
   @media (max-width: 480px) {
     font-size: 16px;
-    display: none;
   }
 `;
 
@@ -169,6 +160,7 @@ const GridPanel = styled.div`
   grid-template-columns: 1fr 1fr;
   grid-template-rows: minmax(260px, 1.5fr) minmax(160px, 0.5fr);
   gap: 28px;
+  position: relative;
 
   @media (max-width: 1024px) {
     width: 92vw;
@@ -180,18 +172,19 @@ const GridPanel = styled.div`
     grid-template-columns: 1fr;
     grid-template-rows: auto;
     gap: 20px;
+    margin: 90px auto 80px auto;
   }
 
   @media (max-width: 768px) {
     width: 94vw;
     gap: 18px;
-    margin: 80px auto 28px auto;
+    margin: 80px auto 80px auto;
   }
 
   @media (max-width: 480px) {
     width: 96vw;
     gap: 16px;
-    margin: 70px auto 24px auto;
+    margin: 70px auto 80px auto;
   }
 `;
 
@@ -308,11 +301,11 @@ const RightBottom = styled(Card)`
   grid-row: 3;
   min-height: 110px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
   align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: column;
   padding: 20px;
+  overflow: hidden;
 
   @media (max-width: 900px) {
     grid-column: 1;
@@ -322,7 +315,63 @@ const RightBottom = styled(Card)`
 `;
 
 // ============================================================================
-// 新增：圖表相關樣式
+// 新增：浮動重新分析按鈕
+// ============================================================================
+
+const FloatingRefreshBtn = styled.button`
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  z-index: 30;
+  
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  background: #5A8CF2;
+  box-shadow: 0 6px 20px rgba(90, 140, 242, 0.35);
+  transform: translateY(0);
+  transition: transform 0.12s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(90, 140, 242, 0.45);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 900px) {
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
+    justify-content: center;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 16px;
+    font-size: 13px;
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+  }
+`;
+
+// ============================================================================
+// 圖表相關樣式
 // ============================================================================
 
 const ChartWrapper = styled.div`
@@ -433,13 +482,17 @@ const ErrorHint = styled.div`
 `;
 
 const SummaryContent = styled.div`
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.8;
   color: #444;
   white-space: pre-line;
   margin-top: 35px;
   text-align: left;
   width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  word-break: break-word;
   
   strong {
     color: #2b3993;
@@ -450,10 +503,14 @@ const SummaryContent = styled.div`
     font-size: 13px;
     margin-top: 30px;
   }
+  
+  @media (max-width: 480px) {
+    font-size: 12.5px;
+  }
 `;
 
 // ============================================================================
-// 自定義 Tooltip 組件
+// 自定義 Tooltip
 // ============================================================================
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -588,13 +645,16 @@ export default function MoodTrail() {
   // 準備圖表數據
   // ============================================================================
 
+  // 情緒頻率圖 - 使用簡約配色
+  const SIMPLE_COLORS = ['#5A8CF2', '#7A9FE1', '#6B8DD6', '#8AA5E8', '#4A7CD4', '#9AB6ED', '#3A6CC3'];
+  
   const emotionFreqData = analysisData?.emotion_frequency 
     ? Object.entries(analysisData.emotion_frequency)
         .sort((a, b) => b[1] - a[1])
-        .map(([name, value]) => ({
+        .map(([name, value], index) => ({
           name, 
           次數: value,
-          color: analysisData.emotion_colors?.[name] || '#5A8CF2'
+          color: SIMPLE_COLORS[index % SIMPLE_COLORS.length]
         }))
     : [];
 
@@ -657,11 +717,7 @@ export default function MoodTrail() {
             </BackBtn>
           </BtnGroup>
           <PageTitle>心情足跡·MoodTrail</PageTitle>
-          <BtnGroup>
-            <RefreshBtn onClick={handleRefresh} disabled={refreshing}>
-              <FiRefreshCw size={18} /> {refreshing ? "更新中..." : "重新整理"}
-            </RefreshBtn>
-          </BtnGroup>
+          <BtnGroup />
         </Header>
         <Content>
           <CenteredWrapper>
@@ -676,6 +732,10 @@ export default function MoodTrail() {
             )}
           </CenteredWrapper>
         </Content>
+        
+        <FloatingRefreshBtn onClick={handleRefresh} disabled={refreshing}>
+          <FiRefreshCw size={16} /> {refreshing ? "更新中..." : "重新整理"}
+        </FloatingRefreshBtn>
       </Wrap>
     );
   }
@@ -696,9 +756,6 @@ export default function MoodTrail() {
         <PageTitle>心情足跡·MoodTrail</PageTitle>
 
         <BtnGroup>
-          <RefreshBtn onClick={handleRefresh} disabled={refreshing}>
-            <FiRefreshCw size={18} /> {refreshing ? "更新中..." : "重新分析"}
-          </RefreshBtn>
           <DownloadBtn onClick={handleDownload} disabled={isDownloading}>
             <FiDownload size={18} /> {isDownloading ? "下載中..." : "下載圖片"}
           </DownloadBtn>
@@ -810,8 +867,7 @@ export default function MoodTrail() {
                       name="議題分數" 
                       dataKey="分數" 
                       stroke="#7A4DC8" 
-                      fill="#7A4DC8" 
-                      fillOpacity={0.6}
+                      fill="transparent"
                       strokeWidth={2.5}
                     />
                     <Tooltip content={<CustomTooltip />} />
@@ -832,6 +888,11 @@ export default function MoodTrail() {
           </RightBottom>
         </GridPanel>
       </Content>
+
+      {/* 浮動重新分析按鈕 */}
+      <FloatingRefreshBtn onClick={handleRefresh} disabled={refreshing}>
+        <FiRefreshCw size={16} /> {refreshing ? "更新中..." : "重新分析"}
+      </FloatingRefreshBtn>
     </Wrap>
   );
 }
