@@ -45,16 +45,58 @@ const fadeInStagger = keyframes`from{opacity:0;transform:translateY(30px)}to{opa
 const shimmer = keyframes`0%{transform:translateX(-100%)}100%{transform:translateX(100%)}`;
 const auraPulse = keyframes`0%,100%{transform:scale(.96);opacity:.22}50%{transform:scale(1.04);opacity:.32}`;
 
-// 新增：影片動畫
+// 新增：影片動畫 - 更流暢專業的過渡效果
 const videoZoomOut = keyframes`
-  0% { transform: scale(1); opacity: 1; }
-  70% { transform: scale(0.8); opacity: 1; }
-  100% { transform: scale(0); opacity: 0; }
+  0% { 
+    transform: scale(1) translateY(0); 
+    opacity: 1;
+    filter: blur(0px) brightness(1);
+  }
+  40% { 
+    transform: scale(0.92) translateY(-20px); 
+    opacity: 1;
+    filter: blur(0px) brightness(1.1);
+  }
+  70% { 
+    transform: scale(0.5) translateY(-60px); 
+    opacity: 0.6;
+    filter: blur(2px) brightness(1.2);
+  }
+  100% { 
+    transform: scale(0.1) translateY(-100px); 
+    opacity: 0;
+    filter: blur(8px) brightness(1.5);
+  }
 `;
 
 const avatarZoomIn = keyframes`
-  from { transform: scale(0); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  0% { 
+    transform: scale(0) rotate(-10deg); 
+    opacity: 0; 
+  }
+  60% { 
+    transform: scale(1.1) rotate(2deg); 
+    opacity: 0.8; 
+  }
+  80% { 
+    transform: scale(0.95) rotate(-1deg); 
+    opacity: 1; 
+  }
+  100% { 
+    transform: scale(1) rotate(0deg); 
+    opacity: 1; 
+  }
+`;
+
+const videoFadeIn = keyframes`
+  from { 
+    opacity: 0; 
+    transform: scale(0.95);
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1);
+  }
 `;
 
 const Container = styled.div`
