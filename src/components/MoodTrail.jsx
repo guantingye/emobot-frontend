@@ -1,9 +1,34 @@
-// src/components/MoodTrail.jsx
-import React, { useRef } from "react";
-import styled from "styled-components";
+// src/components/MoodTrail.jsx - 完整版（修正錯誤提示樣式）
+import React, { useRef, useEffect, useState } from "react";
+import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
-import { FiArrowLeft, FiDownload } from "react-icons/fi";
+import { FiArrowLeft, FiDownload, FiRefreshCw } from "react-icons/fi";
 import html2canvas from "html2canvas";
+import { apiGetMoodAnalysis } from "../api/client";
+import robotGif from "../assets/robot.gif";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  LineChart, Line, Cell
+} from 'recharts';
+
+// ============================================================================
+// 動畫 (保留原設計)
+// ============================================================================
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const float = keyframes`
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+`;
+
+// ============================================================================
+// Styled Components (完整保留原有設計)
+// ============================================================================
 
 const Wrap = styled.div`
   width: 100vw;
@@ -98,6 +123,15 @@ const BackBtn = styled(Btn)`
 
 const DownloadBtn = styled(Btn)`
   background: #4caf50;
+  margin-right: 55px;
+
+  @media (max-width: 768px) {
+    margin-right: 0;
+  }
+`;
+
+const RefreshBtn = styled(Btn)`
+  background: #5A8CF2;
   margin-right: 55px;
 
   @media (max-width: 768px) {
@@ -276,6 +310,9 @@ const RightBottom = styled(Card)`
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
 
   @media (max-width: 900px) {
     grid-column: 1;
@@ -284,13 +321,229 @@ const RightBottom = styled(Card)`
   }
 `;
 
+// ============================================================================
+// 新增：圖表相關樣式
+// ============================================================================
+
+const ChartWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 45px 10px 10px 10px;
+  
+  @media (max-width: 768px) {
+    padding: 40px 5px 5px 5px;
+  }
+`;
+
+const CenteredWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  gap: 24px;
+  padding: 40px 20px;
+  animation: ${fadeIn} 0.6s ease-out;
+  
+  @media (max-width: 768px) {
+    gap: 20px;
+    padding: 30px 16px;
+  }
+`;
+
+const LoadingSpinner = styled.div`
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(43, 57, 147, 0.1);
+  border-top-color: #2b3993;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+`;
+
+const LoadingText = styled.div`
+  font-size: 16px;
+  font-weight: 600;
+  color: #2b3993;
+  
+  @media (max-width: 768px) {
+    font-size: 15px;
+  }
+`;
+
+const RobotGif = styled.img`
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  animation: ${float} 3s ease-in-out infinite;
+  
+  @media (max-width: 768px) {
+    width: 150px;
+    height: 150px;
+  }
+  
+  @media (max-width: 480px) {
+    width: 120px;
+    height: 120px;
+  }
+`;
+
+const ErrorText = styled.div`
+  font-size: 18px;
+  font-weight: 700;
+  color: #2b3993;
+  line-height: 1.6;
+  text-align: center;
+  max-width: 500px;
+  
+  @media (max-width: 768px) {
+    font-size: 16px;
+    max-width: 400px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 15px;
+    max-width: 320px;
+  }
+`;
+
+const ErrorHint = styled.div`
+  font-size: 15px;
+  color: #666;
+  text-align: center;
+  line-height: 1.7;
+  max-width: 450px;
+  
+  @media (max-width: 768px) {
+    font-size: 14px;
+    max-width: 380px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 13px;
+    max-width: 300px;
+  }
+`;
+
+const SummaryContent = styled.div`
+  font-size: 14px;
+  line-height: 1.8;
+  color: #444;
+  white-space: pre-line;
+  margin-top: 35px;
+  text-align: left;
+  width: 100%;
+  
+  strong {
+    color: #2b3993;
+    font-weight: 700;
+  }
+  
+  @media (max-width: 768px) {
+    font-size: 13px;
+    margin-top: 30px;
+  }
+`;
+
+// ============================================================================
+// 自定義 Tooltip 組件
+// ============================================================================
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.98)',
+        padding: '10px 14px',
+        borderRadius: '10px',
+        border: '1px solid #e6e9f5',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+      }}>
+        <p style={{ 
+          fontWeight: '700', 
+          color: '#2b3993', 
+          marginBottom: '6px',
+          fontSize: '13px'
+        }}>
+          {label}
+        </p>
+        {payload.map((entry, index) => (
+          <p key={index} style={{ 
+            color: entry.color, 
+            fontSize: '12px',
+            fontWeight: '600',
+            margin: '3px 0'
+          }}>
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+// ============================================================================
+// 主組件
+// ============================================================================
+
 export default function MoodTrail() {
   const nav = useNavigate();
   const panelRef = useRef(null);
-  const [isDownloading, setIsDownloading] = React.useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [analysisData, setAnalysisData] = useState(null);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    loadAnalysis();
+  }, []);
+
+  const loadAnalysis = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await apiGetMoodAnalysis(30);
+      
+      console.log('Analysis result:', result);
+      
+      if (result.ok && result.has_sufficient_data) {
+        setAnalysisData(result.data);
+      } else {
+        setError({
+          message: result.message || "對話次數不足",
+          current: result.message_count || 0,
+          required: result.required_count || 20
+        });
+      }
+    } catch (err) {
+      console.error("載入分析失敗:", err);
+      setError({
+        message: "載入失敗，請檢查網路連線後重試",
+        current: 0,
+        required: 20
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadAnalysis();
+  };
 
   const handleDownload = async () => {
-    if (!panelRef.current || isDownloading) return;
+    if (!panelRef.current || isDownloading || !analysisData) return;
 
     try {
       setIsDownloading(true);
@@ -313,8 +566,9 @@ export default function MoodTrail() {
         if (blob) {
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
+          const timestamp = new Date().toISOString().split('T')[0];
           link.href = url;
-          link.download = "心情足跡圖.png";
+          link.download = `心情足跡圖_${timestamp}.png`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
@@ -330,6 +584,106 @@ export default function MoodTrail() {
     }
   };
 
+  // ============================================================================
+  // 準備圖表數據
+  // ============================================================================
+
+  const emotionFreqData = analysisData?.emotion_frequency 
+    ? Object.entries(analysisData.emotion_frequency)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, value]) => ({
+          name, 
+          次數: value,
+          color: analysisData.emotion_colors?.[name] || '#5A8CF2'
+        }))
+    : [];
+
+  const emotionIntensityData = analysisData?.emotion_intensity
+    ? Object.entries(analysisData.emotion_intensity)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([name, value]) => ({
+          name,
+          強度: Math.round(value),
+          color: analysisData.emotion_colors?.[name] || '#FF8FB1'
+        }))
+    : [];
+
+  const topicRadarData = analysisData?.topic_radar
+    ? Object.entries(analysisData.topic_radar).map(([subject, value]) => ({
+        subject,
+        分數: Math.round(value),
+        fullMark: 100
+      }))
+    : [];
+
+  // ============================================================================
+  // 渲染：載入中
+  // ============================================================================
+
+  if (loading) {
+    return (
+      <Wrap>
+        <Header>
+          <BtnGroup>
+            <BackBtn onClick={() => nav(-1)}>
+              <FiArrowLeft size={18} /> 返回
+            </BackBtn>
+          </BtnGroup>
+          <PageTitle>心情足跡·MoodTrail</PageTitle>
+          <BtnGroup />
+        </Header>
+        <Content>
+          <CenteredWrapper>
+            <LoadingSpinner />
+            <LoadingText>正在分析你的對話內容...</LoadingText>
+          </CenteredWrapper>
+        </Content>
+      </Wrap>
+    );
+  }
+
+  // ============================================================================
+  // 渲染：錯誤或數據不足
+  // ============================================================================
+
+  if (error || !analysisData) {
+    return (
+      <Wrap>
+        <Header>
+          <BtnGroup>
+            <BackBtn onClick={() => nav(-1)}>
+              <FiArrowLeft size={18} /> 返回
+            </BackBtn>
+          </BtnGroup>
+          <PageTitle>心情足跡·MoodTrail</PageTitle>
+          <BtnGroup>
+            <RefreshBtn onClick={handleRefresh} disabled={refreshing}>
+              <FiRefreshCw size={18} /> {refreshing ? "更新中..." : "重新整理"}
+            </RefreshBtn>
+          </BtnGroup>
+        </Header>
+        <Content>
+          <CenteredWrapper>
+            <RobotGif src={robotGif} alt="robot" />
+            <ErrorText>{error?.message || "尚無足夠的對話數據進行分析"}</ErrorText>
+            {error?.current !== undefined && (
+              <ErrorHint>
+                目前對話次數: <strong>{error.current}</strong> / <strong>{error.required}</strong>
+                <br />
+                還需要 <strong>{error.required - error.current}</strong> 次對話才能進行完整分析
+              </ErrorHint>
+            )}
+          </CenteredWrapper>
+        </Content>
+      </Wrap>
+    );
+  }
+
+  // ============================================================================
+  // 渲染：完整分析結果
+  // ============================================================================
+
   return (
     <Wrap>
       <Header>
@@ -339,9 +693,12 @@ export default function MoodTrail() {
           </BackBtn>
         </BtnGroup>
 
-        <PageTitle>心情足跡・MoodTrail</PageTitle>
+        <PageTitle>心情足跡·MoodTrail</PageTitle>
 
         <BtnGroup>
+          <RefreshBtn onClick={handleRefresh} disabled={refreshing}>
+            <FiRefreshCw size={18} /> {refreshing ? "更新中..." : "重新分析"}
+          </RefreshBtn>
           <DownloadBtn onClick={handleDownload} disabled={isDownloading}>
             <FiDownload size={18} /> {isDownloading ? "下載中..." : "下載圖片"}
           </DownloadBtn>
@@ -350,24 +707,128 @@ export default function MoodTrail() {
 
       <Content>
         <GridPanel ref={panelRef}>
+          {/* 左上：情緒頻率圖 */}
           <LeftTop>
             <SectionTitle>情緒頻率圖</SectionTitle>
-            <Placeholder>（此處渲染你的情緒頻率圖表）</Placeholder>
+            <ChartWrapper>
+              {emotionFreqData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart 
+                    data={emotionFreqData} 
+                    margin={{ top: 10, right: 20, left: -10, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" strokeOpacity={0.5} />
+                    <XAxis 
+                      dataKey="name" 
+                      style={{ fontSize: '12px', fontWeight: '600' }}
+                      tick={{ fill: '#666' }}
+                    />
+                    <YAxis 
+                      style={{ fontSize: '12px', fontWeight: '600' }}
+                      tick={{ fill: '#666' }}
+                      allowDecimals={false}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="次數" radius={[10, 10, 0, 0]} maxBarSize={50}>
+                      {emotionFreqData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <Placeholder>尚無情緒數據</Placeholder>
+              )}
+            </ChartWrapper>
           </LeftTop>
 
+          {/* 左下：情緒強度圖 */}
           <LeftBottom>
             <SectionTitle>情緒強度圖</SectionTitle>
-            <Placeholder>（此處渲染你的情緒強度圖表）</Placeholder>
+            <ChartWrapper>
+              {emotionIntensityData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart 
+                    data={emotionIntensityData} 
+                    margin={{ top: 10, right: 20, left: -10, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" strokeOpacity={0.5} />
+                    <XAxis 
+                      dataKey="name" 
+                      style={{ fontSize: '12px', fontWeight: '600' }}
+                      tick={{ fill: '#666' }}
+                    />
+                    <YAxis 
+                      domain={[0, 100]}
+                      style={{ fontSize: '12px', fontWeight: '600' }}
+                      tick={{ fill: '#666' }}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line 
+                      type="monotone" 
+                      dataKey="強度" 
+                      stroke="#FF8FB1" 
+                      strokeWidth={3} 
+                      dot={{ r: 5, fill: '#FF8FB1' }}
+                      activeDot={{ r: 7 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <Placeholder>尚無強度數據</Placeholder>
+              )}
+            </ChartWrapper>
           </LeftBottom>
 
+          {/* 右上：議題雷達圖 */}
           <RightTop>
             <SectionTitle>議題雷達圖</SectionTitle>
-            <Placeholder>（此處渲染你的議題雷達圖）</Placeholder>
+            <ChartWrapper>
+              {topicRadarData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={topicRadarData}>
+                    <PolarGrid 
+                      stroke="#d0d0d0" 
+                      strokeWidth={1.5}
+                      strokeOpacity={0.6}
+                    />
+                    <PolarAngleAxis 
+                      dataKey="subject" 
+                      style={{ 
+                        fontSize: '12px', 
+                        fontWeight: '700',
+                        fill: '#2b3993'
+                      }}
+                    />
+                    <PolarRadiusAxis 
+                      domain={[0, 100]} 
+                      style={{ fontSize: '11px', fontWeight: '600' }}
+                      tick={{ fill: '#999' }}
+                      axisLine={{ stroke: '#d0d0d0' }}
+                    />
+                    <Radar 
+                      name="議題分數" 
+                      dataKey="分數" 
+                      stroke="#7A4DC8" 
+                      fill="#7A4DC8" 
+                      fillOpacity={0.6}
+                      strokeWidth={2.5}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              ) : (
+                <Placeholder>尚無議題數據</Placeholder>
+              )}
+            </ChartWrapper>
           </RightTop>
 
+          {/* 右下：小提醒 */}
           <RightBottom>
             <SectionTitle>小提醒</SectionTitle>
-            <Placeholder>⚠️ 依 AI 摘要生成的提醒敘述</Placeholder>
+            <SummaryContent>
+              {analysisData.summary || "持續對話可以幫助我更了解你的心理狀態"}
+            </SummaryContent>
           </RightBottom>
         </GridPanel>
       </Content>

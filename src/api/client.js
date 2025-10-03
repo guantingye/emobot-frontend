@@ -442,6 +442,17 @@ export async function getSystemStatistics() {
   return handleResponse(response);
 }
 
+/**
+ * 取得心情分析數據
+ */
+export async function apiGetMoodAnalysis(days = 30) {
+  const response = await fetch(`${BASE_URL}/api/mood/analysis?days=${days}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+}
+
 // ============================================================================
 // 預設導出
 // ============================================================================
@@ -477,6 +488,7 @@ export default {
   // 心情
   apiSaveMood,
   apiGetMyMoods,
+  apiGetMoodAnalysis,
   
   // 管理員
   getAllowedPids,
