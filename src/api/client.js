@@ -1,4 +1,4 @@
-// src/api/client.js - 完整版本（修正 MBTI 儲存邏輯）
+// src/api/client.js - 完整版本（新增測驗歷史記錄功能）
 
 // 安全地取得 API Base URL
 function getApiBaseUrl() {
@@ -93,12 +93,12 @@ export async function apiMe() {
 export async function saveAssessmentMBTI(mbtiString, mbtiEncoded) {
   console.log('saveAssessmentMBTI called:', { mbtiString, mbtiEncoded });
   
-  const response = await fetch(`${BASE_URL}/api/assessments/upsert`, {
+  const response = await fetch(`${BASE_URL}/api/assessments/save`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({
-      mbti_raw: mbtiString,           // 後端期望 mbti_raw (字串)
-      mbti_encoded: mbtiEncoded,      // 後端期望 mbti_encoded (陣列)
+      mbti_raw: mbtiString,
+      mbti_encoded: mbtiEncoded,
       is_retest: localStorage.getItem('isRetest') === 'true'
     }),
   });
@@ -108,6 +108,7 @@ export async function saveAssessmentMBTI(mbtiString, mbtiEncoded) {
 
 /**
  * 儲存/更新測驗結果 (通用,支援所有 steps)
+ * ✅ 修改：每次都新增一筆記錄，不覆蓋舊資料
  * @param {Object} payload - 測驗資料物件
  */
 export async function saveAssessment(payload) {
@@ -125,7 +126,8 @@ export async function saveAssessment(payload) {
     is_retest: payload.is_retest || localStorage.getItem('isRetest') === 'true'
   };
   
-  const response = await fetch(`${BASE_URL}/api/assessments/upsert`, {
+  // ✅ 修改：改用 /save 端點，每次都新增記錄
+  const response = await fetch(`${BASE_URL}/api/assessments/save`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify(requestBody),
@@ -136,19 +138,50 @@ export async function saveAssessment(payload) {
 
 /**
  * 儲存/更新測驗結果 (別名,為了向後兼容)
+ * ✅ 注意：這個函數現在會新增記錄而不是更新
  */
 export async function apiUpsertAssessment(payload) {
   return saveAssessment(payload);
 }
 
 /**
- * 取得我的測驗結果
+ * 取得我的測驗結果（最新一筆）
  */
 export async function apiGetMyAssessment() {
   const response = await fetch(`${BASE_URL}/api/assessments/me`, {
     method: 'GET',
     headers: getAuthHeaders(),
   });
+  return handleResponse(response);
+}
+
+/**
+ * ✅ 新增：取得測驗歷史記錄
+ * @param {number} limit - 最多返回幾筆記錄（預設 10）
+ */
+export async function apiGetAssessmentHistory(limit = 10) {
+  const response = await fetch(
+    `${BASE_URL}/api/assessments/history?limit=${limit}`,
+    {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    }
+  );
+  return handleResponse(response);
+}
+
+/**
+ * ✅ 新增：取得特定測驗記錄
+ * @param {number} assessmentId - 測驗記錄 ID
+ */
+export async function apiGetAssessmentById(assessmentId) {
+  const response = await fetch(
+    `${BASE_URL}/api/assessments/${assessmentId}`,
+    {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    }
+  );
   return handleResponse(response);
 }
 
@@ -263,6 +296,23 @@ export async function apiGetChatStats() {
   return handleResponse(response);
 }
 
+/**
+ * 檢查用戶是否第一次與該機器人對話
+ * @param {string} botType - 機器人類型
+ */
+export async function checkFirstTimeChat(botType) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/chat/first-time-check/${botType}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Check first time chat error:', error);
+    return { ok: false, is_first_time: false };
+  }
+}
+
 // ============================================================================
 // HeyGen 視訊相關 API
 // ============================================================================
@@ -334,6 +384,17 @@ export async function apiSaveMood(score, note = '', tags = []) {
  */
 export async function apiGetMyMoods(limit = 30) {
   const response = await fetch(`${BASE_URL}/api/moods/me?limit=${limit}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+}
+
+/**
+ * 取得心情分析數據
+ */
+export async function apiGetMoodAnalysis(days = 30) {
+  const response = await fetch(`${BASE_URL}/api/mood/analysis?days=${days}`, {
     method: 'GET',
     headers: getAuthHeaders(),
   });
@@ -442,34 +503,6 @@ export async function getSystemStatistics() {
   return handleResponse(response);
 }
 
-/**
- * 取得心情分析數據
- */
-export async function apiGetMoodAnalysis(days = 30) {
-  const response = await fetch(`${BASE_URL}/api/mood/analysis?days=${days}`, {
-    method: 'GET',
-    headers: getAuthHeaders(),
-  });
-  return handleResponse(response);
-}
-
-/**
- * 檢查用戶是否第一次與該機器人對話
- * @param {string} botType - 機器人類型
- */
-export async function checkFirstTimeChat(botType) {
-  try {
-    const response = await fetch(`${BASE_URL}/api/chat/first-time-check/${botType}`, {
-      method: 'GET',
-      headers: getAuthHeaders(),
-    });
-    return await handleResponse(response);
-  } catch (error) {
-    console.error('Check first time chat error:', error);
-    return { ok: false, is_first_time: false };
-  }
-}
-
 // ============================================================================
 // 預設導出
 // ============================================================================
@@ -484,6 +517,8 @@ export default {
   saveAssessment,
   apiUpsertAssessment,
   apiGetMyAssessment,
+  apiGetAssessmentHistory,      // ✅ 新增
+  apiGetAssessmentById,          // ✅ 新增
   
   // 推薦
   apiRecommend,
@@ -496,6 +531,7 @@ export default {
   apiSendChat,
   apiGetChatHistory,
   apiGetChatStats,
+  checkFirstTimeChat,
   
   // HeyGen
   apiCreateHeyGenSession,
