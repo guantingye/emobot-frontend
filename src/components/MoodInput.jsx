@@ -217,7 +217,11 @@ const Header = styled.header`
   backdrop-filter:blur(20px) saturate(1.3);border-bottom:1px solid rgba(43,57,147,.08);
   box-shadow:0 2px 16px rgba(43,57,147,.06),0 1px 4px rgba(0,0,0,.02);
   z-index:100;animation:${fadeInDown} .8s ease-out both;animation-delay:.3s;
-  @media (max-width:768px){height:56px;padding:0 14px;}
+  @media (max-width:768px){
+    height:60px;
+    padding:0 16px;
+    position:sticky;
+  }
 `;
 
 const BackButton = styled.button`
@@ -260,12 +264,23 @@ const BotStatus = styled.span`font-size:12px;color:#65B741;font-weight:500;@medi
 const Layout = styled.div`
   flex:1;display:flex;justify-content:center;padding:100px 60px 145px;box-sizing:border-box;overflow:hidden;
   @media (max-width:1200px){padding:100px 40px 145px;}
-  @media (max-width:768px){padding:70px 12px 135px;}
+  @media (max-width:768px){
+    padding:0;
+    flex-direction:column;
+    overflow-y:auto;
+    height:100vh;
+  }
 `;
 
 const ChatColumn = styled.div`
   flex:1;max-width:1400px;display:flex;flex-direction:column;overflow-y:auto;position:relative;scroll-behavior:smooth;
-  @media (max-width:768px){max-width:100%;}
+  @media (max-width:768px){
+    max-width:100%;
+    flex:1;
+    padding:0 12px;
+    padding-top:60px;
+    padding-bottom:160px;
+  }
 `;
 
 const FadeWrapper = styled.div`display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1;animation:${fadeIn} 1s ease-out forwards;padding:20px;text-align:center;`;
@@ -303,7 +318,12 @@ const IntroBar = styled.div`
     animation:${shimmer} 2s ease-in-out;opacity:1;
   }
   
-  @media (max-width:768px){font-size:13px;padding:14px 20px;margin-bottom:20px;}
+  @media (max-width:768px){
+    font-size:12px;
+    padding:12px 16px;
+    margin:0 auto 16px;
+    max-width:90%;
+  }
 `;
 
 const DateDivider = styled.div`text-align:center;margin:24px 0;position:relative;&:before{content:"";position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.08);z-index:-1;}`;
@@ -316,13 +336,16 @@ const DateLabel = styled.span`
 
 const ChatBox = styled.div`
   display:flex;flex-direction:column;gap:22px;padding:28px 10px 24px;overflow-y:auto;animation:${slideInLTR} .4s ease-out both;
-  @media (max-width:768px){gap:18px;padding:20px 6px 20px;}
+  @media (max-width:768px){
+    gap:16px;
+    padding:16px 4px 16px;
+  }
 `;
 
 const BubbleWrapper = styled.div`
   display:flex;flex-direction:column;align-items:${p=>p.$sender==='user'?'flex-end':'flex-start'};
   max-width:72%;align-self:${p=>p.$sender==='user'?'flex-end':'flex-start'};
-  @media (max-width:768px){max-width:85%;}
+  @media (max-width:768px){max-width:82%;}
 `;
 
 const BubbleHeader = styled.div`
@@ -355,7 +378,12 @@ const ChatBubble = styled.div`
       opacity:.5;pointer-events:none;
     }
   `}
-  @media (max-width:768px){padding:14px 18px;font-size:14px;border-radius:${p=>p.$sender==='user'?'18px 18px 4px 18px':'18px 18px 18px 4px'};}
+  @media (max-width:768px){
+    padding:13px 18px;
+    font-size:14px;
+    line-height:1.6;
+    border-radius:${p=>p.$sender==='user'?'18px 18px 4px 18px':'18px 18px 18px 4px'};
+  }
 `;
 
 const MessageTime = styled.span`font-size:11px;color:#999;font-weight:400;@media (max-width:768px){font-size:10px;}`;
@@ -383,8 +411,8 @@ const InputArea = styled.div`
   
   @media (max-width:768px){
     width:94%;
-    bottom:20px;
-    padding:5px 8px;
+    bottom:70px;
+    padding:6px 10px;
     border-radius:20px;
     max-width:calc(100vw - 24px);
   }
@@ -501,12 +529,21 @@ const Disclaimer = styled.div`
   text-align:center;padding:5px 8px;z-index:100;
   font-weight:400;letter-spacing:0.2px;
   
-  @media (max-width:768px){font-size:10px;width:94%;bottom:4px;}
+  @media (max-width:768px){
+    font-size:9px;
+    width:94%;
+    bottom:50px;
+    padding:4px 6px;
+    line-height:1.3;
+  }
 `;
 
 const AIBubbleWithAvatar = styled.div`
   display:flex;gap:15px;align-items:flex-start;max-width:72%;
-  @media (max-width:768px){max-width:85%;gap:10px;}
+  @media (max-width:768px){
+    max-width:82%;
+    gap:12px;
+  }
 `;
 
 const Overlay = styled.div`
@@ -1017,6 +1054,7 @@ export default function MoodInput() {
                         botType={selectedBotType}
                         avatarSrc={selectedBotImage}
                         onError={(msg) => showStatus(msg, 2000)}
+                        size={window.innerWidth <= 768 ? 50 : 40}
                       />
                       <BubbleWrapper $sender="ai" style={{maxWidth:'calc(100% - 90px)'}}>
                         <BubbleHeader>
