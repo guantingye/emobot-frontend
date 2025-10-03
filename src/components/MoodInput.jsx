@@ -742,31 +742,67 @@ export default function MoodInput() {
     });
   };
 
-  // 新增：影片結束處理 - 更流暢的過渡
-  const handleVideoEnd = () => {
+  // 新增：影片結束處理 - 開始對話
+  const handleVideoEnd = async () => {
     setVideoZoomOut(true);
-    // 延長到 1 秒以配合新的動畫時長
-    setTimeout(() => {
+    
+    // 等待縮放動畫完成
+    setTimeout(async () => {
       setShowVideoIntro(false);
       setAvatarAppear(true);
       setTimeout(() => setAvatarAppear(false), 600);
+      
+      // 開始對話
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const firstText = `嗨 ${nickname},我是 ${bot.name}。今天想從哪裡開始呢?`;
+      const first = { sender: "ai", content: firstText, timestamp: now };
+      setMessages([first]);
+      setChatStarted(true);
+      setAvatarText(firstText);
+      setCurrentSpeakingIndex(0);
+      
+      await sendChatMessage(firstText, selectedBotType, mode, [{ role: "assistant", content: firstText }], true);
     }, 1000);
   };
 
-  // 新增：跳過影片
-  const skipVideo = () => {
+  // 新增：跳過影片 - 直接開始對話
+  const skipVideo = async () => {
     if (videoRef.current) {
       videoRef.current.pause();
+      videoRef.current.currentTime = 0;
     }
-    handleVideoEnd();
+    
+    // 立即關閉影片
+    setShowVideoIntro(false);
+    setVideoZoomOut(false);
+    
+    // 使用 setTimeout 確保狀態更新後再執行對話邏輯
+    setTimeout(async () => {
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const firstText = `嗨 ${nickname},我是 ${bot.name}。今天想從哪裡開始呢?`;
+      const first = { sender: "ai", content: firstText, timestamp: now };
+      
+      setMessages([first]);
+      setChatStarted(true);
+      setAvatarText(firstText);
+      setCurrentSpeakingIndex(0);
+      setAvatarAppear(true);
+      
+      setTimeout(() => setAvatarAppear(false), 600);
+      
+      await sendChatMessage(firstText, selectedBotType, mode, [{ role: "assistant", content: firstText }], true);
+    }, 100);
   };
 
   const startConversation = async () => {
     // 新增：如果是首次對話，播放開場白影片
-    if (isFirstTimeChat) {
+    if (isFirstTimeChat && !chatStarted) {
       await playIntroVideo();
+      // 影片播放完畢後會自動執行 handleVideoEnd，不需要再執行下面的邏輯
+      return;
     }
 
+    // 非首次對話或已經開始對話，直接開始
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const firstText = `嗨 ${nickname},我是 ${bot.name}。今天想從哪裡開始呢?`;
     const first = { sender: "ai", content: firstText, timestamp: now };
