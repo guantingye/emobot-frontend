@@ -1,6 +1,6 @@
 // src/components/MoodInput.jsx
 import React, { useState, useRef, useEffect } from "react";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import botTemp from "../assets/bot_temp.png";
 import { IoSend } from "react-icons/io5";
@@ -106,56 +106,108 @@ const Container = styled.div`
   @media (max-width:768px){overflow-y:auto;}
 `;
 
-// 新增：影片覆蓋層
+// 新增：影片覆蓋層 - 優化為適合直立影片
 const VideoIntroOverlay = styled.div`
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.95);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.96), rgba(20, 20, 40, 0.98));
   display: ${p => p.$visible ? 'flex' : 'none'};
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  animation: ${fadeIn} 0.3s ease-out;
+  animation: ${fadeIn} 0.5s ease-out;
+  backdrop-filter: blur(20px);
 `;
 
 const VideoContainer = styled.div`
   position: relative;
-  width: 90%;
-  max-width: 800px;
-  aspect-ratio: 16 / 9;
-  border-radius: 24px;
+  width: 450px;
+  height: 800px;
+  border-radius: 32px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  animation: ${p => p.$zoomOut ? videoZoomOut : 'none'} 0.6s ease-in-out forwards;
+  box-shadow: 
+    0 30px 90px rgba(0, 0, 0, 0.6),
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: ${p => p.$zoomOut ? videoZoomOut : videoFadeIn} ${p => p.$zoomOut ? '1s' : '0.6s'} cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transform-origin: center center;
+  
+  @media (max-width: 1024px) {
+    width: 393px;
+    height: 700px;
+    border-radius: 28px;
+  }
+  
+  @media (max-width: 768px) {
+    width: 360px;
+    height: 640px;
+    border-radius: 24px;
+  }
+  
+  @media (max-width: 480px) {
+    width: 320px;
+    height: 568px;
+    border-radius: 20px;
+  }
+  
+  @media (max-width: 380px) {
+    width: 280px;
+    height: 497px;
+    border-radius: 18px;
+  }
 `;
 
 const IntroVideo = styled.video`
   width: 100%;
   height: 100%;
   object-fit: cover;
+  background: #000;
 `;
 
 const SkipButton = styled.button`
   position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
+  top: 24px;
+  right: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 10px 20px;
-  border-radius: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  padding: 12px 24px;
+  border-radius: 14px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.3s;
+  font-size: 15px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   
   &:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  @media (max-width: 768px) {
+    top: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+  
+  @media (max-width: 480px) {
+    top: 16px;
+    right: 16px;
+    padding: 8px 16px;
+    font-size: 13px;
   }
 `;
 
@@ -179,7 +231,7 @@ const BackButton = styled.button`
 
 const AvatarContainer = styled.div`
   display:flex;align-items:center;gap:12px;
-  animation: ${p => p.$appear ? avatarZoomIn : 'none'} 0.5s ease-out;
+  animation: ${p => p.$appear ? css`${avatarZoomIn} 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)` : 'none'};
 `;
 
 const BotAvatar = styled.div`
@@ -690,14 +742,15 @@ export default function MoodInput() {
     });
   };
 
-  // 新增：影片結束處理
+  // 新增：影片結束處理 - 更流暢的過渡
   const handleVideoEnd = () => {
     setVideoZoomOut(true);
+    // 延長到 1 秒以配合新的動畫時長
     setTimeout(() => {
       setShowVideoIntro(false);
       setAvatarAppear(true);
-      setTimeout(() => setAvatarAppear(false), 500);
-    }, 600);
+      setTimeout(() => setAvatarAppear(false), 600);
+    }, 1000);
   };
 
   // 新增：跳過影片
