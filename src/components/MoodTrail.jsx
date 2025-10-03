@@ -151,42 +151,42 @@ const Content = styled.div`
   width: 100%;
   display: flex;
   overflow: auto;
-  padding-bottom: 80px;
+  padding-bottom: 70px;
   
   @media (max-width: 900px) {
-    padding-bottom: 100px;
+    padding-bottom: 80px;
   }
 `;
 
 const GridPanel = styled.div`
   margin: 96px auto 40px auto;
-  width: min(1200px, 88vw);
+  width: min(1280px, 90vw);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: minmax(260px, 1.5fr) minmax(160px, 0.5fr);
-  gap: 28px;
+  grid-template-rows: minmax(280px, 1.6fr) minmax(180px, 0.6fr);
+  gap: 32px;
 
   @media (max-width: 1024px) {
     width: 92vw;
-    gap: 24px;
+    gap: 28px;
     margin: 90px auto 32px auto;
   }
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
-    gap: 20px;
+    gap: 24px;
   }
 
   @media (max-width: 768px) {
     width: 94vw;
-    gap: 18px;
+    gap: 20px;
     margin: 80px auto 28px auto;
   }
 
   @media (max-width: 480px) {
     width: 96vw;
-    gap: 16px;
+    gap: 18px;
     margin: 70px auto 24px auto;
   }
 `;
@@ -218,11 +218,11 @@ const Card = styled.div`
 
 const SectionTitle = styled.div`
   position: absolute;
-  top: 14px;
-  left: 14px;
-  padding: 6px 10px;
-  border-radius: 10px;
-  font-size: 12.5px;
+  top: 12px;
+  left: 12px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  font-size: 11.5px;
   font-weight: 800;
   color: #2b3993;
   background: rgba(255, 255, 255, 0.9);
@@ -232,17 +232,17 @@ const SectionTitle = styled.div`
   user-select: none;
 
   @media (max-width: 768px) {
-    font-size: 12px;
-    padding: 5px 9px;
-    top: 12px;
-    left: 12px;
+    font-size: 11px;
+    padding: 4px 8px;
+    top: 10px;
+    left: 10px;
   }
 
   @media (max-width: 480px) {
-    font-size: 11.5px;
-    padding: 5px 8px;
-    top: 10px;
-    left: 10px;
+    font-size: 10.5px;
+    padding: 4px 7px;
+    top: 9px;
+    left: 9px;
   }
 `;
 
@@ -302,18 +302,26 @@ const RightTop = styled(Card)`
 const RightBottom = styled(Card)`
   grid-column: 2;
   grid-row: 3;
-  min-height: 110px;
+  min-height: 120px;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
   flex-direction: column;
-  padding: 20px;
+  padding: 20px 24px;
   overflow: hidden;
 
   @media (max-width: 900px) {
     grid-column: 1;
     grid-row: auto;
-    min-height: 140px;
+    min-height: 160px;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 18px 20px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 16px 18px;
   }
 `;
 
@@ -323,10 +331,10 @@ const ChartWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 45px 10px 10px 10px;
+  padding: 40px 10px 10px 10px;
   
   @media (max-width: 768px) {
-    padding: 40px 5px 5px 5px;
+    padding: 35px 5px 5px 5px;
   }
 `;
 
@@ -424,18 +432,43 @@ const ErrorHint = styled.div`
   }
 `;
 
+const SummaryWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-top: 30px;
+`;
+
 const SummaryContent = styled.div`
-  font-size: 14px;
-  line-height: 1.8;
+  font-size: 13.5px;
+  line-height: 1.9;
   color: #444;
   white-space: pre-line;
-  margin-top: 35px;
-  text-align: left;
   width: 100%;
-  max-height: calc(100% - 35px);
+  max-height: 100%;
   overflow-y: auto;
   word-wrap: break-word;
   word-break: break-word;
+  padding-right: 4px;
+  
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border-radius: 10px;
+    
+    &:hover {
+      background: #a0a0a0;
+    }
+  }
   
   strong {
     color: #2b3993;
@@ -444,33 +477,38 @@ const SummaryContent = styled.div`
   
   @media (max-width: 768px) {
     font-size: 13px;
-    margin-top: 30px;
+    line-height: 1.85;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 12.5px;
+    line-height: 1.8;
   }
 `;
 
 const FloatingRefreshBtn = styled.button`
   position: fixed;
-  right: 30px;
-  bottom: 30px;
+  right: 24px;
+  bottom: 24px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   border: 0;
-  padding: 12px 18px;
+  padding: 10px 16px;
   border-radius: 999px;
   font-weight: 700;
   cursor: pointer;
   color: #fff;
-  font-size: 14px;
+  font-size: 13px;
   background: #5A8CF2;
-  box-shadow: 0 6px 20px rgba(90, 140, 242, 0.35);
+  box-shadow: 0 4px 16px rgba(90, 140, 242, 0.3);
   transform: translateY(0);
   transition: all 0.2s ease;
   z-index: 30;
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(90, 140, 242, 0.45);
+    box-shadow: 0 8px 24px rgba(90, 140, 242, 0.4);
   }
   
   &:active:not(:disabled) {
@@ -485,7 +523,7 @@ const FloatingRefreshBtn = styled.button`
   @media (max-width: 900px) {
     right: 50%;
     transform: translateX(50%);
-    bottom: 20px;
+    bottom: 16px;
     
     &:hover:not(:disabled) {
       transform: translateX(50%) translateY(-2px);
@@ -497,9 +535,9 @@ const FloatingRefreshBtn = styled.button`
   }
   
   @media (max-width: 480px) {
-    padding: 10px 16px;
-    font-size: 13px;
-    gap: 6px;
+    padding: 9px 14px;
+    font-size: 12px;
+    gap: 5px;
   }
 `;
 
@@ -639,12 +677,10 @@ export default function MoodTrail() {
   // 準備圖表數據
   // ============================================================================
 
-  // 情緒頻率圖 - 使用統一的專業色系
   const emotionFreqData = analysisData?.emotion_frequency 
     ? Object.entries(analysisData.emotion_frequency)
         .sort((a, b) => b[1] - a[1])
         .map(([name, value], index) => {
-          // 使用漸層藍色系，更專業
           const colors = ['#5A8CF2', '#6B9AED', '#7BA8E8', '#8BB6E3', '#9BC4DE', '#ABC2D9', '#BBD0D4'];
           return {
             name, 
@@ -729,7 +765,7 @@ export default function MoodTrail() {
           </CenteredWrapper>
         </Content>
         <FloatingRefreshBtn onClick={handleRefresh} disabled={refreshing}>
-          <FiRefreshCw size={16} /> {refreshing ? "更新中..." : "重新整理"}
+          <FiRefreshCw size={14} /> {refreshing ? "更新中" : "重新整理"}
         </FloatingRefreshBtn>
       </Wrap>
     );
@@ -874,19 +910,21 @@ export default function MoodTrail() {
             </ChartWrapper>
           </RightTop>
 
-          {/* 右下：小提醒 */}
+          {/* 右下：分析摘要 */}
           <RightBottom>
             <SectionTitle>分析摘要</SectionTitle>
-            <SummaryContent>
-              {analysisData.summary || "持續對話可以幫助我更了解你的心理狀態"}
-            </SummaryContent>
+            <SummaryWrapper>
+              <SummaryContent>
+                {analysisData.summary || "持續對話可以幫助我更了解你的心理狀態"}
+              </SummaryContent>
+            </SummaryWrapper>
           </RightBottom>
         </GridPanel>
       </Content>
 
       {/* 浮動重新分析按鈕 */}
       <FloatingRefreshBtn onClick={handleRefresh} disabled={refreshing}>
-        <FiRefreshCw size={16} /> {refreshing ? "更新中..." : "重新分析"}
+        <FiRefreshCw size={14} /> {refreshing ? "更新中" : "重新分析"}
       </FloatingRefreshBtn>
     </Wrap>
   );
