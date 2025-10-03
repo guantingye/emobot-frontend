@@ -58,11 +58,11 @@ const Header = styled.div`
   padding: 14px 32px;
 
   @media (max-width: 768px) {
-    padding: 12px 20px;
+    padding: 12px 16px;
   }
 
   @media (max-width: 480px) {
-    padding: 10px 16px;
+    padding: 10px 12px;
   }
 `;
 
@@ -151,6 +151,11 @@ const Content = styled.div`
   width: 100%;
   display: flex;
   overflow: auto;
+  padding-bottom: 80px;
+  
+  @media (max-width: 900px) {
+    padding-bottom: 100px;
+  }
 `;
 
 const GridPanel = styled.div`
@@ -160,7 +165,6 @@ const GridPanel = styled.div`
   grid-template-columns: 1fr 1fr;
   grid-template-rows: minmax(260px, 1.5fr) minmax(160px, 0.5fr);
   gap: 28px;
-  position: relative;
 
   @media (max-width: 1024px) {
     width: 92vw;
@@ -172,19 +176,18 @@ const GridPanel = styled.div`
     grid-template-columns: 1fr;
     grid-template-rows: auto;
     gap: 20px;
-    margin: 90px auto 80px auto;
   }
 
   @media (max-width: 768px) {
     width: 94vw;
     gap: 18px;
-    margin: 80px auto 80px auto;
+    margin: 80px auto 28px auto;
   }
 
   @media (max-width: 480px) {
     width: 96vw;
     gap: 16px;
-    margin: 70px auto 80px auto;
+    margin: 70px auto 24px auto;
   }
 `;
 
@@ -314,66 +317,6 @@ const RightBottom = styled(Card)`
   }
 `;
 
-// ============================================================================
-// 新增：浮動重新分析按鈕
-// ============================================================================
-
-const FloatingRefreshBtn = styled.button`
-  position: fixed;
-  bottom: 40px;
-  right: 40px;
-  z-index: 30;
-  
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: 0;
-  padding: 12px 18px;
-  border-radius: 999px;
-  font-weight: 700;
-  cursor: pointer;
-  color: #fff;
-  font-size: 14px;
-  line-height: 1;
-  background: #5A8CF2;
-  box-shadow: 0 6px 20px rgba(90, 140, 242, 0.35);
-  transform: translateY(0);
-  transition: transform 0.12s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(90, 140, 242, 0.45);
-  }
-  
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-  
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  @media (max-width: 900px) {
-    bottom: 20px;
-    right: 20px;
-    left: 20px;
-    justify-content: center;
-  }
-
-  @media (max-width: 480px) {
-    padding: 10px 16px;
-    font-size: 13px;
-    bottom: 16px;
-    right: 16px;
-    left: 16px;
-  }
-`;
-
-// ============================================================================
-// 圖表相關樣式
-// ============================================================================
-
 const ChartWrapper = styled.div`
   width: 100%;
   height: 100%;
@@ -482,15 +425,15 @@ const ErrorHint = styled.div`
 `;
 
 const SummaryContent = styled.div`
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.8;
   color: #444;
   white-space: pre-line;
   margin-top: 35px;
   text-align: left;
   width: 100%;
+  max-height: calc(100% - 35px);
   overflow-y: auto;
-  overflow-x: hidden;
   word-wrap: break-word;
   word-break: break-word;
   
@@ -503,14 +446,65 @@ const SummaryContent = styled.div`
     font-size: 13px;
     margin-top: 30px;
   }
+`;
+
+const FloatingRefreshBtn = styled.button`
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  font-size: 14px;
+  background: #5A8CF2;
+  box-shadow: 0 6px 20px rgba(90, 140, 242, 0.35);
+  transform: translateY(0);
+  transition: all 0.2s ease;
+  z-index: 30;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(90, 140, 242, 0.45);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 900px) {
+    right: 50%;
+    transform: translateX(50%);
+    bottom: 20px;
+    
+    &:hover:not(:disabled) {
+      transform: translateX(50%) translateY(-2px);
+    }
+    
+    &:active:not(:disabled) {
+      transform: translateX(50%) translateY(0);
+    }
+  }
   
   @media (max-width: 480px) {
-    font-size: 12.5px;
+    padding: 10px 16px;
+    font-size: 13px;
+    gap: 6px;
   }
 `;
 
 // ============================================================================
-// 自定義 Tooltip
+// 自定義 Tooltip 組件
 // ============================================================================
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -645,17 +639,19 @@ export default function MoodTrail() {
   // 準備圖表數據
   // ============================================================================
 
-  // 情緒頻率圖 - 使用簡約配色
-  const SIMPLE_COLORS = ['#5A8CF2', '#7A9FE1', '#6B8DD6', '#8AA5E8', '#4A7CD4', '#9AB6ED', '#3A6CC3'];
-  
+  // 情緒頻率圖 - 使用統一的專業色系
   const emotionFreqData = analysisData?.emotion_frequency 
     ? Object.entries(analysisData.emotion_frequency)
         .sort((a, b) => b[1] - a[1])
-        .map(([name, value], index) => ({
-          name, 
-          次數: value,
-          color: SIMPLE_COLORS[index % SIMPLE_COLORS.length]
-        }))
+        .map(([name, value], index) => {
+          // 使用漸層藍色系，更專業
+          const colors = ['#5A8CF2', '#6B9AED', '#7BA8E8', '#8BB6E3', '#9BC4DE', '#ABC2D9', '#BBD0D4'];
+          return {
+            name, 
+            次數: value,
+            color: colors[index % colors.length]
+          };
+        })
     : [];
 
   const emotionIntensityData = analysisData?.emotion_intensity
@@ -732,7 +728,6 @@ export default function MoodTrail() {
             )}
           </CenteredWrapper>
         </Content>
-        
         <FloatingRefreshBtn onClick={handleRefresh} disabled={refreshing}>
           <FiRefreshCw size={16} /> {refreshing ? "更新中..." : "重新整理"}
         </FloatingRefreshBtn>
@@ -881,7 +876,7 @@ export default function MoodTrail() {
 
           {/* 右下：小提醒 */}
           <RightBottom>
-            <SectionTitle>小提醒</SectionTitle>
+            <SectionTitle>分析摘要</SectionTitle>
             <SummaryContent>
               {analysisData.summary || "持續對話可以幫助我更了解你的心理狀態"}
             </SummaryContent>
