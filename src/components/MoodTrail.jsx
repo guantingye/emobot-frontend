@@ -1,4 +1,4 @@
-// src/components/MoodTrail.jsx - 完整優化版
+// src/components/MoodTrail.jsx - 完整版（雷達圖加入互動效果）
 import React, { useRef, useEffect, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +8,6 @@ import { apiGetMoodAnalysis } from "../api/client";
 import robotGif from "../assets/robot.gif";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   LineChart, Line, Cell
 } from 'recharts';
 
@@ -330,6 +329,46 @@ const ChartWrapper = styled.div`
   }
 `;
 
+const RadarChartWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 35px 10px 10px 10px;
+  position: relative;
+  
+  @media (max-width: 768px) {
+    padding: 32px 5px 5px 5px;
+  }
+`;
+
+const RadarTooltip = styled.div`
+  position: absolute;
+  background: rgba(255, 255, 255, 0.98);
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #e6e9f5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  z-index: 1000;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+  
+  .tooltip-title {
+    font-weight: 700;
+    color: #2b3993;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  
+  .tooltip-value {
+    color: #7A4DC8;
+    font-size: 12px;
+    font-weight: 600;
+  }
+`;
+
 const CenteredWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -568,6 +607,247 @@ const CustomTooltip = ({ active, payload, label }) => {
     );
   }
   return null;
+};
+
+// ============================================================================
+// 自定義互動式雷達圖組件
+// ============================================================================
+
+const RadarChartSVG = ({ data }) => {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0, show: false });
+
+  if (!data || data.length === 0) return null;
+
+  const size = 500;
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = size * 0.32;
+  const levels = [0.25, 0.5, 0.75, 1.0];
+
+  const clamp01 = (v) => Math.max(0, Math.min(1, Number(v) / 100 || 0));
+  
+  const toXY = (angDeg, radius) => {
+    const a = ((angDeg - 90) * Math.PI) / 180;
+    return [cx + radius * Math.cos(a), cy + radius * Math.sin(a)];
+  };
+
+  const axes = data.map((item, index) => ({
+    key: item.subject,
+    ang: (360 / data.length) * index,
+    label: item.subject,
+    value: item.分數
+  }));
+
+  const polyPoints = axes
+    .map(({ ang, value }) => {
+      const v = clamp01(value);
+      const [x, y] = toXY(ang, r * v);
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  const handleMouseEnter = (index, event, ang, value) => {
+    setHoveredIndex(index);
+    const rect = event.currentTarget.getBoundingClientRect();
+    setTooltipPos({
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+      show: true,
+      label: axes[index].label,
+      value: Math.round(value)
+    });
+  };
+
+  const handleMouseMove = (event) => {
+    if (hoveredIndex !== null) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      setTooltipPos(prev => ({
+        ...prev,
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      }));
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredIndex(null);
+    setTooltipPos(prev => ({ ...prev, show: false }));
+  };
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <svg
+        width="100%"
+        height="100%"
+        viewBox={`0 0 ${size} ${size}`}
+        role="img"
+        aria-label="議題雷達圖"
+        style={{ display: "block" }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        <defs>
+          <radialGradient id="rg-topic" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stopColor="#7A4DC8" stopOpacity="0.08" />
+            <stop offset="100%" stopColor="#7A4DC8" stopOpacity="0.02" />
+          </radialGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* 背景漸層圓 */}
+        <circle cx={cx} cy={cy} r={r} fill="url(#rg-topic)" opacity="0.6" />
+
+        {/* 多層同心圓 */}
+        {levels.map((level, i) => {
+          const nextLevel = levels[(i + 1) % levels.length];
+          const [x2, y2] = toXY(axes[0].ang, r * level);
+          const [x3, y3] = toXY(axes[1 % axes.length].ang, r * level);
+          return (
+            <React.Fragment key={`level-${i}`}>
+              <circle
+                cx={cx}
+                cy={cy}
+                r={r * level}
+                fill="none"
+                stroke={i % 2 === 0 ? "rgba(122,77,200,0.08)" : "rgba(122,77,200,0.04)"}
+                strokeWidth={i === levels.length - 1 ? "2" : "1"}
+              />
+              {i < levels.length - 1 && (
+                <polygon
+                  points={`${cx},${cy} ${x2},${y2} ${x3},${y3}`}
+                  fill={i % 2 === 0 ? "rgba(122,77,200,0.02)" : "rgba(122,77,200,0.01)"}
+                  opacity="0.5"
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
+
+        {/* 軸線 */}
+        {axes.map(({ ang }, i) => {
+          const [x2, y2] = toXY(ang, r);
+          return (
+            <line
+              key={`axis-${i}`}
+              x1={cx}
+              y1={cy}
+              x2={x2}
+              y2={y2}
+              stroke="rgba(122,77,200,0.15)"
+              strokeWidth="1.5"
+            />
+          );
+        })}
+
+        {/* 數據多邊形 */}
+        <polygon
+          points={polyPoints}
+          fill="rgba(122,77,200,0.12)"
+          stroke="#7A4DC8"
+          strokeWidth="3"
+          strokeLinejoin="round"
+          filter="url(#glow)"
+        />
+
+        {/* 數據點（互動區域） */}
+        {axes.map(({ ang, value, label }, i) => {
+          const v = clamp01(value);
+          const [x, y] = toXY(ang, r * v);
+          const isHovered = hoveredIndex === i;
+          
+          return (
+            <g key={`dot-${i}`}>
+              {/* 互動熱區（透明大圓） */}
+              <circle
+                cx={x}
+                cy={y}
+                r="15"
+                fill="transparent"
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={(e) => handleMouseEnter(i, e, ang, value)}
+              />
+              {/* 視覺數據點 */}
+              <circle
+                cx={x}
+                cy={y}
+                r={isHovered ? "7" : "5"}
+                fill="#7A4DC8"
+                stroke="#fff"
+                strokeWidth="2"
+                style={{ 
+                  transition: 'all 0.2s ease',
+                  filter: isHovered ? 'drop-shadow(0 0 6px rgba(122, 77, 200, 0.6))' : 'none'
+                }}
+              />
+            </g>
+          );
+        })}
+
+        {/* 標籤 */}
+        {axes.map(({ ang, label, value }, i) => {
+          const labelR = r + 42;
+          const [x, y] = toXY(ang, labelR);
+          const isHovered = hoveredIndex === i;
+          
+          return (
+            <g key={`label-${i}`}>
+              <text
+                x={x}
+                y={y}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                style={{
+                  fontSize: isHovered ? "14px" : "13px",
+                  fontWeight: "700",
+                  fill: isHovered ? "#7A4DC8" : "#2b3993",
+                  userSelect: "none",
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {label}
+              </text>
+              <text
+                x={x}
+                y={y + 16}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                style={{
+                  fontSize: isHovered ? "12px" : "11px",
+                  fontWeight: "600",
+                  fill: "#7A4DC8",
+                  userSelect: "none",
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {Math.round(value)}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+
+      {/* 互動式 Tooltip */}
+      {tooltipPos.show && (
+        <RadarTooltip
+          style={{
+            left: `${tooltipPos.x + 15}px`,
+            top: `${tooltipPos.y - 15}px`,
+            opacity: tooltipPos.show ? 1 : 0
+          }}
+        >
+          <div className="tooltip-title">{tooltipPos.label}</div>
+          <div className="tooltip-value">分數: {tooltipPos.value}</div>
+        </RadarTooltip>
+      )}
+    </div>
+  );
 };
 
 // ============================================================================
@@ -859,47 +1139,16 @@ export default function MoodTrail() {
             </ChartWrapper>
           </LeftBottom>
 
-          {/* 右上：議題雷達圖 */}
+          {/* 右上：議題雷達圖（互動式 SVG 版本） */}
           <RightTop>
             <SectionTitle>議題雷達圖</SectionTitle>
-            <ChartWrapper>
+            <RadarChartWrapper>
               {topicRadarData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={topicRadarData}>
-                    <PolarGrid 
-                      stroke="#c5c5c5" 
-                      strokeWidth={1.2}
-                      strokeOpacity={0.5}
-                    />
-                    <PolarAngleAxis 
-                      dataKey="subject" 
-                      style={{ 
-                        fontSize: '12px', 
-                        fontWeight: '700',
-                        fill: '#2b3993'
-                      }}
-                    />
-                    <PolarRadiusAxis 
-                      domain={[0, 100]} 
-                      style={{ fontSize: '11px', fontWeight: '600' }}
-                      tick={{ fill: '#999' }}
-                      axisLine={{ stroke: '#c5c5c5' }}
-                    />
-                    <Radar 
-                      name="議題分數" 
-                      dataKey="分數" 
-                      stroke="#7A4DC8" 
-                      fill="#7A4DC8"
-                      fillOpacity={0.15}
-                      strokeWidth={2.5}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                  </RadarChart>
-                </ResponsiveContainer>
+                <RadarChartSVG data={topicRadarData} />
               ) : (
                 <Placeholder>尚無議題數據</Placeholder>
               )}
-            </ChartWrapper>
+            </RadarChartWrapper>
           </RightTop>
 
           {/* 右下：分析摘要 */}
