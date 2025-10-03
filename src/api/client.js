@@ -453,6 +453,23 @@ export async function apiGetMoodAnalysis(days = 30) {
   return handleResponse(response);
 }
 
+/**
+ * 檢查用戶是否第一次與該機器人對話
+ * @param {string} botType - 機器人類型
+ */
+export async function checkFirstTimeChat(botType) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/chat/first-time-check/${botType}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Check first time chat error:', error);
+    return { ok: false, is_first_time: false };
+  }
+}
+
 // ============================================================================
 // 預設導出
 // ============================================================================

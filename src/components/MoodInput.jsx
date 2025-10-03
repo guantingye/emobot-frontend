@@ -5,8 +5,16 @@ import { useNavigate } from "react-router-dom";
 import botTemp from "../assets/bot_temp.png";
 import { IoSend } from "react-icons/io5";
 import { FiChevronLeft, FiMic, FiInfo } from "react-icons/fi";
-import { sendChatMessage } from "../api/client";
+import { sendChatMessage, checkFirstTimeChat } from "../api/client";
 import AvatarAnimation from "./AvatarAnimation";
+
+// 影片路徑對應
+const VIDEO_MAP = {
+  solution: "/videos/niko_video.mp4",
+  empathy: "/videos/lumi_video.mp4",
+  insight: "/videos/solin_video.mp4",
+  cognitive: "/videos/clara_video.mp4"
+};
 
 function getApiBase() {
   if (typeof window !== "undefined" && typeof window.API_BASE === "string" && window.API_BASE) {
@@ -37,11 +45,76 @@ const fadeInStagger = keyframes`from{opacity:0;transform:translateY(30px)}to{opa
 const shimmer = keyframes`0%{transform:translateX(-100%)}100%{transform:translateX(100%)}`;
 const auraPulse = keyframes`0%,100%{transform:scale(.96);opacity:.22}50%{transform:scale(1.04);opacity:.32}`;
 
+// 新增：影片動畫
+const videoZoomOut = keyframes`
+  0% { transform: scale(1); opacity: 1; }
+  70% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(0); opacity: 0; }
+`;
+
+const avatarZoomIn = keyframes`
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+`;
+
 const Container = styled.div`
   display:flex;flex-direction:column;width:100vw;height:100vh;
   background:linear-gradient(135deg,#f5f7fa 0%,#eef1f5 100%);font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,sans-serif;
   position:relative;overflow:hidden;
   @media (max-width:768px){overflow-y:auto;}
+`;
+
+// 新增：影片覆蓋層
+const VideoIntroOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.95);
+  display: ${p => p.$visible ? 'flex' : 'none'};
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: ${fadeIn} 0.3s ease-out;
+`;
+
+const VideoContainer = styled.div`
+  position: relative;
+  width: 90%;
+  max-width: 800px;
+  aspect-ratio: 16 / 9;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: ${p => p.$zoomOut ? videoZoomOut : 'none'} 0.6s ease-in-out forwards;
+`;
+
+const IntroVideo = styled.video`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const SkipButton = styled.button`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+  z-index: 10;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+  }
 `;
 
 const Header = styled.header`
@@ -62,7 +135,10 @@ const BackButton = styled.button`
   @media (max-width:768px){font-size:13px;padding:8px 14px;gap:6px;}
 `;
 
-const AvatarContainer = styled.div`display:flex;align-items:center;gap:12px;`;
+const AvatarContainer = styled.div`
+  display:flex;align-items:center;gap:12px;
+  animation: ${p => p.$appear ? avatarZoomIn : 'none'} 0.5s ease-out;
+`;
 
 const BotAvatar = styled.div`
   width:48px;height:48px;border-radius:50%;
@@ -482,8 +558,15 @@ export default function MoodInput() {
   const [showBotModal, setShowBotModal] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
 
+  // 新增：開場白影片相關狀態
+  const [showVideoIntro, setShowVideoIntro] = useState(false);
+  const [videoZoomOut, setVideoZoomOut] = useState(false);
+  const [avatarAppear, setAvatarAppear] = useState(false);
+  const [isFirstTimeChat, setIsFirstTimeChat] = useState(false);
+
   const chatBoxRef = useRef(null);
   const inputRef = useRef(null);
+  const videoRef = useRef(null);
 
   const [avatarText, setAvatarText] = useState("");
   const [currentSpeakingIndex, setCurrentSpeakingIndex] = useState(-1);
@@ -497,6 +580,23 @@ export default function MoodInput() {
     setStatusMessage(message);
     if (duration > 0) setTimeout(() => setStatusMessage(null), duration);
   };
+
+  // 新增：檢查是否為首次對話
+  useEffect(() => {
+    const checkFirstTime = async () => {
+      try {
+        const result = await checkFirstTimeChat(selectedBotType);
+        if (result?.ok) {
+          setIsFirstTimeChat(result.is_first_time);
+          console.log(`首次對話檢測: ${result.is_first_time ? '是' : '否'}`);
+        }
+      } catch (error) {
+        console.error("檢查首次對話失敗:", error);
+        setIsFirstTimeChat(false);
+      }
+    };
+    checkFirstTime();
+  }, [selectedBotType]);
 
   useEffect(() => {
     const welcomeTimer = setTimeout(() => {
@@ -518,7 +618,60 @@ export default function MoodInput() {
     return () => document.removeEventListener("keydown", onKey);
   }, [showBotModal]);
 
+  // 新增：播放開場白影片
+  const playIntroVideo = () => {
+    return new Promise((resolve) => {
+      setShowVideoIntro(true);
+      setVideoZoomOut(false);
+      
+      const videoElement = videoRef.current;
+      if (videoElement) {
+        videoElement.play().catch(err => {
+          console.error("影片播放失敗:", err);
+          resolve();
+        });
+
+        videoElement.onended = () => {
+          handleVideoEnd();
+          resolve();
+        };
+
+        // 新增：錯誤處理
+        videoElement.onerror = () => {
+          console.error("影片載入錯誤");
+          handleVideoEnd();
+          resolve();
+        };
+      } else {
+        resolve();
+      }
+    });
+  };
+
+  // 新增：影片結束處理
+  const handleVideoEnd = () => {
+    setVideoZoomOut(true);
+    setTimeout(() => {
+      setShowVideoIntro(false);
+      setAvatarAppear(true);
+      setTimeout(() => setAvatarAppear(false), 500);
+    }, 600);
+  };
+
+  // 新增：跳過影片
+  const skipVideo = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+    handleVideoEnd();
+  };
+
   const startConversation = async () => {
+    // 新增：如果是首次對話，播放開場白影片
+    if (isFirstTimeChat) {
+      await playIntroVideo();
+    }
+
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const firstText = `嗨 ${nickname},我是 ${bot.name}。今天想從哪裡開始呢?`;
     const first = { sender: "ai", content: firstText, timestamp: now };
@@ -538,7 +691,7 @@ export default function MoodInput() {
     };
     window.addEventListener('keydown', handleSpace);
     return () => window.removeEventListener('keydown', handleSpace);
-  }, [chatStarted]);
+  }, [chatStarted, isFirstTimeChat]);
 
   const handleSend = async () => {
     const trimmedInput = inputValue.trim();
@@ -665,6 +818,19 @@ export default function MoodInput() {
         </IntroContent>
       </IntroTextOverlay>
 
+      {/* 新增：開場白影片覆蓋層 */}
+      <VideoIntroOverlay $visible={showVideoIntro}>
+        <VideoContainer $zoomOut={videoZoomOut}>
+          <IntroVideo 
+            ref={videoRef}
+            src={VIDEO_MAP[selectedBotType]}
+            playsInline
+            preload="auto"
+          />
+          <SkipButton onClick={skipVideo}>跳過</SkipButton>
+        </VideoContainer>
+      </VideoIntroOverlay>
+
       <Header>
         <BackButton onClick={() => navigate("/dashboard")}>
           <FiChevronLeft size={18} />
@@ -672,7 +838,7 @@ export default function MoodInput() {
         </BackButton>
 
         {chatStarted && (
-          <AvatarContainer>
+          <AvatarContainer $appear={avatarAppear}>
             <BotInfo>
               <BotName>{bot.name}</BotName>
               <BotStatus>線上</BotStatus>
