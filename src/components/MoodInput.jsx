@@ -771,7 +771,7 @@ const InputArea = styled.div`
   
   @media (max-width:768px){
     width:calc(100% - 24px);
-    bottom:110px;
+    bottom:16px;
     padding:6px 10px;
     border-radius:20px;
     max-width:none;
@@ -788,6 +788,7 @@ const InputField = styled.input`
   color:${p=>p.$disabled?'#999':'#2d3748'};
   font-weight:400;
   letter-spacing:0.2px;
+  resize:none;
   
   &::placeholder{
     color:${p=>p.$disabled?'#aaa':'#999'};
@@ -798,6 +799,9 @@ const InputField = styled.input`
   @media (max-width:768px){
     font-size:15px;
     padding:12px 14px;
+    max-height:80px;
+    overflow-y:auto;
+    line-height:1.5;
   }
 `;
 
@@ -912,7 +916,7 @@ const StatusMessage = styled.div`
   letter-spacing:0.3px;
   
   @media (max-width:768px){
-    bottom:190px;
+    bottom:100px;
     font-size:13px;
     padding:11px 18px;
   }
@@ -962,7 +966,8 @@ const IntroTextOverlay = styled.div`
   transition:opacity .6s cubic-bezier(.4,0,.2,1),visibility .6s;
   
   @media (max-width:768px){
-    padding:140px 24px 40px;
+    padding:40px 20px;
+    justify-content:center;
   }
 `;
 
@@ -977,7 +982,7 @@ const TipHeader = styled.h2`
   letter-spacing:-0.5px;
   
   @media (max-width:768px){
-    font-size:26px;
+    font-size:24px;
   }
 `;
 
@@ -993,8 +998,8 @@ const IntroContent = styled.div`
   backdrop-filter:blur(10px);
   
   @media (max-width:768px){
-    padding:24px 20px;
-    max-width:85%;
+    padding:20px 18px;
+    max-width:90%;
     margin:0 auto;
   }
 `;
@@ -1008,7 +1013,7 @@ const IntroText = styled.p`
   letter-spacing:0.3px;
   
   @media (max-width:768px){
-    font-size:15px;
+    font-size:14px;
     line-height:1.7;
   }
 `;
@@ -1029,11 +1034,7 @@ const Disclaimer = styled.div`
   letter-spacing:0.2px;
   
   @media (max-width:768px){
-    font-size:10px;
-    width:calc(100% - 24px);
-    bottom:75px;
-    padding:6px 8px;
-    line-height:1.4;
+    display:none;
   }
 `;
 
@@ -1288,6 +1289,7 @@ export default function MoodInput() {
   const [showBotModal, setShowBotModal] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [inputHeight, setInputHeight] = useState('auto');
 
   const [showVideoIntro, setShowVideoIntro] = useState(false);
   const [videoZoomOut, setVideoZoomOut] = useState(false);
@@ -1460,8 +1462,10 @@ export default function MoodInput() {
     const userMsgText = isRecording ? "[語音訊息]" : trimmedInput;
 
     setInputValue("");
+    setInputHeight('auto');
     if (inputRef.current) {
       inputRef.current.value = "";
+      inputRef.current.style.height = 'auto';
       inputRef.current.blur();
     }
     
@@ -1516,9 +1520,11 @@ export default function MoodInput() {
       requestAnimationFrame(() => {
         if (inputRef.current) {
           inputRef.current.value = "";
+          inputRef.current.style.height = 'auto';
           inputRef.current.focus();
         }
         setInputValue("");
+        setInputHeight('auto');
       });
     }
   };
@@ -1699,12 +1705,21 @@ export default function MoodInput() {
           ref={inputRef}
           placeholder={inputDisabled ? "請等待回覆..." : isRecording ? "正在錄製語音..." : "將你的心情寫在這裡吧!"}
           value={inputValue}
-          onChange={e => setInputValue(e.target.value)}
+          onChange={e => {
+            setInputValue(e.target.value);
+            if (window.innerWidth <= 768 && inputRef.current) {
+              inputRef.current.style.height = 'auto';
+              const newHeight = Math.min(inputRef.current.scrollHeight, 80);
+              inputRef.current.style.height = newHeight + 'px';
+              setInputHeight(newHeight + 'px');
+            }
+          }}
           onKeyDown={handleKeyDown}
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
           $disabled={inputDisabled || isRecording}
           autoComplete="off"
+          style={{ height: window.innerWidth <= 768 ? inputHeight : 'auto' }}
         />
         <InputButtons>
           <ActionButton
