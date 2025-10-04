@@ -484,8 +484,8 @@ export default function MatchResult() {
 
       <Main>
         <Title>
-          我們根據心理測驗結果，提供你與每位 AI 夥伴的適合程度。<br/>
-          你可以自由選擇最想開始對話的一位。
+          我們根據心理測驗結果，提供您與每位 AI 夥伴的適合程度。<br/>
+          您可以自由選擇最想開始對話的一位。
         </Title>
 
         <Cards>

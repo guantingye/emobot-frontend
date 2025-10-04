@@ -1172,7 +1172,7 @@ const MemberDashboard = () => {
                   查看心情足跡
                 </TopRightLink>
                 <AIDescription>
-                  你目前選擇的AI夥伴是:<span>{chosenBotName}</span>
+                  您目前選擇的AI夥伴是:<span>{chosenBotName}</span>
                 </AIDescription>
                 {scores ? <RadarChartSVG scores={scores} /> : <RadarImage src={radarChart} alt="radar chart" />}
               </AICard>
@@ -1198,12 +1198,12 @@ const MemberDashboard = () => {
 
       <ModalOverlay show={showModal} onClick={handleCancelModal}>
         <ModalContent show={showModal} onClick={(e) => e.stopPropagation()}>
-          <ModalTitle>想重新配對一位懂你的 AI 夥伴嗎?</ModalTitle>
+          <ModalTitle>想重新配對一位懂您的 AI 夥伴嗎?</ModalTitle>
           <ModalDescription>
-            點選後,我們會保留你目前的聊天記錄,<br />
-            但會重新為你媒合最適合的對話夥伴。
+            點選後,我們會保留您目前的聊天記錄,<br />
+            但會重新為您媒合最適合的對話夥伴。
           </ModalDescription>
-          <ModalWarning>請確認你已準備好,重新踏上這段溫馨的探索旅程</ModalWarning>
+          <ModalWarning>請確認您已準備好,重新踏上這段溫馨的探索旅程</ModalWarning>
           <ModalButtonGroup>
             <CancelButton onClick={handleCancelModal}>取消</CancelButton>
             <ConfirmButton onClick={handleConfirmRetest}>確定重新測驗</ConfirmButton>

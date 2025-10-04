@@ -233,7 +233,7 @@ const Main = styled.div`
 const Title = styled.h2`
   font-size: 36px;
   font-weight: bold;
-  margin-bottom: 60px;
+  margin-bottom: 30px;
   text-align: center;
   background: linear-gradient(135deg, #2b3993 0%, #667eea 100%);
   -webkit-background-clip: text;
@@ -242,17 +242,49 @@ const Title = styled.h2`
 
   @media (max-width: 768px) {
     font-size: 24px;
-    margin-bottom: 32px;
+    margin-bottom: 20px;
   }
 
   @media (max-width: 480px) {
     font-size: 20px;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
   }
 
   @media (max-width: 320px) {
     font-size: 18px;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
+  }
+`;
+
+const Subtitle = styled.p`
+  font-size: 16px;
+  color: #444;
+  line-height: 1.7;
+  max-width: 720px;
+  margin: 0 auto 28px;
+  text-align: center;
+  background: linear-gradient(135deg, #f9f9f9 0%, #f0f4f8 100%);
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(43, 57, 147, 0.1);
+  box-shadow: 0 2px 8px rgba(43, 57, 147, 0.05);
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    padding: 8px 12px;
+    margin: 0 auto 20px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+    padding: 6px 8px;
+    margin: 0 auto 16px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 11px;
+    padding: 4px 6px;
+    margin: 0 auto 12px;
   }
 `;
 

@@ -425,10 +425,10 @@ export default function TestStep5() {
       </StepIndicatorWrapper>
 
       <Main>
-        <BigTitle>謝謝你走過這段小小的探索旅程。</BigTitle>
+        <BigTitle>謝謝您走過這段小小的探索旅程。</BigTitle>
         <Paragraph>
-          我們已收到你的回覆，這些資料將幫助我們更了解你的心理特質與互動風格。
-          {"\n"}接下來，我們會根據你的回覆，提供你與四位AI夥伴的適合程度
+          我們已收到您的回覆，這些資料將幫助我們更了解您的心理特質與互動風格。
+          {"\n"}接下來，我們會根據你的回覆，提供您與四位AI夥伴的適合程度
           {"\n"}你可以從中挑選一位開始旅程，也可以自由切換其他夥伴，或選擇重新測驗再次媒合。
         </Paragraph>
 
