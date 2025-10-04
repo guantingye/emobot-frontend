@@ -114,6 +114,7 @@ const Container = styled.div`
     left:0;
     right:0;
     bottom:0;
+    -webkit-tap-highlight-color:transparent;
   }
 `;
 
@@ -260,6 +261,8 @@ const BackButton = styled.button`
   transition:all .3s cubic-bezier(.4,0,.2,1);
   position:relative;
   overflow:hidden;
+  outline:none;
+  -webkit-tap-highlight-color:transparent;
   
   &:before{
     content:'';
@@ -284,6 +287,10 @@ const BackButton = styled.button`
   
   &:active{
     transform:translateX(-1px) scale(.98);
+  }
+  
+  &:focus{
+    outline:none;
   }
   
   @media (max-width:768px){
@@ -322,6 +329,8 @@ const TTSToggle = styled.button`
   backdrop-filter:blur(10px);
   position:relative;
   overflow:hidden;
+  outline:none;
+  -webkit-tap-highlight-color:transparent;
   
   &:before{
     content:'';
@@ -345,6 +354,10 @@ const TTSToggle = styled.button`
   
   &:active{
     transform:translateY(0);
+  }
+  
+  &:focus{
+    outline:none;
   }
   
   @media (max-width:768px){
@@ -406,11 +419,17 @@ const InfoButton = styled.button`
   cursor:pointer;
   transition:all .25s ease;
   box-shadow:0 2px 6px rgba(0,0,0,.15);
+  outline:none;
+  -webkit-tap-highlight-color:transparent;
   
   &:hover{
     transform:scale(1.1);
     background:linear-gradient(135deg,#fff,#f8fafc);
     box-shadow:0 3px 10px rgba(0,0,0,.2);
+  }
+  
+  &:focus{
+    outline:none;
   }
   
   @media (max-width:768px){
@@ -789,11 +808,19 @@ const InputField = styled.input`
   font-weight:400;
   letter-spacing:0.2px;
   resize:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  appearance:none;
   
   &::placeholder{
     color:${p=>p.$disabled?'#aaa':'#999'};
     font-style:italic;
     font-weight:400;
+  }
+  
+  &:focus{
+    outline:none;
+    border:none;
   }
   
   @media (max-width:768px){
@@ -802,6 +829,7 @@ const InputField = styled.input`
     max-height:80px;
     overflow-y:auto;
     line-height:1.5;
+    -webkit-tap-highlight-color:transparent;
   }
 `;
 
@@ -832,9 +860,15 @@ const ActionButton = styled.button`
   transition:all .3s cubic-bezier(.4,0,.2,1);
   animation:${p=>p.$isRecording?recording:'none'} 1.5s infinite;
   opacity:${p=>p.$disabled?.5:1};
+  outline:none;
+  -webkit-tap-highlight-color:transparent;
   
   &:hover:not(:disabled){
     background:${p=>p.$isRecording?'rgba(234,84,85,.18)':'rgba(0,0,0,.04)'};
+  }
+  
+  &:focus{
+    outline:none;
   }
   
   @media (max-width:768px){
@@ -865,6 +899,8 @@ const SendButton = styled.button`
   };
   position:relative;
   overflow:hidden;
+  outline:none;
+  -webkit-tap-highlight-color:transparent;
   
   &:before{
     content:'';
@@ -887,6 +923,10 @@ const SendButton = styled.button`
   
   &:active:not(:disabled){
     transform:scale(0.96);
+  }
+  
+  &:focus{
+    outline:none;
   }
   
   @media (max-width:768px){
@@ -1208,9 +1248,15 @@ const GhostBtn = styled.button`
   border-radius:12px;
   cursor:pointer;
   font-weight:700;
+  outline:none;
+  -webkit-tap-highlight-color:transparent;
   
   &:hover{
     background:rgba(68,85,170,.08);
+  }
+  
+  &:focus{
+    outline:none;
   }
   
   @media (max-width:640px){
