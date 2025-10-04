@@ -309,13 +309,13 @@ const ProfileCard = styled.div`
 
   @media (max-width: 768px) {
     width: 100%;
-    max-width: 380px;
+    max-width: 320px;
     height: auto;
-    min-height: 500px;
-    padding: 24px;
+    min-height: 420px;
+    padding: 20px;
 
     @media (max-width: 480px) {
-      max-width: 92vw;
+      max-width: 85vw;
     }
 
     &:hover {
@@ -325,7 +325,7 @@ const ProfileCard = styled.div`
 
   @media (max-width: 480px) {
     max-width: 100%;
-    padding: 20px;
+    padding: 18px;
     border-radius: 20px;
   }
 `;
@@ -345,14 +345,14 @@ const ProfileImage = styled.img`
   }
 
   @media (max-width: 768px) {
-    width: 250px;
-    height: 250px;
-    margin-top: 10px;
+    width: 200px;
+    height: 200px;
+    margin-top: 8px;
   }
 
   @media (max-width: 480px) {
-    width: 200px;
-    height: 200px;
+    width: 160px;
+    height: 160px;
   }
 `;
 
@@ -364,13 +364,13 @@ const ProfileName = styled.div`
   transition: color 0.3s ease;
 
   @media (max-width: 768px) {
-    margin-top: 30px;
-    font-size: 36px;
+    margin-top: 20px;
+    font-size: 28px;
   }
 
   @media (max-width: 480px) {
-    font-size: 28px;
-    margin-top: 20px;
+    font-size: 22px;
+    margin-top: 16px;
   }
 `;
 
@@ -389,13 +389,14 @@ const ProfileType = styled.div`
   }
 
   @media (max-width: 768px) {
-    font-size: 28px;
-    padding: 6px 16px;
+    font-size: 22px;
+    padding: 5px 14px;
+    margin-top: 8px;
   }
 
   @media (max-width: 480px) {
-    font-size: 22px;
-    padding: 4px 12px;
+    font-size: 18px;
+    padding: 4px 10px;
   }
 `;
 
@@ -451,15 +452,15 @@ const AICard = styled.div`
 
   @media (max-width: 768px) {
     width: 100%;
-    max-width: 380px;
+    max-width: 320px;
     height: auto;
-    min-height: 400px;
-    padding: 24px;
-    padding-top: 60px;
+    min-height: 360px;
+    padding: 20px;
+    padding-top: 55px;
 
     @media (max-width: 480px) {
-      max-width: 92vw;
-      padding-top: 60px;
+      max-width: 85vw;
+      padding-top: 55px;
     }
 
     &:hover {
@@ -469,8 +470,8 @@ const AICard = styled.div`
 
   @media (max-width: 480px) {
     max-width: 100%;
-    padding: 20px;
-    padding-top: 60px;
+    padding: 18px;
+    padding-top: 55px;
     border-radius: 20px;
   }
 `;
@@ -488,15 +489,15 @@ const AIDescription = styled.p`
   }
 
   @media (max-width: 768px) {
-    font-size: 22px;
-    margin-bottom: 30px;
-    margin-top: 10px;
+    font-size: 18px;
+    margin-bottom: 24px;
+    margin-top: 8px;
   }
 
   @media (max-width: 480px) {
-    font-size: 18px;
-    margin-bottom: 20px;
-    margin-top: 10px;
+    font-size: 15px;
+    margin-bottom: 18px;
+    margin-top: 6px;
   }
 `;
 
@@ -511,13 +512,13 @@ const RadarImage = styled.img`
   }
 
   @media (max-width: 768px) {
-    max-width: 300px;
-    margin-top: 10px;
+    max-width: 240px;
+    margin-top: 8px;
   }
 
   @media (max-width: 480px) {
-    max-width: 250px;
-    margin-top: 10px;
+    max-width: 200px;
+    margin-top: 6px;
   }
 `;
 
@@ -529,7 +530,7 @@ const RightColumn = styled.div`
 
   @media (max-width: 768px) {
     width: 100%;
-    max-width: 380px;
+    max-width: 320px;
   }
 
   @media (max-width: 480px) {
@@ -1172,7 +1173,7 @@ const MemberDashboard = () => {
                   查看心情足跡
                 </TopRightLink>
                 <AIDescription>
-                  您目前選擇的AI夥伴是:<span>{chosenBotName}</span>
+                  你目前選擇的AI夥伴是:<span>{chosenBotName}</span>
                 </AIDescription>
                 {scores ? <RadarChartSVG scores={scores} /> : <RadarImage src={radarChart} alt="radar chart" />}
               </AICard>
@@ -1198,12 +1199,12 @@ const MemberDashboard = () => {
 
       <ModalOverlay show={showModal} onClick={handleCancelModal}>
         <ModalContent show={showModal} onClick={(e) => e.stopPropagation()}>
-          <ModalTitle>想重新配對一位懂您的 AI 夥伴嗎?</ModalTitle>
+          <ModalTitle>想重新配對一位懂你的 AI 夥伴嗎?</ModalTitle>
           <ModalDescription>
-            點選後,我們會保留您目前的聊天記錄,<br />
-            但會重新為您媒合最適合的對話夥伴。
+            點選後,我們會保留你目前的聊天記錄,<br />
+            但會重新為你媒合最適合的對話夥伴。
           </ModalDescription>
-          <ModalWarning>請確認您已準備好,重新踏上這段溫馨的探索旅程</ModalWarning>
+          <ModalWarning>請確認你已準備好,重新踏上這段溫馨的探索旅程</ModalWarning>
           <ModalButtonGroup>
             <CancelButton onClick={handleCancelModal}>取消</CancelButton>
             <ConfirmButton onClick={handleConfirmRetest}>確定重新測驗</ConfirmButton>
