@@ -289,12 +289,12 @@ const QuestionItem = styled.li`
 
   @media (max-width: 480px) {
     margin-bottom: 32px;
-    padding: 0 16px;
+    padding: 0 8px;
   }
 
   @media (max-width: 320px) {
     margin-bottom: 28px;
-    padding: 0 12px;
+    padding: 0 4px;
   }
 `;
 
@@ -311,15 +311,17 @@ const ScaleWrapper = styled.div`
   }
 
   @media (max-width: 480px) {
-    gap: 6px;
+    gap: 4px;
     margin-top: 24px;
     flex-wrap: nowrap;
-    justify-content: space-between;
+    justify-content: flex-start;
+    padding: 0 4px;
   }
 
   @media (max-width: 320px) {
-    gap: 4px;
+    gap: 3px;
     margin-top: 20px;
+    padding: 0 2px;
   }
 `;
 
@@ -369,13 +371,15 @@ background: ${(props) =>
   }
 
   @media (max-width: 480px) {
-    width: ${(props) => Math.max(props.size - 10, 20)}px;
-    height: ${(props) => Math.max(props.size - 10, 20)}px;
+    width: ${(props) => Math.max(props.size - 12, 18)}px;
+    height: ${(props) => Math.max(props.size - 12, 18)}px;
+    border-width: 1.5px;
   }
 
   @media (max-width: 320px) {
-    width: ${(props) => Math.max(props.size - 12, 18)}px;
-    height: ${(props) => Math.max(props.size - 12, 18)}px;
+    width: ${(props) => Math.max(props.size - 14, 16)}px;
+    height: ${(props) => Math.max(props.size - 14, 16)}px;
+    border-width: 1px;
   }
 `;
 
@@ -393,13 +397,13 @@ const Label = styled.span`
   }
 
   @media (max-width: 480px) {
-    font-size: 12px;
-    width: 42px;
+    font-size: 11px;
+    width: 32px;
   }
 
   @media (max-width: 320px) {
-    font-size: 11px;
-    width: 38px;
+    font-size: 10px;
+    width: 28px;
   }
 `;
 
@@ -414,11 +418,11 @@ const CircleRow = styled.div`
   }
 
   @media (max-width: 480px) {
-    gap: 6px;
+    gap: 4px;
   }
 
   @media (max-width: 320px) {
-    gap: 4px;
+    gap: 3px;
   }
 `;
 
@@ -502,20 +506,20 @@ export default function TestStep4() {
     "我覺得生活中有很多壓力。",
     "我認識的人告訴我我在做的事情上表現得不錯。",
     "我與我接觸的人相處得很好。",
-    "我大多保持自己一人，沒有太多社交接觸。",
+    "我大多保持自己一人,沒有太多社交接觸。",
     "我通常覺得自己能自由表達想法與意見。",
     "我將我經常互動的人視為朋友。",
     "最近我有學到一些有趣的新技能。",
-    "在日常生活中，我經常得照別人的話去做。",
+    "在日常生活中,我經常得照別人的話去做。",
     "我的生活中有人在乎我。",
     "我大多數日子都覺得自己做的事情有成就感。",
     "每天互動的人大多會考慮我的感受。",
     "我的生活中沒什麼機會展現我有多能幹。",
     "我沒有太多親近的人。",
-    "在日常情境中，我感覺可以做自己。",
+    "在日常情境中,我感覺可以做自己。",
     "我經常互動的人似乎不太喜歡我。",
     "我常常覺得自己不太能幹。",
-    "我的日常生活中，我幾乎沒有機會自行決定事情的做法。",
+    "我的日常生活中,我幾乎沒有機會自行決定事情的做法。",
     "大多數人對我都很友善。"
   ];
 
@@ -539,10 +543,8 @@ export default function TestStep4() {
     setLoading(true);
     
     try {
-      // 本地儲存（作為備份）
       localStorage.setItem("step4Answers", JSON.stringify(answers));
       
-      // 儲存到後端
       console.log("Saving step4 answers:", answers);
       await saveAssessment({ 
         step4Answers: answers,
@@ -552,7 +554,7 @@ export default function TestStep4() {
       navigate("/test/step5");
     } catch (e) { 
       console.error("Save step4 failed:", e);
-      alert(`儲存失敗：${e.message}，但可以繼續下一步`);
+      alert(`儲存失敗:${e.message},但可以繼續下一步`);
       navigate("/test/step5");
     } finally {
       setLoading(false);

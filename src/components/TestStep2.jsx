@@ -6,7 +6,6 @@ import StepIndicator from "./StepIndicator";
 import logoIcon from "../assets/logofig.png";
 import { saveAssessment } from "../api/client";
 
-// === 動畫效果 ===
 const fadeInUp = keyframes`
   from {
     opacity: 0;
@@ -328,12 +327,12 @@ const QuestionItem = styled.li`
 
   @media (max-width: 480px) {
     margin-bottom: 32px;
-    padding: 0 16px;
+    padding: 0 8px;
   }
 
   @media (max-width: 320px) {
     margin-bottom: 28px;
-    padding: 0 12px;
+    padding: 0 4px;
   }
 `;
 
@@ -350,15 +349,17 @@ const ScaleWrapper = styled.div`
   }
 
   @media (max-width: 480px) {
-    gap: 6px;
+    gap: 4px;
     margin-top: 24px;
     flex-wrap: nowrap;
-    justify-content: space-between;
+    justify-content: flex-start;
+    padding: 0 4px;
   }
 
   @media (max-width: 320px) {
-    gap: 4px;
+    gap: 3px;
     margin-top: 20px;
+    padding: 0 2px;
   }
 `;
 
@@ -408,13 +409,15 @@ background: ${(props) =>
   }
 
   @media (max-width: 480px) {
-    width: ${(props) => Math.max(props.size - 10, 20)}px;
-    height: ${(props) => Math.max(props.size - 10, 20)}px;
+    width: ${(props) => Math.max(props.size - 12, 18)}px;
+    height: ${(props) => Math.max(props.size - 12, 18)}px;
+    border-width: 1.5px;
   }
 
   @media (max-width: 320px) {
-    width: ${(props) => Math.max(props.size - 12, 18)}px;
-    height: ${(props) => Math.max(props.size - 12, 18)}px;
+    width: ${(props) => Math.max(props.size - 14, 16)}px;
+    height: ${(props) => Math.max(props.size - 14, 16)}px;
+    border-width: 1px;
   }
 `;
 
@@ -432,13 +435,13 @@ const Label = styled.span`
   }
 
   @media (max-width: 480px) {
-    font-size: 12px;
-    width: 40px;
+    font-size: 11px;
+    width: 32px;
   }
 
   @media (max-width: 320px) {
-    font-size: 11px;
-    width: 36px;
+    font-size: 10px;
+    width: 28px;
   }
 `;
 
@@ -453,11 +456,11 @@ const CircleRow = styled.div`
   }
 
   @media (max-width: 480px) {
-    gap: 6px;
+    gap: 4px;
   }
 
   @media (max-width: 320px) {
-    gap: 4px;
+    gap: 3px;
   }
 `;
 
@@ -534,27 +537,27 @@ export default function TestStep2() {
     "和別人親近會讓我覺得不舒服。",
     "我發現自己很容易和別人親近。",
     "即使沒有任何親近的情感關係我仍過得很自在。",
-    "我想要情感上的親密關係，但卻很難完全信賴別人。",
-    "對我來說，獨立和自給自足的感覺是非常重要的。",
+    "我想要情感上的親密關係,但卻很難完全信賴別人。",
+    "對我來說,獨立和自給自足的感覺是非常重要的。",
     "我擔心如果和別人太親近會容易受到傷害。",
     "我會擔心別人並不那麼想跟我在一起。",
     "我不喜歡依賴別人。",
     "我會擔心別人不如我看重他們那樣的看重我。",
     "我不會擔心自己孤單一人。",
-    "當別人太親近我時，會讓我感覺不自在。",
+    "當別人太親近我時,會讓我感覺不自在。",
     "我會擔心別人並不真正喜歡我。",
     "我很少擔心別人不接納我。",
     "我寧可和別人保持距離以避免失望。",
-    "當別人想要和我更親近時，我會感到不安焦慮。",
+    "當別人想要和我更親近時,我會感到不安焦慮。",
     "我對自己不滿意。",
     "通常我寧可自己一個人比較自由。",
     "我發現自己一直在尋求別人的接納並藉以肯定自己。",
-    "我瞭解自己的優點與缺點，並且喜歡自己。",
+    "我瞭解自己的優點與缺點,並且喜歡自己。",
     "我時常太過於在乎別人對我的看法。",
     "我可以很自在的讓別人依賴我。",
     "一個人的生活就可以過得很好了。",
-    "即使別人不欣賞我，我仍然能肯定自己的價值。",
-    "當我需要朋友的時候，總會找得到人的。"
+    "即使別人不欣賞我,我仍然能肯定自己的價值。",
+    "當我需要朋友的時候,總會找得到人的。"
   ];
 
   const [answers, setAnswers] = useState(Array(questions.length).fill(null));
@@ -577,10 +580,8 @@ export default function TestStep2() {
     setLoading(true);
     
     try {
-      // 本地儲存（作為備份）
       localStorage.setItem("step2Answers", JSON.stringify(answers));
       
-      // 儲存到後端 - 修正：將 array 直接作為 step2Answers 傳送
       console.log("Saving step2 answers:", answers);
       await saveAssessment({ 
         step2Answers: answers,
@@ -590,7 +591,7 @@ export default function TestStep2() {
       navigate("/test/step3");
     } catch (e) { 
       console.error("Save step2 failed:", e);
-      alert(`儲存失敗：${e.message}，但可以繼續下一步`);
+      alert(`儲存失敗:${e.message},但可以繼續下一步`);
       navigate("/test/step3");
     } finally {
       setLoading(false);
@@ -622,7 +623,7 @@ export default function TestStep2() {
 
       <Main>
         <Title>Step2 情感連結風格</Title>
-        <Subtitle>請根據您的真實感受，選擇最符合的選項。<br />越靠左側表示越不同意，越靠右側表示越同意，中間則代表中立或一般程度。</Subtitle>
+        <Subtitle>請根據您的真實感受,選擇最符合的選項。<br />越靠左側表示越不同意,越靠右側表示越同意,中間則代表中立或一般程度。</Subtitle>
         <QuestionList>
           {questions.map((q, i) => (
             <QuestionItem key={i}>
