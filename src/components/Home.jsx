@@ -379,11 +379,27 @@ const TimelineNumber = styled.div`
   @media (max-width: 480px) { width: 36px; height: 36px; font-size: 14px; left: 2px !important; right: auto !important; }
 `;
 const TimelineContent = styled.div`
-  padding: 35px 30px; background: rgba(255,255,255,.95); backdrop-filter: blur(15px); border-radius: 20px;
+  padding: 35px 30px;
+  background: rgba(255,255,255,.95);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
   box-shadow: 0 8px 32px rgba(43,57,147,.08), 0 2px 8px rgba(0,0,0,.04), inset 0 1px 0 rgba(255,255,255,.6);
-  transition: all .4s cubic-bezier(.4,0,.2,1); position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,.4);
+  transition: all .4s cubic-bezier(.4,0,.2,1);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.4);
+
+  /* 新增：白色容器內的文字全部置中 */
+  text-align: center;
+
   &:hover { transform: translateY(-8px); }
-  @media (max-width: 480px) { padding: 20px 16px; border-radius: 12px; text-align: left !important; }
+
+  /* 手機版同樣置中（把原本的 left !important 改成 center） */
+  @media (max-width: 480px) {
+    padding: 20px 16px;
+    border-radius: 12px;
+    text-align: center !important;
+  }
 `;
 const TimelineTitle = styled.h3` font-size: 22px; font-weight: 700; color: #2c3e50; margin-bottom: 16px; display: flex; align-items: center; gap: 16px; justify-content: center; `;
 const TimelineText = styled.p` font-size: 16px; line-height: 1.8; color: #4a5568; white-space: pre-line; `;
@@ -505,10 +521,10 @@ export default function Home() {
   const VERSION = "v1.0.0";
 
   const botCards = [
-    { type: "empathy", title: "同理型 AI", name: "Lumi", image: bot1, features: "擅長建立溫暖、接納的氛圍，引導使用者覺察情緒並與之共處", suitable: "孤獨感、低自尊、情感失落、自我懷疑、親密關係議題", accentStart: "#FFB6C1", accentEnd: "#FF8FB1" },
-    { type: "insight", title: "洞察型 AI", name: "Solin", image: bot2, features: "長於探索潛意識與潛藏動機，引導使用者對過往經驗進行深層理解", suitable: "反覆的人際模式、創傷經驗、自我價值疑問、夢境探索、內在空虛感", accentStart: "#7AC2DD", accentEnd: "#5A8CF2" },
-    { type: "solution", title: "解決型 AI", name: "Niko", image: bot6, features: "現實導向，強調目標設定與資源活用，能快速聚焦在問題解決上", suitable: "職場壓力、衝突處理、時間管理、短期決策困難、日常壓力應對", accentStart: "#3AA87A", accentEnd: "#9AE6B4" },
-    { type: "cognitive", title: "認知型 AI", name: "Clara", image: bot4, features: "結構明確、邏輯清晰，擅長分析非理性思考並提供認知重建步驟", suitable: "負面自我對話、焦慮、完美主義、拖延、情緒管理", accentStart: "#7A4DC8", accentEnd: "#B794F4" },
+    { type: "empathy", title: "同理型 AI", name: "Lumi", image: bot1, features: "擅長建立溫暖、接納的氛圍，陪伴使用者覺察情緒\n並與之共處", suitable: "孤獨感、低自尊、情感失落、自我懷疑、\n親密關係議題", accentStart: "#FFB6C1", accentEnd: "#FF8FB1" },
+    { type: "insight", title: "洞察型 AI", name: "Solin", image: bot2, features: "探索潛意識與隱藏動機，引導使用者對過往經驗\n進行深層理解", suitable: "反覆的人際模式、創傷經驗、自我價值疑問、\n夢境探索、內在空虛感", accentStart: "#7AC2DD", accentEnd: "#5A8CF2" },
+    { type: "solution", title: "解決型 AI", name: "Niko", image: bot6, features: "現實導向，強調目標設定與資源活用，\n能快速聚焦在問題解決上", suitable: "職場壓力、衝突處理、時間管理、短期決策困難、\n日常壓力應對", accentStart: "#3AA87A", accentEnd: "#9AE6B4" },
+    { type: "cognitive", title: "認知型 AI", name: "Clara", image: bot4, features: "結構明確、邏輯清晰，分析非理性思考\n並提供認知重建步驟", suitable: "負面自我對話、焦慮、完美主義、拖延、情緒管理", accentStart: "#7A4DC8", accentEnd: "#B794F4" },
   ];
 
   const cardWidth = 340;
@@ -516,9 +532,9 @@ export default function Home() {
   const cardFullWidth = cardWidth + cardGap;
 
   const serviceSteps = [
-    { title: "為你找到最懂你的AI夥伴", icon: <MdEmojiPeople size={24} />, content: "根據你的心理特質，\n媒合一位陪你傾聽、\n懂你心情節奏的AI朋友。" },
-    { title: "展開屬於你的對話旅程", icon: <MdChat size={24} />, content: "隨時分享你的心情，\n探索自己的情緒地圖，\n沒有壓力、沒有評價。" },
-    { title: "一起守護你的情緒訊號", icon: <MdFavorite size={24} />, content: "在陪伴中，AI夥伴也會細心留意情緒波動，\n當需要更多支持時，溫柔提醒你有其他資源可以依靠。" },
+    { title: "為你找到最懂你的AI夥伴", icon: <MdEmojiPeople size={24} />, content: "根據你的心理特質，媒合推薦一位\n陪你傾聽、懂你心情節奏的AI夥伴。" },
+    { title: "展開屬於你的對話旅程", icon: <MdChat size={24} />, content: "隨時分享你的心情，探索自己的情緒地圖，\n沒有壓力、沒有評價，開啟對話的深度體驗。" },
+    { title: "一起守護你的情緒訊號", icon: <MdFavorite size={24} />, content: "在陪伴聊天的過程中，AI夥伴也會細心留意\n您的情緒波動，當需要更多支持時，\n溫柔提醒你有其他資源可以依靠。" },
     { title: "連結更多專業的幫助", icon: <MdPsychology size={24} />, content: "如果需要，我們會在你的同意下，\n協助你快速找到校方的專業心理師，\n讓支持更及時到達你身邊。" },
   ];
 
@@ -697,9 +713,9 @@ export default function Home() {
             我們相信，
             每一種情緒，都需要被傾聽與溫柔對待。
 
-            透過 AI 精準媒合，
+            透過 AI 媒合推薦，
             我們為你找到最適合的 AI 夥伴，
-            在每個需要理解的時刻，與你同行。
+            在每個需要理解的時刻，與您同行。
           </AboutText>
         </AboutContent>
       </AboutSection>
@@ -790,7 +806,7 @@ export default function Home() {
             <p>
               本程式專案目前處於<strong>測試階段</strong>，目的在於驗證介面設計、互動流程與系統穩定性。請勿將平台提供之任何內容視為醫療或心理治療之專業建議。
             </p>
-
+            
             <h4>非醫療建議聲明</h4>
             <p>
               若您出現焦慮、憂鬱、恐慌、自傷或其他急迫心理症狀，請<strong>立即</strong>尋求專業協助（校園諮商中心、醫療院所或當地緊急聯絡資源）。
@@ -802,10 +818,8 @@ export default function Home() {
             </p>
 
             <h4>資料保存與安全</h4>
-            <ul>
-              <li>研究資料以最小化原則保存，並採取合理之技術與管理措施降低未授權存取風險。</li>
-              <li>除法律要求或安全性稽核外，不會對外揭露個別使用者內容。</li>
-            </ul>
+            <p>（1）研究資料以最小化原則保存，並採取合理之技術與管理措施降低未授權存取風險。</p>
+            <p>（2）除法律要求或安全性稽核外，不會對外揭露個別使用者內容。</p>
 
             <h4>第三方服務</h4>
             <p>
@@ -813,14 +827,15 @@ export default function Home() {
             </p>
 
             <h4>使用者權益</h4>
-            <ul>
-              <li>您可隨時停止使用本平台。</li>
-              <li>如欲瞭解或刪除測試階段所留資料，請來信 <span className="mono">emobotplus@gmail.com</span> 與我們聯繫。</li>
-            </ul>
+            <p>（1）您可隨時停止使用本平台。</p>
+            <p>（2）如欲瞭解或刪除測試階段所留資料，請隨時來信與我們聯繫。</p>
 
             <h4>聯絡方式</h4>
             <p>
-              Team：<strong>Emobot+</strong>　｜　Email：<a href="mailto:emobotplus@gmail.com">emobotplus@gmail.com</a>
+              Team：<strong>Emobot+</strong>
+            </p>
+            <p>
+              Email：<a href="mailto:emobotplus@gmail.com">emobotplus@gmail.com</a>
             </p>
           </DocBody>
 
