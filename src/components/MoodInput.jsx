@@ -1621,10 +1621,10 @@ export default function MoodInput() {
         <TipHeader>溫馨提醒</TipHeader>
         <IntroContent>
           <IntroText>
-            當你結束這段對話時,<br/>
-            系統會詢問你是否願意分享今天的聊天內容。<br/>
-            只有在你同意的情況下,這些記錄才會提供給心理專業人員,<br/>
-            幫助你獲得更適切的支持與關懷。<br/>
+            當您結束這段對話時,<br/>
+            系統會詢問您是否願意分享今天的聊天內容。<br/>
+            只有在您同意的情況下,這些記錄才會提供給心理專業人員,<br/>
+            幫助您獲得更適切的支持與關懷。<br/>
             我們會溫柔守護你的每一份選擇。
           </IntroText>
         </IntroContent>
