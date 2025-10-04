@@ -37,11 +37,11 @@ const Container = styled.div`
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  background-attachment: fixed;
   font-family: "Noto Sans TC", sans-serif;
   position: relative;
   overflow-x: hidden;
 
-  /* 背景遮罩層增強可讀性 */
   &::before {
     content: '';
     position: absolute;
@@ -60,19 +60,9 @@ const Container = styled.div`
   }
 
   @media (max-width: 768px) {
-    background-size: 110%;
-    background-position: center 15%;
+    background-size: cover;
+    background-position: center;
     background-attachment: scroll;
-  }
-
-  @media (max-width: 480px) {
-    background-size: 125%;
-    background-position: center 25%;
-  }
-
-  @media (max-width: 320px) {
-    background-size: 135%;
-    background-position: center 30%;
   }
 `;
 
@@ -273,7 +263,6 @@ const ContentContainer = styled.div`
   position: relative;
   z-index: 2;
   
-  /* 增加內容背景 */
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(248, 250, 255, 0.1) 100%);
   backdrop-filter: blur(10px);
   border-radius: 24px;
@@ -309,7 +298,6 @@ const Title = styled.h1`
   text-shadow: 0 4px 8px rgba(63, 62, 102, 0.15);
   position: relative;
 
-  /* 標題底部裝飾線 */
   &::after {
     content: '';
     position: absolute;
@@ -359,7 +347,6 @@ const Description = styled.div`
   animation: ${fadeInUp} 0.8s ease-out 0.5s forwards;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   
-  /* 段落間距優化 */
   p {
     margin-bottom: 16px;
     
@@ -415,7 +402,6 @@ const StartButton = styled.button`
   overflow: hidden;
   backdrop-filter: blur(10px);
 
-  /* 光澤效果 */
   &::before {
     content: '';
     position: absolute;
@@ -432,7 +418,6 @@ const StartButton = styled.button`
     transition: left 0.7s ease;
   }
 
-  /* 閃爍光圈效果 */
   &::after {
     content: '';
     position: absolute;
@@ -518,7 +503,6 @@ const RobotImage = styled.img`
   }
 `;
 
-// ===== 裝飾元素 =====
 const FloatingElements = styled.div`
   position: fixed;
   top: 0;
@@ -589,8 +573,8 @@ export default function TestEntry() {
           <Title>【心理測驗】</Title>
           <Description>
             <p>每個人都有獨特的思考節奏與心理風景。</p>
-            <p>這份小測驗不是為了評價你，而是為了更了解你。</p>
-            <p>幾分鐘內的回覆，我們將媒合一位真正懂你的 AI 夥伴，</p>
+            <p>這份小測驗不是為了評價你,而是為了更了解你。</p>
+            <p>幾分鐘內的回覆,我們將媒合一位真正懂你的 AI 夥伴,</p>
             <p>陪你展開一段溫柔的對話旅程。</p>
           </Description>
           <StartButton onClick={() => navigate("/test/step1")}>
