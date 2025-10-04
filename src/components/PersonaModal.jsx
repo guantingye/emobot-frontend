@@ -143,7 +143,7 @@ export default function PersonaModal({
           <GhostBtn onClick={onClose}>稍後再看</GhostBtn>
           <PrimaryBtn $accentStart={accentStart} $accentEnd={accentEnd}
             onClick={() => onStart?.(persona)}>
-            開始與 {persona.name} 對話
+            認識 {persona.name} 
           </PrimaryBtn>
         </Actions>
       </Modal>

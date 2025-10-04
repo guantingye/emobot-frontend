@@ -124,13 +124,13 @@ const VideoIntroOverlay = styled.div`
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.96), rgba(20, 20, 40, 0.98));
+  background: linear-gradient(135deg, rgba(245, 247, 250, 0.85), rgba(238, 241, 245, 0.9));
   display: ${p => p.$visible ? 'flex' : 'none'};
   align-items: center;
   justify-content: center;
   z-index: 9999;
   animation: ${fadeIn} 0.5s ease-out;
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(30px) saturate(1.2);
 `;
 
 const VideoContainer = styled.div`
@@ -834,7 +834,7 @@ const InputField = styled.input`
 `;
 
 const InputButtons = styled.div`
-  display:flex;
+display:flex;
   align-items:center;
   gap:10px;
   padding-right:6px;
@@ -1600,7 +1600,6 @@ export default function MoodInput() {
   const handleCompositionStart = () => {
     setIsComposing(true);
   };
-
   const handleCompositionEnd = () => {
     setIsComposing(false);
   };
@@ -1621,11 +1620,11 @@ export default function MoodInput() {
         <TipHeader>溫馨提醒</TipHeader>
         <IntroContent>
           <IntroText>
-            在這裡，您可以安心傾訴、抒發心情，<br/>
-            我們尊重並守護您的隱私，不會記錄任何對話內容，<br/>
+            在這裡,您可以安心傾訴、抒發心情,<br/>
+            我們尊重並守護您的隱私,不會記錄任何對話內容,<br/>
             為您保留一個自由無壓力的空間。<br/>
-            請放心展開對話，<br/>
-            讓我們溫柔陪伴，守護你的每一份選擇與心情。
+            請放心展開對話,<br/>
+            讓我們溫柔陪伴,守護你的每一份選擇與心情。
           </IntroText>
         </IntroContent>
       </IntroTextOverlay>

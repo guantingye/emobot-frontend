@@ -588,12 +588,12 @@ export default function Login() {
           {errors.nickname ? (
             <ErrorText>{errors.nickname}</ErrorText>
           ) : (
-            <HelperText>請輸入2-10個字元的英文暱稱</HelperText>
+            <HelperText>請輸入2-5個字元的暱稱</HelperText>
           )}
         </FormGroup>
 
         <FormGroup>
-          <Label htmlFor="pid">受試者PID</Label>
+          <Label htmlFor="pid">使用者ID</Label>
           <Input
             id="pid"
             type="text"

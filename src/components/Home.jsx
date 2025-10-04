@@ -31,7 +31,7 @@ const floatY = keyframes` 0%,100% { transform: translateY(0) } 50% { transform: 
 const borderShift = keyframes` 0% { transform: rotate(0deg) } 100% { transform: rotate(360deg) } `;
 const fadeIn = keyframes` from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } `;
 
-/* ================ 基礎樣式（保留） ================ */
+/* ================ 基礎樣式(保留) ================ */
 const Container = styled.div`
   width: 100vw;
   font-family: "Noto Sans TC", sans-serif;
@@ -343,7 +343,7 @@ const CarouselButton = styled.button`
   @media (max-width: 480px) { width: 40px; height: 40px; font-size: 16px; }
 `;
 
-/* ============== 後段區域（保留） ============== */
+/* ============== 後段區域(保留) ============== */
 const ServiceIntroSection = styled.section`
   padding: 80px 80px 120px 80px;
   background: linear-gradient(135deg, #ffffff 0%, #f8faff 50%, #f0f8ff 100%);
@@ -388,13 +388,10 @@ const TimelineContent = styled.div`
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.4);
-
-  /* 新增：白色容器內的文字全部置中 */
   text-align: center;
 
   &:hover { transform: translateY(-8px); }
 
-  /* 手機版同樣置中（把原本的 left !important 改成 center） */
   @media (max-width: 480px) {
     padding: 20px 16px;
     border-radius: 12px;
@@ -414,7 +411,7 @@ const AboutContent = styled.div` flex: 1; `;
 const AboutTitle = styled.h2` font-size: 50px; font-weight: 700; color: #000; margin-bottom: 24px; `;
 const AboutText = styled.p` font-size: 22px; color: #333; line-height: 2; white-space: pre-line; `;
 
-/* ====== 底部（只留「隱私政策/聯絡我們」 + 版本） ====== */
+/* ====== 底部 ====== */
 const Footer = styled.footer`
   background: #c2c2c2; color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 18px;
   @media (max-width: 768px) { padding: 16px 20px; font-size: 16px; flex-direction: column; gap: 12px; text-align: center; }
@@ -430,7 +427,7 @@ const VersionTag = styled.span`
   font-weight: 800; letter-spacing: .4px; background: rgba(0,0,0,.18); padding: 4px 10px; border-radius: 999px; font-size: 12px;
 `;
 
-/* ====== Modal 共用：聯絡/隱私 ====== */
+/* ====== Modal 共用 ====== */
 const Overlay = styled.div`
   position: fixed; inset: 0; z-index: 1000;
   background: rgba(20, 24, 40, 0.45);
@@ -439,10 +436,10 @@ const Overlay = styled.div`
   align-items: center; justify-content: center;
 `;
 const ModalShell = styled.div`
-  width: min(840px, 94vw);  /* 長條矩形 */
+  width: min(840px, 94vw);
   background: linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(247,250,255,0.98) 100%);
   border: 1px solid rgba(43, 57, 147, 0.12);
-  border-radius: 14px; /* 矩形外觀 */
+  border-radius: 14px;
   box-shadow: 0 24px 80px rgba(18, 28, 80, 0.28), 0 6px 20px rgba(0,0,0,0.08);
   overflow: hidden; animation: ${fadeIn} .26s ease both;
 `;
@@ -479,7 +476,6 @@ const Label = styled.div`
 const Value = styled.div`
   font-size: 16px; color: #2a334d; display: flex; align-items: center; gap: 10px;
   a { color: #324ab2; text-decoration: none; border-bottom: 1px dashed #b7c2ff; }
-  /* 響應式可斷行，避免被蓋住 */
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -495,7 +491,7 @@ const ModalFoot = styled.div`
   padding: 12px 22px 16px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid rgba(0,0,0,0.06);
 `;
 
-/* ====== Privacy Modal（專業閱讀樣式） ====== */
+/* ====== Privacy Modal ====== */
 const DocBody = styled.div`
   padding: 18px 22px; max-height: min(56vh, 640px); overflow: auto;
   line-height: 1.85; color: #27324a; font-size: 15.5px;
@@ -506,25 +502,139 @@ const DocBody = styled.div`
   strong { font-weight: 800; }
 `;
 
+/* ====== 影片播放 Modal (簡化版) ====== */
+const VideoOverlay = styled.div`
+  position: fixed; 
+  inset: 0; 
+  z-index: 2000;
+  background: rgba(20, 24, 40, 0.75);
+  backdrop-filter: blur(12px);
+  display: ${(p) => (p.open ? "flex" : "none")};
+  align-items: center; 
+  justify-content: center;
+  animation: ${fadeIn} .3s ease both;
+`;
+
+const VideoWrapper = styled.div`
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+`;
+
+const VideoCloseButton = styled.button`
+  position: absolute;
+  top: -50px;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2b3993;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  
+  &:hover {
+    background: #fff;
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+  
+  &:active {
+    transform: scale(1.05) rotate(90deg);
+  }
+  
+  @media (max-width: 768px) {
+    top: -45px;
+    width: 36px;
+    height: 36px;
+  }
+`;
+
+const VideoPlayer = styled.video`
+  max-width: 100%;
+  max-height: 85vh;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  background: #000;
+  
+  @media (max-width: 768px) {
+    border-radius: 8px;
+  }
+`;
+
 /* =================== 主組件 =================== */
 export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const scrollRef = useRef(null);
+  const videoRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(null);
-
-  // 視窗狀態
   const [contactOpen, setContactOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [currentVideo, setCurrentVideo] = useState(null);
 
   const VERSION = "v1.0.0";
 
+  // 影片檔名映射
+  const videoMapping = {
+    empathy: "lumi_video.mp4",
+    insight: "solin_video.mp4",
+    solution: "niko_video.mp4",
+    cognitive: "clara_video.mp4"
+  };
+
   const botCards = [
-    { type: "empathy", title: "同理型 AI", name: "Lumi", image: bot1, features: "擅長建立溫暖、接納的氛圍，陪伴使用者覺察情緒\n並與之共處", suitable: "孤獨感、低自尊、情感失落、自我懷疑、\n親密關係議題", accentStart: "#FFB6C1", accentEnd: "#FF8FB1" },
-    { type: "insight", title: "洞察型 AI", name: "Solin", image: bot2, features: "探索潛意識與隱藏動機，引導使用者對過往經驗\n進行深層理解", suitable: "反覆的人際模式、創傷經驗、自我價值疑問、\n夢境探索、內在空虛感", accentStart: "#7AC2DD", accentEnd: "#5A8CF2" },
-    { type: "solution", title: "解決型 AI", name: "Niko", image: bot6, features: "現實導向，強調目標設定與資源活用，\n能快速聚焦在問題解決上", suitable: "職場壓力、衝突處理、時間管理、短期決策困難、\n日常壓力應對", accentStart: "#3AA87A", accentEnd: "#9AE6B4" },
-    { type: "cognitive", title: "認知型 AI", name: "Clara", image: bot4, features: "結構明確、邏輯清晰，分析非理性思考\n並提供認知重建步驟", suitable: "負面自我對話、焦慮、完美主義、拖延、情緒管理", accentStart: "#7A4DC8", accentEnd: "#B794F4" },
+    { 
+      type: "empathy", 
+      title: "同理型 AI", 
+      name: "Lumi", 
+      image: bot1, 
+      features: "擅長建立溫暖、接納的氛圍,陪伴使用者覺察情緒\n並與之共處", 
+      suitable: "孤獨感、低自尊、情感失落、自我懷疑、\n親密關係議題", 
+      accentStart: "#FFB6C1", 
+      accentEnd: "#FF8FB1"
+    },
+    { 
+      type: "insight", 
+      title: "洞察型 AI", 
+      name: "Solin", 
+      image: bot2, 
+      features: "探索潛意識與隱藏動機,引導使用者對過往經驗\n進行深層理解", 
+      suitable: "反覆的人際模式、創傷經驗、自我價值疑問、\n夢境探索、內在空虛感", 
+      accentStart: "#7AC2DD", 
+      accentEnd: "#5A8CF2"
+    },
+    { 
+      type: "solution", 
+      title: "解決型 AI", 
+      name: "Niko", 
+      image: bot6, 
+      features: "現實導向,強調目標設定與資源活用,\n能快速聚焦在問題解決上", 
+      suitable: "職場壓力、衝突處理、時間管理、短期決策困難、\n日常壓力應對", 
+      accentStart: "#3AA87A", 
+      accentEnd: "#9AE6B4"
+    },
+    { 
+      type: "cognitive", 
+      title: "認知型 AI", 
+      name: "Clara", 
+      image: bot4, 
+      features: "結構明確、邏輯清晰,分析非理性思考\n並提供認知重建步驟", 
+      suitable: "負面自我對話、焦慮、完美主義、拖延、情緒管理", 
+      accentStart: "#7A4DC8", 
+      accentEnd: "#B794F4"
+    },
   ];
 
   const cardWidth = 340;
@@ -532,15 +642,14 @@ export default function Home() {
   const cardFullWidth = cardWidth + cardGap;
 
   const serviceSteps = [
-    { title: "為你找到最懂你的AI夥伴", icon: <MdEmojiPeople size={24} />, content: "根據你的心理特質，媒合推薦一位\n陪你傾聽、懂你心情節奏的AI夥伴。" },
-    { title: "展開屬於你的對話旅程", icon: <MdChat size={24} />, content: "隨時分享你的心情，探索自己的情緒地圖，\n沒有壓力、沒有評價，開啟對話的深度體驗。" },
-    { title: "一起守護你的情緒訊號", icon: <MdFavorite size={24} />, content: "在陪伴聊天的過程中，AI夥伴也會細心留意\n您的情緒波動，當需要更多支持時，\n溫柔提醒你有其他資源可以依靠。" },
-    { title: "連結更多專業的幫助", icon: <MdPsychology size={24} />, content: "如果需要，我們會在你的同意下，\n協助你快速找到校方的專業心理師，\n讓支持更及時到達你身邊。" },
+    { title: "為你找到最懂你的AI夥伴", icon: <MdEmojiPeople size={24} />, content: "根據你的心理特質,媒合推薦一位\n陪你傾訴、懂你心情節奏的AI夥伴。" },
+    { title: "展開屬於你的對話旅程", icon: <MdChat size={24} />, content: "隨時分享你的心情,探索自己的情緒地圖,\n沒有壓力、沒有評價,開啟對話的深度體驗。" },
+    { title: "一起守護你的情緒訊號", icon: <MdFavorite size={24} />, content: "在陪伴聊天的過程中,AI夥伴也會細心留意\n您的情緒波動,當需要更多支持時,\n溫柔提醒你有其他資源可以依靠。" },
+    { title: "連結更多專業的幫助", icon: <MdPsychology size={24} />, content: "如果需要,我們會在你的同意下,\n協助你快速找到校方的專業心理師,\n讓支持更及時到達你身邊。" },
   ];
 
   useEffect(() => { AOS.init({ duration: 800, once: true }); }, []);
 
-  // 保留原有 hash/狀態滾動
   useEffect(() => {
     const toRobots = location.hash === "#robots" || location.state?.scrollTo === "robots";
     const toAbout = location.hash === "#about" || location.state?.scrollTo === "about";
@@ -553,17 +662,24 @@ export default function Home() {
     });
   }, [location]);
 
-  // Esc 關閉（聯絡、隱私）
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") {
         setContactOpen(false);
         setPrivacyOpen(false);
+        setVideoOpen(false);
       }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    if (!videoOpen && videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  }, [videoOpen]);
 
   const scrollToCard = (direction) => {
     const ref = scrollRef.current;
@@ -572,10 +688,17 @@ export default function Home() {
     ref.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
-  const openPersona = (card) => { setActive(card); setOpen(true); };
-  const startWithPersona = (personaObj) => { navigate("/Login", { state: { preferredBot: personaObj?.key } }); };
+  const openPersona = (card) => { 
+    setActive(card); 
+    setOpen(true); 
+  };
 
-  // 3D tilt
+  const openVideoPreview = (card) => {
+    setCurrentVideo(card);
+    setVideoOpen(true);
+    setOpen(false);
+  };
+
   const handleTilt = (e) => {
     const el = e.currentTarget;
     const rect = el.getBoundingClientRect();
@@ -586,6 +709,7 @@ export default function Home() {
     el.style.setProperty("--tiltX", `${rotX}deg`);
     el.style.setProperty("--tiltY", `${rotY}deg`);
   };
+  
   const resetTilt = (e) => {
     const el = e.currentTarget;
     el.style.setProperty("--tiltX", `0deg`);
@@ -613,7 +737,7 @@ export default function Home() {
         <HeroContent>
           <Title data-aos="fade-up">Emobot+</Title>
           <Subtitle data-aos="fade-up" data-aos-delay="200">
-            讓情緒被聽見，{"\n"}
+            讓情緒被聽見,{"\n"}
             讓支持更靠近。
           </Subtitle>
           <ButtonGroup data-aos="fade-up" data-aos-delay="400">
@@ -623,9 +747,9 @@ export default function Home() {
       </HeroSection>
 
       <CardSection id="robot-section">
-        <SectionTitle data-aos="fade-up">為每一種情緒，找到最好的陪伴</SectionTitle>
+        <SectionTitle data-aos="fade-up">為每一種情緒,找到最好的陪伴</SectionTitle>
         <SectionSubtitle data-aos="fade-up" data-aos-delay="100">
-          每個AI夥伴都有獨特的陪伴風格，讓我們為你找到最適合的那一個
+          每個AI夥伴都有獨特的陪伴風格,讓我們為你找到最適合的那一個
         </SectionSubtitle>
 
         <ScrollWrapper ref={scrollRef}>
@@ -682,7 +806,7 @@ export default function Home() {
       <ServiceIntroSection>
         <ServiceSectionTitle data-aos="fade-up">系統服務流程</ServiceSectionTitle>
         <ServiceSubtitle data-aos="fade-up" data-aos-delay="100">
-          透過四個精心設計的步驟，為你提供最貼心的情感支持體驗
+          透過四個精心設計的步驟,為你提供最貼心的情感支持體驗
         </ServiceSubtitle>
 
         <TimelineContainer>
@@ -710,17 +834,16 @@ export default function Home() {
           <AboutText>
             Emobot+ 致力於打造一個溫柔陪伴、即時理解的情感支持系統。
 
-            我們相信，
-            每一種情緒，都需要被傾聽與溫柔對待。
+            我們相信,
+            每一種情緒,都需要被傾聽與溫柔對待。
 
-            透過 AI 媒合推薦，
-            我們為你找到最適合的 AI 夥伴，
-            在每個需要理解的時刻，與您同行。
+            透過 AI 媒合推薦,
+            我們為你找到最適合的 AI 夥伴,
+            在每個需要理解的時刻,與您同行。
           </AboutText>
         </AboutContent>
       </AboutSection>
 
-      {/* ====== Footer（只留兩個連結 + 版本） ====== */}
       <Footer>
         <div style={{display:"flex", alignItems:"center", gap:12}}>
           <span>Copyright © 2025 Emobot+</span>
@@ -732,18 +855,44 @@ export default function Home() {
         </FooterLinks>
       </Footer>
 
-      {/* Persona Modal（保留） */}
+      {/* Persona Modal - 修改按鈕文字 */}
       <PersonaModal
         open={open}
         onClose={() => setOpen(false)}
-        onStart={(p) => startWithPersona(p)}
+        onStart={() => openVideoPreview(active)}
         persona={active ? personas[active.type] : null}
         imageSrc={active?.image}
         accentStart={active?.accentStart || "#667eea"}
         accentEnd={active?.accentEnd || "#764ba2"}
+        buttonText={active ? `${active.name} 詳細介紹` : "詳細介紹"}
       />
 
-      {/* ====== 聯絡我們：長條矩形視窗（Email 可自動換行；移除複製按鈕） ====== */}
+      {/* 影片播放 Modal (簡化版) */}
+      <VideoOverlay
+        open={videoOpen}
+        onClick={(e) => e.target === e.currentTarget && setVideoOpen(false)}
+        aria-hidden={!videoOpen}
+      >
+        <VideoWrapper>
+          <VideoCloseButton 
+            aria-label="關閉影片"
+            onClick={() => setVideoOpen(false)}
+          >
+            <FiX size={20} />
+          </VideoCloseButton>
+          <VideoPlayer
+            ref={videoRef}
+            controls
+            autoPlay
+            src={currentVideo ? `/videos/${videoMapping[currentVideo.type]}` : ""}
+            onError={(e) => console.error("影片載入錯誤:", e)}
+          >
+            您的瀏覽器不支援影片播放
+          </VideoPlayer>
+        </VideoWrapper>
+      </VideoOverlay>
+
+      {/* 聯絡我們 Modal */}
       <Overlay
         open={contactOpen}
         onClick={(e) => e.target === e.currentTarget && setContactOpen(false)}
@@ -771,9 +920,9 @@ export default function Home() {
             <Row>
               <Label><FiMail /> Email</Label>
               <Value>
-                <a href="mailto:emobotplus@gmail.com" title="點我用預設郵件程式開啟">emobotplus@gmail.com</a>
+                <a href="mailto:emobotplus@gmail.com">emobotplus@gmail.com</a>
               </Value>
-              <RowActions /> {/* 不再顯示任何按鈕 */}
+              <RowActions />
             </Row>
           </ModalBody>
 
@@ -783,7 +932,7 @@ export default function Home() {
         </ModalShell>
       </Overlay>
 
-      {/* ====== 隱私政策：專業閱讀樣式視窗（維持） ====== */}
+      {/* 隱私政策 Modal */}
       <Overlay
         open={privacyOpen}
         onClick={(e) => e.target === e.currentTarget && setPrivacyOpen(false)}
@@ -804,45 +953,45 @@ export default function Home() {
           <DocBody>
             <h4>使用目的與測試性質</h4>
             <p>
-              本程式專案目前處於<strong>測試階段</strong>，目的在於驗證介面設計、互動流程與系統穩定性。請勿將平台提供之任何內容視為醫療或心理治療之專業建議。
+              本程式專案目前處於<strong>測試階段</strong>,目的在於驗證介面設計、互動流程與系統穩定性。請勿將平台提供之任何內容視為醫療或心理治療之專業建議。
             </p>
             
             <h4>非醫療建議聲明</h4>
             <p>
-              若您出現焦慮、憂鬱、恐慌、自傷或其他急迫心理症狀，請<strong>立即</strong>尋求專業協助（校園諮商中心、醫療院所或當地緊急聯絡資源）。
+              若您出現焦慮、憂鬱、恐慌、自傷或其他急迫心理症狀,請<strong>立即</strong>尋求專業協助(校園諮商中心、醫療院所或當地緊急聯絡資源)。
             </p>
 
             <h4>資料處理與去識別化</h4>
             <p>
-              平台上的測驗作答、對話內容、互動紀錄<strong>皆採去識別化與匿名處理</strong>，僅用於模型與功能之研究與改良；不蒐集可直接識別您身分之敏感資訊。
+              平台上的測驗作答、對話內容、互動紀錄<strong>皆採去識別化與匿名處理</strong>,僅用於模型與功能之研究與改良;不蒐集可直接識別您身分之敏感資訊。
             </p>
 
             <h4>資料保存與安全</h4>
-            <p>（1）研究資料以最小化原則保存，並採取合理之技術與管理措施降低未授權存取風險。</p>
-            <p>（2）除法律要求或安全性稽核外，不會對外揭露個別使用者內容。</p>
+            <p>(1)研究資料以最小化原則保存,並採取合理之技術與管理措施降低未授權存取風險。</p>
+            <p>(2)除法律要求或安全性稽核外,不會對外揭露個別使用者內容。</p>
 
             <h4>第三方服務</h4>
             <p>
-              於測試階段，可能使用第三方雲端與分析工具以改善系統體驗；其處理遵循各工具之隱私條款並以<strong>研究測試</strong>為限。
+              於測試階段,可能使用第三方雲端與分析工具以改善系統體驗;其處理遵循各工具之隱私條款並以<strong>研究測試</strong>為限。
             </p>
 
             <h4>使用者權益</h4>
-            <p>（1）您可隨時停止使用本平台。</p>
-            <p>（2）如欲瞭解或刪除測試階段所留資料，請隨時來信與我們聯繫。</p>
+            <p>(1)您可隨時停止使用本平台。</p>
+            <p>(2)如欲瞭解或刪除測試階段所留資料,請隨時來信與我們聯繫。</p>
 
             <h4>聯絡方式</h4>
             <p>
-              Team：<strong>Emobot+</strong>
+              Team:<strong>Emobot+</strong>
             </p>
             <p>
-              Email：<a href="mailto:emobotplus@gmail.com">emobotplus@gmail.com</a>
+              Email:<a href="mailto:emobotplus@gmail.com">emobotplus@gmail.com</a>
             </p>
           </DocBody>
 
           <ModalFoot>
             <GhostBtn onClick={() => setPrivacyOpen(false)}>關閉</GhostBtn>
           </ModalFoot>
-        </ModalShell>
+          </ModalShell>
       </Overlay>
     </Container>
   );
