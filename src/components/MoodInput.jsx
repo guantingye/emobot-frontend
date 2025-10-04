@@ -297,36 +297,50 @@ const HeaderCenter = styled.div`
   display:flex;
   align-items:center;
   gap:16px;
-  position:absolute;
-  left:50%;
-  transform:translateX(-50%);
   
   @media (max-width:768px){
-    position:static;
-    transform:none;
-    margin-left:auto;
     gap:12px;
   }
 `;
 
 const TTSToggle = styled.button`
-  background:${p => p.$active ? 'linear-gradient(135deg,#7AC2DD,#5A8CF2)' : 'rgba(0,0,0,.05)'};
+  background:${p => p.$active ? 'linear-gradient(135deg,#7AC2DD,#5A8CF2)' : 'linear-gradient(135deg,rgba(255,255,255,.95),rgba(248,250,252,.95))'};
   color:${p => p.$active ? '#fff' : '#666'};
-  border:1px solid ${p => p.$active ? 'rgba(122,194,221,.3)' : 'rgba(0,0,0,.1)'};
-  padding:8px 16px;
-  border-radius:12px;
+  border:1.5px solid ${p => p.$active ? 'rgba(122,194,221,.4)' : 'rgba(0,0,0,.12)'};
+  padding:9px 18px;
+  border-radius:14px;
   cursor:pointer;
   font-weight:600;
-  font-size:13px;
+  font-size:14px;
   display:flex;
   align-items:center;
-  gap:6px;
-  transition:all .3s ease;
-  box-shadow:${p => p.$active ? '0 2px 8px rgba(122,194,221,.25)' : '0 1px 3px rgba(0,0,0,.08)'};
+  gap:7px;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  box-shadow:${p => p.$active 
+    ? '0 3px 12px rgba(122,194,221,.3),0 1px 4px rgba(122,194,221,.15)' 
+    : '0 2px 8px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.04)'};
+  backdrop-filter:blur(10px);
+  position:relative;
+  overflow:hidden;
+  
+  &:before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(135deg,rgba(255,255,255,.3),transparent);
+    opacity:0;
+    transition:opacity .3s ease;
+  }
   
   &:hover{
-    transform:translateY(-1px);
-    box-shadow:${p => p.$active ? '0 4px 12px rgba(122,194,221,.35)' : '0 2px 6px rgba(0,0,0,.12)'};
+    transform:translateY(-2px);
+    box-shadow:${p => p.$active 
+      ? '0 5px 18px rgba(122,194,221,.4),0 2px 8px rgba(122,194,221,.2)' 
+      : '0 4px 12px rgba(0,0,0,.1),0 2px 6px rgba(0,0,0,.06)'};
+    
+    &:before{
+      opacity:1;
+    }
   }
   
   &:active{
@@ -334,9 +348,10 @@ const TTSToggle = styled.button`
   }
   
   @media (max-width:768px){
-    padding:7px 12px;
-    font-size:12px;
-    gap:4px;
+    padding:8px 14px;
+    font-size:13px;
+    gap:5px;
+    border-radius:12px;
   }
 `;
 
@@ -756,7 +771,7 @@ const InputArea = styled.div`
   
   @media (max-width:768px){
     width:calc(100% - 24px);
-    bottom:90px;
+    bottom:110px;
     padding:6px 10px;
     border-radius:20px;
     max-width:none;
@@ -897,7 +912,7 @@ const StatusMessage = styled.div`
   letter-spacing:0.3px;
   
   @media (max-width:768px){
-    bottom:170px;
+    bottom:190px;
     font-size:13px;
     padding:11px 18px;
   }
@@ -947,8 +962,7 @@ const IntroTextOverlay = styled.div`
   transition:opacity .6s cubic-bezier(.4,0,.2,1),visibility .6s;
   
   @media (max-width:768px){
-    padding:120px 24px 40px;
-    justify-content:center;
+    padding:140px 24px 40px;
   }
 `;
 
@@ -1017,7 +1031,7 @@ const Disclaimer = styled.div`
   @media (max-width:768px){
     font-size:10px;
     width:calc(100% - 24px);
-    bottom:60px;
+    bottom:75px;
     padding:6px 8px;
     line-height:1.4;
   }
