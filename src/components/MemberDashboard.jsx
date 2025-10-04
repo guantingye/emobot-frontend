@@ -18,7 +18,6 @@ const Container = styled.div`
   font-family: "Noto Sans TC", sans-serif;
   overflow: hidden;
 
-  /* ✅ 修正：手機避免被底部UI吃掉，允許垂直捲動且使用更穩定的svh */
   @media (max-width: 768px) {
     min-height: 100svh;
     overflow-y: auto;
@@ -202,7 +201,6 @@ const MainContentWrapper = styled.div`
   align-items: flex-start;
   padding: 12px;
 
-  /* ✅ 修正：手機用 100svh 並微幅左移，避免裁切與達成“往左一點點”的視覺 */
   @media (max-width: 768px) {
     margin-top: 60px;
     height: auto;
@@ -210,8 +208,6 @@ const MainContentWrapper = styled.div`
     overflow-y: auto;
     padding: 20px 10px;
     align-items: stretch;
-
-    /* 輕微左移，並避免出現水平捲軸 */
     margin-left: -6px;
   }
 `;
@@ -225,7 +221,6 @@ const ContentScaler = styled.div`
   @media (max-width: 768px) {
     transform: none;
     max-width: 100%;
-    /* ✅ 配合整體左移一點點 */
     margin-left: -6px;
   }
 `;
@@ -319,7 +314,6 @@ const ProfileCard = styled.div`
     min-height: 500px;
     padding: 24px;
 
-    /* ✅ 更小裝置再收斂一點，避免左右被裁切 */
     @media (max-width: 480px) {
       max-width: 92vw;
     }
@@ -461,10 +455,11 @@ const AICard = styled.div`
     height: auto;
     min-height: 400px;
     padding: 24px;
+    padding-top: 60px;
 
-    /* ✅ 更小裝置再收斂一點，避免左右被裁切 */
     @media (max-width: 480px) {
       max-width: 92vw;
+      padding-top: 60px;
     }
 
     &:hover {
@@ -475,6 +470,7 @@ const AICard = styled.div`
   @media (max-width: 480px) {
     max-width: 100%;
     padding: 20px;
+    padding-top: 60px;
     border-radius: 20px;
   }
 `;
@@ -494,11 +490,13 @@ const AIDescription = styled.p`
   @media (max-width: 768px) {
     font-size: 22px;
     margin-bottom: 30px;
+    margin-top: 10px;
   }
 
   @media (max-width: 480px) {
     font-size: 18px;
     margin-bottom: 20px;
+    margin-top: 10px;
   }
 `;
 
@@ -514,10 +512,12 @@ const RadarImage = styled.img`
 
   @media (max-width: 768px) {
     max-width: 300px;
+    margin-top: 10px;
   }
 
   @media (max-width: 480px) {
     max-width: 250px;
+    margin-top: 10px;
   }
 `;
 
@@ -775,7 +775,6 @@ const TopRightLink = styled.button`
   &:active { transform: translateY(0); }
 `;
 
-// RadarChartSVG 保持原樣（略）
 const RadarChartSVG = ({ scores }) => {
   if (!scores) return null;
 
@@ -908,7 +907,6 @@ const MemberDashboard = () => {
   const [scale, setScale] = useState(0.96);
 
   const recomputeScale = () => {
-    // 在手機版不進行縮放
     if (window.innerWidth <= 768) {
       setScale(1);
       return;
@@ -1154,7 +1152,7 @@ const MemberDashboard = () => {
         <ContentScaler ref={scalerRef} $scale={scale}>
           <UserInfo data-aos="fade-right">
             <UserName>
-              歡迎回來，<span>{nickname}</span>
+              歡迎回來,<span>{nickname}</span>
             </UserName>
             <UserID>ID: {pid}</UserID>
             {error && <ErrorText>{error}</ErrorText>}
@@ -1174,7 +1172,7 @@ const MemberDashboard = () => {
                   查看心情足跡
                 </TopRightLink>
                 <AIDescription>
-                  你目前選擇的AI夥伴是：<span>{chosenBotName}</span>
+                  你目前選擇的AI夥伴是:<span>{chosenBotName}</span>
                 </AIDescription>
                 {scores ? <RadarChartSVG scores={scores} /> : <RadarImage src={radarChart} alt="radar chart" />}
               </AICard>
@@ -1200,12 +1198,12 @@ const MemberDashboard = () => {
 
       <ModalOverlay show={showModal} onClick={handleCancelModal}>
         <ModalContent show={showModal} onClick={(e) => e.stopPropagation()}>
-          <ModalTitle>想重新配對一位懂你的 AI 夥伴嗎？</ModalTitle>
+          <ModalTitle>想重新配對一位懂你的 AI 夥伴嗎?</ModalTitle>
           <ModalDescription>
-            點選後，我們會保留你目前的聊天記錄，<br />
+            點選後,我們會保留你目前的聊天記錄,<br />
             但會重新為你媒合最適合的對話夥伴。
           </ModalDescription>
-          <ModalWarning>請確認你已準備好，重新踏上這段溫馨的探索旅程</ModalWarning>
+          <ModalWarning>請確認你已準備好,重新踏上這段溫馨的探索旅程</ModalWarning>
           <ModalButtonGroup>
             <CancelButton onClick={handleCancelModal}>取消</CancelButton>
             <ConfirmButton onClick={handleConfirmRetest}>確定重新測驗</ConfirmButton>
