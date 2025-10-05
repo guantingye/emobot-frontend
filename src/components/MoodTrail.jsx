@@ -881,7 +881,7 @@ export default function MoodTrail() {
         setError({
           message: result.message || "對話次數不足",
           current: result.message_count || 0,
-          required: result.required_count || 20
+          required: result.required_count || 30
         });
       }
     } catch (err) {
@@ -889,7 +889,7 @@ export default function MoodTrail() {
       setError({
         message: "載入失敗，請檢查網路連線後重試",
         current: 0,
-        required: 20
+        required: 30
       });
     } finally {
       setLoading(false);
