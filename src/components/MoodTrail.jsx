@@ -1,4 +1,4 @@
-// src/components/MoodTrail.jsx - 完整版（雷達圖加入互動效果）
+// src/components/MoodTrail.jsx - 完整版 (30句門檻)
 import React, { useRef, useEffect, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -45,12 +45,10 @@ const Header = styled.div`
   top: 0;
   left: 0;
   z-index: 40;
-
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(43, 57, 147, 0.08);
   box-shadow: 0 4px 18px rgba(43, 57, 147, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
-
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -701,10 +699,8 @@ const RadarChartSVG = ({ data }) => {
           </filter>
         </defs>
 
-        {/* 背景漸層圓 */}
         <circle cx={cx} cy={cy} r={r} fill="url(#rg-topic)" opacity="0.6" />
 
-        {/* 多層同心圓 */}
         {levels.map((level, i) => {
           const nextLevel = levels[(i + 1) % levels.length];
           const [x2, y2] = toXY(axes[0].ang, r * level);
@@ -730,7 +726,6 @@ const RadarChartSVG = ({ data }) => {
           );
         })}
 
-        {/* 軸線 */}
         {axes.map(({ ang }, i) => {
           const [x2, y2] = toXY(ang, r);
           return (
@@ -746,7 +741,6 @@ const RadarChartSVG = ({ data }) => {
           );
         })}
 
-        {/* 數據多邊形 */}
         <polygon
           points={polyPoints}
           fill="rgba(122,77,200,0.12)"
@@ -756,7 +750,6 @@ const RadarChartSVG = ({ data }) => {
           filter="url(#glow)"
         />
 
-        {/* 數據點（互動區域） */}
         {axes.map(({ ang, value, label }, i) => {
           const v = clamp01(value);
           const [x, y] = toXY(ang, r * v);
@@ -764,7 +757,6 @@ const RadarChartSVG = ({ data }) => {
           
           return (
             <g key={`dot-${i}`}>
-              {/* 互動熱區（透明大圓） */}
               <circle
                 cx={x}
                 cy={y}
@@ -773,7 +765,6 @@ const RadarChartSVG = ({ data }) => {
                 style={{ cursor: 'pointer' }}
                 onMouseEnter={(e) => handleMouseEnter(i, e, ang, value)}
               />
-              {/* 視覺數據點 */}
               <circle
                 cx={x}
                 cy={y}
@@ -790,7 +781,6 @@ const RadarChartSVG = ({ data }) => {
           );
         })}
 
-        {/* 標籤 */}
         {axes.map(({ ang, label, value }, i) => {
           const labelR = r + 42;
           const [x, y] = toXY(ang, labelR);
@@ -833,7 +823,6 @@ const RadarChartSVG = ({ data }) => {
         })}
       </svg>
 
-      {/* 互動式 Tooltip */}
       {tooltipPos.show && (
         <RadarTooltip
           style={{
@@ -881,7 +870,7 @@ export default function MoodTrail() {
         setError({
           message: result.message || "對話次數不足",
           current: result.message_count || 0,
-          required: result.required_count || 20
+          required: result.required_count || 30
         });
       }
     } catch (err) {
@@ -889,7 +878,7 @@ export default function MoodTrail() {
       setError({
         message: "載入失敗，請檢查網路連線後重試",
         current: 0,
-        required: 20
+        required: 30
       });
     } finally {
       setLoading(false);
@@ -944,10 +933,6 @@ export default function MoodTrail() {
     }
   };
 
-  // ============================================================================
-  // 準備圖表數據
-  // ============================================================================
-
   const emotionFreqData = analysisData?.emotion_frequency 
     ? Object.entries(analysisData.emotion_frequency)
         .sort((a, b) => b[1] - a[1])
@@ -980,10 +965,6 @@ export default function MoodTrail() {
       }))
     : [];
 
-  // ============================================================================
-  // 渲染：載入中
-  // ============================================================================
-
   if (loading) {
     return (
       <Wrap>
@@ -1005,10 +986,6 @@ export default function MoodTrail() {
       </Wrap>
     );
   }
-
-  // ============================================================================
-  // 渲染：錯誤或數據不足
-  // ============================================================================
 
   if (error || !analysisData) {
     return (
@@ -1042,10 +1019,6 @@ export default function MoodTrail() {
     );
   }
 
-  // ============================================================================
-  // 渲染：完整分析結果
-  // ============================================================================
-
   return (
     <Wrap>
       <Header>
@@ -1066,7 +1039,6 @@ export default function MoodTrail() {
 
       <Content>
         <GridPanel ref={panelRef}>
-          {/* 左上：情緒頻率圖 */}
           <LeftTop>
             <SectionTitle>情緒頻率圖</SectionTitle>
             <ChartWrapper>
@@ -1101,7 +1073,6 @@ export default function MoodTrail() {
             </ChartWrapper>
           </LeftTop>
 
-          {/* 左下：情緒強度圖 */}
           <LeftBottom>
             <SectionTitle>情緒強度圖</SectionTitle>
             <ChartWrapper>
@@ -1139,7 +1110,6 @@ export default function MoodTrail() {
             </ChartWrapper>
           </LeftBottom>
 
-          {/* 右上：議題雷達圖（互動式 SVG 版本） */}
           <RightTop>
             <SectionTitle>議題雷達圖</SectionTitle>
             <RadarChartWrapper>
@@ -1151,7 +1121,6 @@ export default function MoodTrail() {
             </RadarChartWrapper>
           </RightTop>
 
-          {/* 右下：分析摘要 */}
           <RightBottom>
             <SectionTitle>分析摘要</SectionTitle>
             <SummaryContent>
