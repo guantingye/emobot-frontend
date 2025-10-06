@@ -904,24 +904,47 @@ export default function MoodTrail() {
 
   const handleDownload = async () => {
     if (!panelRef.current || isDownloading || !analysisData) return;
-
+  
     try {
       setIsDownloading(true);
-
+  
       const element = panelRef.current;
       const padding = 40;
-
+  
+      // 找到摘要區域並暫時移除滾動限制
+      const summaryElement = element.querySelector('[class*="RightBottom"]');
+      const summaryContent = summaryElement?.querySelector('[class*="SummaryContent"]');
+      
+      let originalMaxHeight = '';
+      let originalOverflow = '';
+      
+      if (summaryContent) {
+        originalMaxHeight = summaryContent.style.maxHeight;
+        originalOverflow = summaryContent.style.overflow;
+        summaryContent.style.maxHeight = 'none';
+        summaryContent.style.overflow = 'visible';
+      }
+  
+      // 等待樣式生效
+      await new Promise(resolve => setTimeout(resolve, 100));
+  
       const canvas = await html2canvas(element, {
         backgroundColor: "#f6f7fb",
         scale: 2,
         useCORS: true,
         logging: false,
         width: element.offsetWidth + padding * 2,
-        height: element.offsetHeight + padding * 2,
+        height: element.scrollHeight + padding * 2, // 使用 scrollHeight 而非 offsetHeight
         x: -padding,
         y: -padding,
       });
-
+  
+      // 恢復原始樣式
+      if (summaryContent) {
+        summaryContent.style.maxHeight = originalMaxHeight;
+        summaryContent.style.overflow = originalOverflow;
+      }
+  
       canvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
@@ -935,10 +958,10 @@ export default function MoodTrail() {
           URL.revokeObjectURL(url);
         }
       }, "image/png");
-
+  
     } catch (error) {
       console.error("下載圖片時發生錯誤:", error);
-      alert("下載圖片失敗，請稍後再試");
+      alert("下載圖片失敗,請稍後再試");
     } finally {
       setIsDownloading(false);
     }
@@ -1153,7 +1176,7 @@ export default function MoodTrail() {
 
           {/* 右下：分析摘要 */}
           <RightBottom>
-            <SectionTitle>分析摘要</SectionTitle>
+            <SectionTitle>溫馨小提醒</SectionTitle>
             <SummaryContent>
               {analysisData.summary || "持續對話可以幫助我更了解你的心理狀態。"}
             </SummaryContent>
