@@ -1,3 +1,5 @@
+// frontend/src/components/Login.jsx - 完整版本(含冷啟動提示 + 保留所有原有功能)
+
 import React from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -427,6 +429,11 @@ const StatusMessage = styled.div`
     color: #e74c3c;
   }
 
+  &.warning {
+    color: #f39c12;
+    font-weight: 600;
+  }
+
   @media (max-width: 480px) {
     font-size: 13px;
     margin-top: 10px;
@@ -440,6 +447,16 @@ export default function Login() {
   const [loading, setLoading] = React.useState(false);
   const [errors, setErrors] = React.useState({});
   const [status, setStatus] = React.useState({ type: "", message: "" });
+  const [coldStartTimer, setColdStartTimer] = React.useState(null);
+
+  // 清理計時器
+  React.useEffect(() => {
+    return () => {
+      if (coldStartTimer) {
+        clearTimeout(coldStartTimer);
+      }
+    };
+  }, [coldStartTimer]);
 
   // 即時驗證函數
   const validatePid = (value) => {
@@ -463,9 +480,8 @@ export default function Login() {
   const handleNicknameChange = (e) => {
     const value = e.target.value;
     setNickname(value);
-    setStatus({ type: "", message: "" }); // 清除狀態訊息
+    setStatus({ type: "", message: "" });
     
-    // 清除對應的錯誤訊息
     if (errors.nickname) {
       setErrors(prev => ({ ...prev, nickname: validateNickname(value) }));
     }
@@ -474,9 +490,8 @@ export default function Login() {
   const handlePidChange = (e) => {
     const value = e.target.value.toUpperCase();
     setPid(value);
-    setStatus({ type: "", message: "" }); // 清除狀態訊息
+    setStatus({ type: "", message: "" });
     
-    // 清除對應的錯誤訊息
     if (errors.pid) {
       setErrors(prev => ({ ...prev, pid: validatePid(value) }));
     }
@@ -499,10 +514,25 @@ export default function Login() {
     }
   
     setLoading(true);
+    setStatus({ type: "", message: "" });
+
+    // ⭐ 冷啟動提示計時器 - 3秒後顯示提示訊息
+    const timer = setTimeout(() => {
+      setStatus({
+        type: "warning",
+        message: "⏳ 第一次登入需要較長時間(約30秒),正在喚醒伺服器,感謝您的耐心等候..."
+      });
+    }, 3000);
+
+    setColdStartTimer(timer);
     
     try {
       const code = pid.trim().toUpperCase();
       const result = await apiJoin(code, nickname.trim());
+      
+      // ⭐ 登入成功,清除冷啟動計時器
+      clearTimeout(timer);
+      setColdStartTimer(null);
       
       // 儲存登入資訊
       localStorage.setItem("token", result.token);
@@ -513,17 +543,18 @@ export default function Login() {
       setTimeout(() => {
         // 根據用戶狀態決定跳轉路徑
         if (result.user.selected_bot) {
-          // 已選擇機器人 → 直接進入會員專區
           navigate("/dashboard");
         } else {
-          // 未選擇機器人 → 進入心理測驗
           navigate("/test");
         }
       }, 1000);
     } catch (e) {
+      // ⭐ 發生錯誤,清除冷啟動計時器
+      clearTimeout(timer);
+      setColdStartTimer(null);
       console.error("Login error:", e);
       
-      // ★ 新增：針對不同錯誤類型提供更明確的訊息
+      // 針對不同錯誤類型提供更明確的訊息
       let errorMessage = "登入失敗，請稍後再試";
       
       if (e.message.includes("未被授權") || e.message.includes("403")) {
@@ -554,7 +585,7 @@ export default function Login() {
   return (
     <Container>
       <Header>
-        <Logo>
+        <Logo onClick={() => navigate("/Home")}>
           <img src={logoIcon} alt="logo" />
           Emobot+
         </Logo>
@@ -584,11 +615,12 @@ export default function Login() {
             onKeyPress={handleKeyPress}
             hasError={!!errors.nickname}
             maxLength={20}
+            disabled={loading}
           />
           {errors.nickname ? (
             <ErrorText>{errors.nickname}</ErrorText>
           ) : (
-            <HelperText>請輸入2-5個字元的暱稱</HelperText>
+            <HelperText>請輸入2-20個字元的英文暱稱</HelperText>
           )}
         </FormGroup>
 
@@ -603,12 +635,15 @@ export default function Login() {
             onChange={handlePidChange}
             onKeyPress={handleKeyPress}
             hasError={!!errors.pid}
+            disabled={loading}
           />
           {errors.pid ? (
             <ErrorText>{errors.pid}</ErrorText>
           ) : (
-            <HelperText>格式：手機末三碼＋英文姓氏開頭一碼（例：123W）<br />
-            ⚠️請務必與前測問卷所填相同，以便資料比對。</HelperText>
+            <HelperText>
+              格式：手機末三碼＋英文姓氏開頭一碼（例：123W）<br />
+              ⚠️請務必與前測問卷所填相同，以便資料比對。
+            </HelperText>
           )}
         </FormGroup>
 
