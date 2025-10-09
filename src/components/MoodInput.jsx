@@ -115,6 +115,7 @@ const Container = styled.div`
     right:0;
     bottom:0;
     -webkit-tap-highlight-color:transparent;
+    height:100dvh;
   }
 `;
 
@@ -241,8 +242,9 @@ const Header = styled.header`
   animation-delay:.3s;
   
   @media (max-width:768px){
-    height:60px;
-    padding:0 16px;
+    height:56px;
+    padding:0 12px;
+    box-shadow:0 1px 8px rgba(43,57,147,.04);
   }
 `;
 
@@ -294,9 +296,17 @@ const BackButton = styled.button`
   }
   
   @media (max-width:768px){
-    font-size:13px;
-    padding:8px 14px;
-    gap:6px;
+    font-size:0;
+    padding:10px;
+    min-width:40px;
+    min-height:40px;
+    justify-content:center;
+    border-radius:10px;
+    gap:0;
+    
+    svg {
+      font-size:20px;
+    }
   }
 `;
 
@@ -306,7 +316,9 @@ const HeaderCenter = styled.div`
   gap:16px;
   
   @media (max-width:768px){
-    gap:12px;
+    gap:8px;
+    flex:1;
+    justify-content:flex-end;
   }
 `;
 
@@ -361,10 +373,21 @@ const TTSToggle = styled.button`
   }
   
   @media (max-width:768px){
-    padding:8px 14px;
-    font-size:13px;
-    gap:5px;
-    border-radius:12px;
+    padding:10px;
+    font-size:0;
+    min-width:40px;
+    min-height:40px;
+    gap:0;
+    justify-content:center;
+    border-radius:10px;
+    
+    span {
+      display:none;
+    }
+    
+    svg {
+      font-size:18px;
+    }
   }
 `;
 
@@ -373,6 +396,10 @@ const AvatarContainer = styled.div`
   align-items:center;
   gap:12px;
   animation: ${p => p.$appear ? css`${avatarZoomIn} 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)` : 'none'};
+  
+  @media (max-width:768px){
+    gap:8px;
+  }
 `;
 
 const BotAvatar = styled.div`
@@ -396,9 +423,9 @@ const BotAvatar = styled.div`
   }
   
   @media (max-width:768px){
-    width:42px;
-    height:42px;
-    font-size:17px;
+    width:40px;
+    height:40px;
+    font-size:16px;
   }
 `;
 
@@ -436,6 +463,8 @@ const InfoButton = styled.button`
     width:18px;
     height:18px;
     font-size:10px;
+    top:-2px;
+    right:-2px;
   }
 `;
 
@@ -443,7 +472,7 @@ const BotInfo = styled.div`
   display:flex;
   flex-direction:column;
   
-  @media (max-width:480px){
+  @media (max-width:768px){
     display:none;
   }
 `;
@@ -482,10 +511,10 @@ const Layout = styled.div`
   }
   
   @media (max-width:768px){
-    padding:60px 0 200px;
+    padding:56px 0 160px;
     flex-direction:column;
     overflow-y:auto;
-    height:100vh;
+    height:100dvh;
     background:linear-gradient(135deg,#f5f7fa 0%,#eef1f5 100%);
   }
 `;
@@ -502,8 +531,9 @@ const ChatColumn = styled.div`
   @media (max-width:768px){
     max-width:100%;
     flex:1;
-    padding:0 12px;
+    padding:0 16px;
     overflow-y:visible;
+    padding-bottom:env(safe-area-inset-bottom);
   }
 `;
 
@@ -516,6 +546,10 @@ const FadeWrapper = styled.div`
   animation:${fadeIn} 1s ease-out forwards;
   padding:20px;
   text-align:center;
+  
+  @media (max-width:768px){
+    padding:32px 20px;
+  }
 `;
 
 const Description = styled.div`
@@ -523,6 +557,10 @@ const Description = styled.div`
   text-align:center;
   max-width:620px;
   animation:${fadeIn} 1s ease-out forwards;
+  
+  @media (max-width:768px){
+    max-width:100%;
+  }
 `;
 
 const Title = styled.h1`
@@ -536,7 +574,8 @@ const Title = styled.h1`
   letter-spacing:-0.5px;
   
   @media (max-width:768px){
-    font-size:28px;
+    font-size:32px;
+    margin-bottom:16px;
   }
 `;
 
@@ -549,7 +588,8 @@ const Subtitle = styled.p`
   font-weight:400;
   
   @media (max-width:768px){
-    font-size:16px;
+    font-size:17px;
+    line-height:1.6;
   }
 `;
 
@@ -587,10 +627,10 @@ const IntroBar = styled.div`
   }
   
   @media (max-width:768px){
-    font-size:12px;
-    padding:12px 16px;
-    margin:0 auto 16px;
-    max-width:90%;
+    font-size:14px;
+    padding:14px 20px;
+    margin:0 0 20px 0;
+    max-width:100%;
   }
 `;
 
@@ -609,6 +649,10 @@ const DateDivider = styled.div`
     background:rgba(0,0,0,.08);
     z-index:-1;
   }
+  
+  @media (max-width:768px){
+    margin:20px 0;
+  }
 `;
 
 const DateLabel = styled.span`
@@ -622,8 +666,8 @@ const DateLabel = styled.span`
   letter-spacing:0.2px;
   
   @media (max-width:768px){
-    font-size:11px;
-    padding:5px 12px;
+    font-size:12px;
+    padding:6px 14px;
   }
 `;
 
@@ -636,8 +680,9 @@ const ChatBox = styled.div`
   animation:${slideInLTR} .4s ease-out both;
   
   @media (max-width:768px){
-    gap:16px;
-    padding:16px 4px 16px;
+    gap:20px;
+    padding:20px 0;
+    padding-bottom:env(safe-area-inset-bottom);
   }
 `;
 
@@ -649,7 +694,7 @@ const BubbleWrapper = styled.div`
   align-self:${p=>p.$sender==='user'?'flex-end':'flex-start'};
   
   @media (max-width:768px){
-    max-width:82%;
+    max-width:85%;
   }
 `;
 
@@ -665,8 +710,9 @@ const BubbleHeader = styled.div`
   
   @media (max-width:768px){
     font-size:11px;
-    padding:0 8px;
-    margin-bottom:5px;
+    padding:0 4px;
+    margin-bottom:6px;
+    gap:6px;
   }
 `;
 
@@ -705,6 +751,7 @@ const ChatBubble = styled.div`
   font-size:15px;
   letter-spacing:0.2px;
   position:relative;
+  word-break:break-word;
   
   ${p=>p.$sender==='ai'&&`
     &:before{
@@ -719,10 +766,10 @@ const ChatBubble = styled.div`
   `}
   
   @media (max-width:768px){
-    padding:13px 18px;
-    font-size:14px;
+    padding:16px 20px;
+    font-size:15px;
     line-height:1.6;
-    border-radius:${p=>p.$sender==='user'?'18px 18px 4px 18px':'18px 18px 18px 4px'};
+    border-radius:${p=>p.$sender==='user'?'20px 20px 6px 20px':'20px 20px 20px 6px'};
   }
 `;
 
@@ -746,8 +793,8 @@ const TypingBubble = styled(ChatBubble)`
   gap:5px;
   
   @media (max-width:768px){
-    width:56px;
-    height:30px;
+    width:58px;
+    height:32px;
   }
 `;
 
@@ -790,20 +837,26 @@ const InputArea = styled.div`
   
   @media (max-width:768px){
     width:calc(100% - 24px);
-    bottom:16px;
-    padding:6px 10px;
-    border-radius:20px;
+    bottom:12px;
+    padding:10px 12px;
+    border-radius:24px;
     max-width:none;
+    align-items:flex-end;
+    box-shadow:0 4px 20px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.04);
+    
+    &:focus-within{
+      box-shadow:0 6px 28px rgba(90,140,242,.18),0 3px 12px rgba(90,140,242,.1);
+    }
   }
 `;
 
-const InputField = styled.input`
+const InputField = styled.textarea`
   flex:1;
   font-size:16px;
   background:transparent;
   border:none;
   outline:none;
-  padding:15px 22px;
+  padding:12px 16px;
   color:${p=>p.$disabled?'#999':'#2d3748'};
   font-weight:400;
   letter-spacing:0.2px;
@@ -811,6 +864,10 @@ const InputField = styled.input`
   -webkit-appearance:none;
   -moz-appearance:none;
   appearance:none;
+  font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,sans-serif;
+  line-height:1.5;
+  max-height:120px;
+  overflow-y:auto;
   
   &::placeholder{
     color:${p=>p.$disabled?'#aaa':'#999'};
@@ -823,25 +880,42 @@ const InputField = styled.input`
     border:none;
   }
   
+  &::-webkit-scrollbar{
+    width:4px;
+  }
+  
+  &::-webkit-scrollbar-thumb{
+    background:rgba(0,0,0,.15);
+    border-radius:2px;
+  }
+  
   @media (max-width:768px){
-    font-size:15px;
-    padding:12px 14px;
-    max-height:80px;
-    overflow-y:auto;
+    font-size:16px;
+    padding:0;
+    max-height:100px;
     line-height:1.5;
     -webkit-tap-highlight-color:transparent;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    
+    &::-webkit-scrollbar{
+      width:3px;
+    }
   }
 `;
 
 const InputButtons = styled.div`
-display:flex;
+  display:flex;
   align-items:center;
   gap:10px;
   padding-right:6px;
+  flex-shrink:0;
   
   @media (max-width:768px){
     gap:6px;
-    padding-right:2px;
+    padding-right:0;
+    align-items:flex-end;
+    padding-bottom:2px;
   }
 `;
 
@@ -862,9 +936,14 @@ const ActionButton = styled.button`
   opacity:${p=>p.$disabled?.5:1};
   outline:none;
   -webkit-tap-highlight-color:transparent;
+  flex-shrink:0;
   
   &:hover:not(:disabled){
     background:${p=>p.$isRecording?'rgba(234,84,85,.18)':'rgba(0,0,0,.04)'};
+  }
+  
+  &:active:not(:disabled){
+    transform:scale(0.95);
   }
   
   &:focus{
@@ -872,9 +951,9 @@ const ActionButton = styled.button`
   }
   
   @media (max-width:768px){
-    width:38px;
-    height:38px;
-    font-size:18px;
+    width:44px;
+    height:44px;
+    font-size:20px;
   }
 `;
 
@@ -901,6 +980,7 @@ const SendButton = styled.button`
   overflow:hidden;
   outline:none;
   -webkit-tap-highlight-color:transparent;
+  flex-shrink:0;
   
   &:before{
     content:'';
@@ -930,9 +1010,9 @@ const SendButton = styled.button`
   }
   
   @media (max-width:768px){
-    width:44px;
-    height:44px;
-    font-size:19px;
+    width:48px;
+    height:48px;
+    font-size:20px;
   }
 `;
 
@@ -1085,8 +1165,8 @@ const AIBubbleWithAvatar = styled.div`
   max-width:72%;
   
   @media (max-width:768px){
-    max-width:82%;
-    gap:12px;
+    max-width:85%;
+    gap:10px;
   }
 `;
 
@@ -1335,7 +1415,6 @@ export default function MoodInput() {
   const [showBotModal, setShowBotModal] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
-  const [inputHeight, setInputHeight] = useState('auto');
 
   const [showVideoIntro, setShowVideoIntro] = useState(false);
   const [videoZoomOut, setVideoZoomOut] = useState(false);
@@ -1394,6 +1473,19 @@ export default function MoodInput() {
     if (showBotModal) document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [showBotModal]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (inputRef.current && window.innerWidth <= 768) {
+        inputRef.current.style.height = 'auto';
+        const scrollHeight = inputRef.current.scrollHeight;
+        inputRef.current.style.height = Math.min(scrollHeight, 100) + 'px';
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const playIntroVideo = () => {
     return new Promise((resolve) => {
@@ -1508,7 +1600,6 @@ export default function MoodInput() {
     const userMsgText = isRecording ? "[語音訊息]" : trimmedInput;
 
     setInputValue("");
-    setInputHeight('auto');
     if (inputRef.current) {
       inputRef.current.value = "";
       inputRef.current.style.height = 'auto';
@@ -1532,7 +1623,8 @@ export default function MoodInput() {
       const result = await sendChatMessage(userMsgText, selectedBotType, mode, history);
       
       if (result?.ok && result.reply) {
-        const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const replyTime =
+        new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const aiMsg = { sender: "ai", content: result.reply, timestamp: replyTime };
         
         setMessages(prev => [...prev, aiMsg]);
@@ -1570,7 +1662,6 @@ export default function MoodInput() {
           inputRef.current.focus();
         }
         setInputValue("");
-        setInputHeight('auto');
       });
     }
   };
@@ -1597,9 +1688,21 @@ export default function MoodInput() {
     }
   };
 
+  const handleInput = (e) => {
+    const value = e.target.value;
+    setInputValue(value);
+    
+    if (window.innerWidth <= 768 && inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      const scrollHeight = inputRef.current.scrollHeight;
+      inputRef.current.style.height = Math.min(scrollHeight, 100) + 'px';
+    }
+  };
+
   const handleCompositionStart = () => {
     setIsComposing(true);
   };
+  
   const handleCompositionEnd = () => {
     setIsComposing(false);
   };
@@ -1644,7 +1747,9 @@ export default function MoodInput() {
       <Header>
         <BackButton onClick={() => navigate("/dashboard")}>
           <FiChevronLeft size={18} />
-          {chatStarted ? '離開對話' : '返回'}
+          <span style={{display: window.innerWidth <= 768 ? 'none' : 'inline'}}>
+            {chatStarted ? '離開對話' : '返回'}
+          </span>
         </BackButton>
 
         {chatStarted && (
@@ -1748,23 +1853,16 @@ export default function MoodInput() {
       <InputArea $disabled={inputDisabled}>
         <InputField
           ref={inputRef}
+          as="textarea"
           placeholder={inputDisabled ? "請等待回覆..." : isRecording ? "正在錄製語音..." : "將你的心情寫在這裡吧!"}
           value={inputValue}
-          onChange={e => {
-            setInputValue(e.target.value);
-            if (window.innerWidth <= 768 && inputRef.current) {
-              inputRef.current.style.height = 'auto';
-              const newHeight = Math.min(inputRef.current.scrollHeight, 80);
-              inputRef.current.style.height = newHeight + 'px';
-              setInputHeight(newHeight + 'px');
-            }
-          }}
+          onChange={handleInput}
           onKeyDown={handleKeyDown}
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
           $disabled={inputDisabled || isRecording}
           autoComplete="off"
-          style={{ height: window.innerWidth <= 768 ? inputHeight : 'auto' }}
+          rows={1}
         />
         <InputButtons>
           <ActionButton
