@@ -891,7 +891,7 @@ const InputField = styled.textarea`
   
   @media (max-width:768px){
     font-size:16px;
-    padding:0;
+    padding:12px 16px;  /* 改這裡：從 padding:0; 改為 padding:12px 16px; */
     max-height:100px;
     line-height:1.5;
     -webkit-tap-highlight-color:transparent;
