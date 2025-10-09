@@ -12,8 +12,25 @@ root.render(
   </React.StrictMode>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+// Service Worker 註冊配置
+const swConfig = {
+  onSuccess: (registration) => {
+    console.log('PWA Service Worker 註冊成功');
+  },
+  onUpdate: (registration) => {
+    console.log('PWA 有新版本可用');
+  },
+  onError: (error) => {
+    // 降低錯誤等級，避免控制台紅字
+    console.warn('Service Worker 註冊失敗（不影響系統運作）:', error.message);
+  }
+};
+
+// 註冊 Service Worker（帶錯誤處理）
+try {
+  serviceWorkerRegistration.register(swConfig);
+} catch (error) {
+  console.warn('Service Worker 初始化失敗:', error.message);
+}
+
 reportWebVitals();
-serviceWorkerRegistration.register(); // 原本若是 unregister() 請改成 register()
