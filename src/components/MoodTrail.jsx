@@ -913,10 +913,10 @@ export default function MoodTrail() {
       const element = panelRef.current;
       const padding = 40;
   
-      // 強制重新渲染以應用 $isDownloading prop
+      // 等待狀態更新
       await new Promise(resolve => setTimeout(resolve, 50));
   
-      // 臨時移除所有高度和溢出限制
+      // 只修改 RightBottom 和 SummaryContent 的樣式,不影響其他卡片
       const rightBottomElements = element.querySelectorAll('[class*="RightBottom"]');
       const summaryContentElements = element.querySelectorAll('[class*="SummaryContent"]');
       
@@ -953,16 +953,20 @@ export default function MoodTrail() {
       // 等待 DOM 更新
       await new Promise(resolve => setTimeout(resolve, 200));
   
+      // 使用 scrollHeight 來捕捉完整內容
       const canvas = await html2canvas(element, {
         backgroundColor: "#f6f7fb",
         scale: 2,
         useCORS: true,
         logging: false,
+        scrollY: -window.scrollY,
+        scrollX: -window.scrollX,
         width: element.offsetWidth + padding * 2,
         height: element.scrollHeight + padding * 2,
         x: -padding,
         y: -padding,
-        windowHeight: element.scrollHeight + padding * 2,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
       });
   
       // 恢復所有原始樣式
@@ -1201,12 +1205,18 @@ export default function MoodTrail() {
             </RadarChartWrapper>
           </RightTop>
 
-          {/* 右下：分析摘要 */}
+          {/* 右下:溫馨小提醒 */}
           <RightBottom $isDownloading={isDownloading}>
             <SectionTitle>溫馨小提醒</SectionTitle>
-            <SummaryContent $isDownloading={isDownloading}>
-              {analysisData.summary || "持續對話可以幫助我更了解你的心理狀態。"}
-            </SummaryContent>
+            <SummaryContent 
+              $isDownloading={isDownloading}
+              dangerouslySetInnerHTML={{
+                __html: (analysisData.summary || "持續對話可以幫助我更了解你的心理狀態。")
+                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/\n\n/g, '<br/><br/>')
+                  .replace(/\n/g, '<br/>')
+              }}
+            />
           </RightBottom>
         </GridPanel>
       </Content>
