@@ -301,18 +301,20 @@ const RightTop = styled(Card)`
 const RightBottom = styled(Card)`
   grid-column: 2;
   grid-row: 3;
-  min-height: 130px;
+  min-height: ${props => props.$isDownloading ? 'auto' : '130px'};
+  height: ${props => props.$isDownloading ? 'auto' : '130px'};
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
   flex-direction: column;
   padding: 20px;
-  overflow: hidden;
+  overflow: ${props => props.$isDownloading ? 'visible' : 'hidden'};
 
   @media (max-width: 900px) {
     grid-column: 1;
     grid-row: auto;
-    min-height: 160px;
+    min-height: ${props => props.$isDownloading ? 'auto' : '160px'};
+    height: ${props => props.$isDownloading ? 'auto' : '160px'};
   }
 `;
 
@@ -471,8 +473,8 @@ const SummaryContent = styled.div`
   margin-top: 28px;
   text-align: left;
   width: 100%;
-  max-height: calc(100% - 28px);
-  overflow-y: auto;
+  max-height: ${props => props.$isDownloading ? 'none' : 'calc(100% - 28px)'};
+  overflow-y: ${props => props.$isDownloading ? 'visible' : 'auto'};
   overflow-x: hidden;
   word-wrap: break-word;
   word-break: break-word;
@@ -911,22 +913,45 @@ export default function MoodTrail() {
       const element = panelRef.current;
       const padding = 40;
   
-      // 找到摘要區域並暫時移除滾動限制
-      const summaryElement = element.querySelector('[class*="RightBottom"]');
-      const summaryContent = summaryElement?.querySelector('[class*="SummaryContent"]');
-      
-      let originalMaxHeight = '';
-      let originalOverflow = '';
-      
-      if (summaryContent) {
-        originalMaxHeight = summaryContent.style.maxHeight;
-        originalOverflow = summaryContent.style.overflow;
-        summaryContent.style.maxHeight = 'none';
-        summaryContent.style.overflow = 'visible';
-      }
+      // 強制重新渲染以應用 $isDownloading prop
+      await new Promise(resolve => setTimeout(resolve, 50));
   
-      // 等待樣式生效
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // 臨時移除所有高度和溢出限制
+      const rightBottomElements = element.querySelectorAll('[class*="RightBottom"]');
+      const summaryContentElements = element.querySelectorAll('[class*="SummaryContent"]');
+      
+      const originalStyles = [];
+      
+      // 保存並修改 RightBottom 樣式
+      rightBottomElements.forEach((el) => {
+        originalStyles.push({
+          element: el,
+          minHeight: el.style.minHeight,
+          height: el.style.height,
+          maxHeight: el.style.maxHeight,
+          overflow: el.style.overflow
+        });
+        el.style.minHeight = 'auto';
+        el.style.height = 'auto';
+        el.style.maxHeight = 'none';
+        el.style.overflow = 'visible';
+      });
+      
+      // 保存並修改 SummaryContent 樣式
+      summaryContentElements.forEach((el) => {
+        originalStyles.push({
+          element: el,
+          maxHeight: el.style.maxHeight,
+          overflow: el.style.overflow,
+          overflowY: el.style.overflowY
+        });
+        el.style.maxHeight = 'none';
+        el.style.overflow = 'visible';
+        el.style.overflowY = 'visible';
+      });
+  
+      // 等待 DOM 更新
+      await new Promise(resolve => setTimeout(resolve, 200));
   
       const canvas = await html2canvas(element, {
         backgroundColor: "#f6f7fb",
@@ -934,16 +959,18 @@ export default function MoodTrail() {
         useCORS: true,
         logging: false,
         width: element.offsetWidth + padding * 2,
-        height: element.scrollHeight + padding * 2, // 使用 scrollHeight 而非 offsetHeight
+        height: element.scrollHeight + padding * 2,
         x: -padding,
         y: -padding,
+        windowHeight: element.scrollHeight + padding * 2,
       });
   
-      // 恢復原始樣式
-      if (summaryContent) {
-        summaryContent.style.maxHeight = originalMaxHeight;
-        summaryContent.style.overflow = originalOverflow;
-      }
+      // 恢復所有原始樣式
+      originalStyles.forEach(({ element, ...styles }) => {
+        Object.keys(styles).forEach(key => {
+          element.style[key] = styles[key];
+        });
+      });
   
       canvas.toBlob((blob) => {
         if (blob) {
@@ -1175,9 +1202,9 @@ export default function MoodTrail() {
           </RightTop>
 
           {/* 右下：分析摘要 */}
-          <RightBottom>
+          <RightBottom $isDownloading={isDownloading}>
             <SectionTitle>溫馨小提醒</SectionTitle>
-            <SummaryContent>
+            <SummaryContent $isDownloading={isDownloading}>
               {analysisData.summary || "持續對話可以幫助我更了解你的心理狀態。"}
             </SummaryContent>
           </RightBottom>
