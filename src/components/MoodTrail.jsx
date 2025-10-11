@@ -1,5 +1,6 @@
-// src/components/MoodTrail.jsx - 完整版（雷達圖加入互動效果）
+// src/components/MoodTrail.jsx - 完整版
 import React, { useRef, useEffect, useState } from "react";
+import ReactDOM from "react-dom/client";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { FiArrowLeft, FiDownload, FiRefreshCw } from "react-icons/fi";
@@ -26,7 +27,7 @@ const float = keyframes`
 `;
 
 // ============================================================================
-// Styled Components
+// Styled Components - 頁面顯示用
 // ============================================================================
 
 const Wrap = styled.div`
@@ -162,7 +163,7 @@ const GridPanel = styled.div`
   width: min(1300px, 90vw);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: minmax(280px, 1.8fr) minmax(160px, 0.5fr);  /* 微調比例 */
+  grid-template-rows: minmax(280px, 1.8fr) minmax(160px, 0.5fr);
   gap: 32px;
 
   @media (max-width: 1024px) {
@@ -262,7 +263,6 @@ const Placeholder = styled.div`
   }
 `;
 
-
 const LeftTop = styled(Card)`
   grid-column: 1;
   grid-row: 1;
@@ -275,7 +275,7 @@ const LeftTop = styled(Card)`
 
 const LeftBottom = styled(Card)`
   grid-column: 1;
-  grid-row: 2 / 4;  /* 左下跨第2和第3列 */
+  grid-row: 2 / 4;
   min-height: 180px;
 
   @media (max-width: 900px) {
@@ -287,11 +287,11 @@ const LeftBottom = styled(Card)`
 
 const RightTop = styled(Card)`
   grid-column: 2;
-  grid-row: 1 / 3;  /* 右上跨第1和第2列 */
+  grid-row: 1 / 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 380px;  /* 增加最小高度讓雷達圖更大 */
+  min-height: 380px;
 
   @media (max-width: 900px) {
     grid-column: 1;
@@ -302,21 +302,21 @@ const RightTop = styled(Card)`
 
 const RightBottom = styled(Card)`
   grid-column: 2;
-  grid-row: 3;  /* 右下在第3列 */
-  min-height: ${props => props.$isDownloading ? 'auto' : '160px'};
-  height: ${props => props.$isDownloading ? 'auto' : '160px'};
+  grid-row: 3;
+  min-height: 160px;
+  height: 160px;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
   flex-direction: column;
   padding: 20px;
-  overflow: ${props => props.$isDownloading ? 'visible' : 'hidden'};
+  overflow: hidden;
 
   @media (max-width: 900px) {
     grid-column: 1;
     grid-row: auto;
-    min-height: ${props => props.$isDownloading ? 'auto' : '180px'};
-    height: ${props => props.$isDownloading ? 'auto' : '180px'};
+    min-height: 180px;
+    height: 180px;
   }
 `;
 
@@ -475,8 +475,8 @@ const SummaryContent = styled.div`
   margin-top: 28px;
   text-align: left;
   width: 100%;
-  max-height: ${props => props.$isDownloading ? 'none' : 'calc(100% - 28px)'};
-  overflow-y: ${props => props.$isDownloading ? 'visible' : 'auto'};
+  max-height: calc(100% - 28px);
+  overflow-y: auto;
   overflow-x: hidden;
   word-wrap: break-word;
   word-break: break-word;
@@ -572,6 +572,84 @@ const FloatingRefreshBtn = styled.button`
     padding: 9px 14px;
     font-size: 12px;
     gap: 5px;
+  }
+`;
+
+// ============================================================================
+// 下載專用的 Styled Components
+// ============================================================================
+
+const DownloadContainer = styled.div`
+  width: 800px;
+  background: #f6f7fb;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+`;
+
+const DownloadCard = styled.div`
+  position: relative;
+  background: #fff;
+  border: 1px solid #e7e7ef;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  padding: 24px;
+  min-height: auto;
+`;
+
+const DownloadTitle = styled.div`
+  font-size: 28px;
+  font-weight: 800;
+  color: #2b3993;
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+`;
+
+const DownloadSubtitle = styled.div`
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  margin-bottom: 8px;
+`;
+
+const DownloadSectionTitle = styled.div`
+  font-size: 16px;
+  font-weight: 800;
+  color: #2b3993;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: rgba(43, 57, 147, 0.05);
+  border-left: 4px solid #2b3993;
+  border-radius: 4px;
+`;
+
+const DownloadChartWrapper = styled.div`
+  width: 100%;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0;
+`;
+
+const DownloadSummaryContent = styled.div`
+  font-size: 14px;
+  line-height: 1.9;
+  color: #444;
+  white-space: pre-line;
+  text-align: left;
+  word-wrap: break-word;
+  word-break: break-word;
+  
+  strong {
+    color: #2b3993;
+    font-weight: 700;
+  }
+  
+  p {
+    margin: 8px 0;
   }
 `;
 
@@ -705,10 +783,8 @@ const RadarChartSVG = ({ data }) => {
           </filter>
         </defs>
 
-        {/* 背景漸層圓 */}
         <circle cx={cx} cy={cy} r={r} fill="url(#rg-topic)" opacity="0.6" />
 
-        {/* 多層同心圓 */}
         {levels.map((level, i) => {
           const nextLevel = levels[(i + 1) % levels.length];
           const [x2, y2] = toXY(axes[0].ang, r * level);
@@ -734,7 +810,6 @@ const RadarChartSVG = ({ data }) => {
           );
         })}
 
-        {/* 軸線 */}
         {axes.map(({ ang }, i) => {
           const [x2, y2] = toXY(ang, r);
           return (
@@ -750,7 +825,6 @@ const RadarChartSVG = ({ data }) => {
           );
         })}
 
-        {/* 數據多邊形 */}
         <polygon
           points={polyPoints}
           fill="rgba(122,77,200,0.12)"
@@ -760,7 +834,6 @@ const RadarChartSVG = ({ data }) => {
           filter="url(#glow)"
         />
 
-        {/* 數據點（互動區域） */}
         {axes.map(({ ang, value, label }, i) => {
           const v = clamp01(value);
           const [x, y] = toXY(ang, r * v);
@@ -768,7 +841,6 @@ const RadarChartSVG = ({ data }) => {
           
           return (
             <g key={`dot-${i}`}>
-              {/* 互動熱區（透明大圓） */}
               <circle
                 cx={x}
                 cy={y}
@@ -777,7 +849,6 @@ const RadarChartSVG = ({ data }) => {
                 style={{ cursor: 'pointer' }}
                 onMouseEnter={(e) => handleMouseEnter(i, e, ang, value)}
               />
-              {/* 視覺數據點 */}
               <circle
                 cx={x}
                 cy={y}
@@ -794,7 +865,6 @@ const RadarChartSVG = ({ data }) => {
           );
         })}
 
-        {/* 標籤 */}
         {axes.map(({ ang, label, value }, i) => {
           const labelR = r + 42;
           const [x, y] = toXY(ang, labelR);
@@ -837,7 +907,6 @@ const RadarChartSVG = ({ data }) => {
         })}
       </svg>
 
-      {/* 互動式 Tooltip */}
       {tooltipPos.show && (
         <RadarTooltip
           style={{
@@ -885,213 +954,324 @@ export default function MoodTrail() {
         setError({
           message: result.message || "對話次數不足",
           current: result.message_count || 0,
-          required: result.required_count || 30
-        });
-      }
-    } catch (err) {
-      console.error("載入分析失敗:", err);
-      setError({
-        message: "載入失敗，請檢查網路連線後重試",
-        current: 0,
-        required: 30
-      });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    loadAnalysis();
-  };
-
-  const handleDownload = async () => {
-    if (!panelRef.current || isDownloading || !analysisData) return;
-  
-    try {
-      setIsDownloading(true);
-  
-      const element = panelRef.current;
-      const padding = 40;
-  
-      // 等待狀態更新
-      await new Promise(resolve => setTimeout(resolve, 50));
-  
-      // 先獲取所有需要操作的元素
-      const leftTopElements = element.querySelectorAll('[class*="LeftTop"]');
-      const leftBottomElements = element.querySelectorAll('[class*="LeftBottom"]');
-      const rightTopElements = element.querySelectorAll('[class*="RightTop"]');
-      const rightBottomElements = element.querySelectorAll('[class*="RightBottom"]');
-      const summaryContentElements = element.querySelectorAll('[class*="SummaryContent"]');
-      
-      const originalStyles = [];
-      
-      // 1. 先鎖定左上、左下、右上的高度(防止被拉伸)
-      leftTopElements.forEach((el) => {
-        const currentHeight = el.offsetHeight;
-        originalStyles.push({
-          element: el,
-          height: el.style.height,
-          minHeight: el.style.minHeight,
-          maxHeight: el.style.maxHeight
-        });
-        el.style.height = `${currentHeight}px`;
-        el.style.minHeight = `${currentHeight}px`;
-        el.style.maxHeight = `${currentHeight}px`;
-      });
-  
-      leftBottomElements.forEach((el) => {
-        const currentHeight = el.offsetHeight;
-        originalStyles.push({
-          element: el,
-          height: el.style.height,
-          minHeight: el.style.minHeight,
-          maxHeight: el.style.maxHeight
-        });
-        el.style.height = `${currentHeight}px`;
-        el.style.minHeight = `${currentHeight}px`;
-        el.style.maxHeight = `${currentHeight}px`;
-      });
-  
-      rightTopElements.forEach((el) => {
-        const currentHeight = el.offsetHeight;
-        originalStyles.push({
-          element: el,
-          height: el.style.height,
-          minHeight: el.style.minHeight,
-          maxHeight: el.style.maxHeight
-        });
-        el.style.height = `${currentHeight}px`;
-        el.style.minHeight = `${currentHeight}px`;
-        el.style.maxHeight = `${currentHeight}px`;
-      });
-      
-      // 2. 然後才釋放右下角的高度限制
-      rightBottomElements.forEach((el) => {
-        originalStyles.push({
-          element: el,
-          minHeight: el.style.minHeight,
-          height: el.style.height,
-          maxHeight: el.style.maxHeight,
-          overflow: el.style.overflow
-        });
-        el.style.minHeight = 'auto';
-        el.style.height = 'auto';
-        el.style.maxHeight = 'none';
-        el.style.overflow = 'visible';
-      });
-      
-      // 3. 釋放 SummaryContent 的滾動限制
-      summaryContentElements.forEach((el) => {
-        originalStyles.push({
-          element: el,
-          maxHeight: el.style.maxHeight,
-          overflow: el.style.overflow,
-          overflowY: el.style.overflowY
-        });
-        el.style.maxHeight = 'none';
-        el.style.overflow = 'visible';
-        el.style.overflowY = 'visible';
-      });
-  
-      // 等待 DOM 完全更新
-      await new Promise(resolve => setTimeout(resolve, 300));
-  
-      // 計算實際高度
-      const actualHeight = element.scrollHeight;
-  
-      // 使用 html2canvas 截圖
-      const canvas = await html2canvas(element, {
-        backgroundColor: "#f6f7fb",
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        scrollY: 0,
-        scrollX: 0,
-        width: element.offsetWidth + padding * 2,
-        height: actualHeight + padding * 2,
-        x: -padding,
-        y: -padding,
-        windowWidth: element.offsetWidth + padding * 2,
-        windowHeight: actualHeight + padding * 2
-      });
-  
-      // 恢復所有原始樣式
-      originalStyles.forEach(({ element, ...styles }) => {
-        Object.keys(styles).forEach(key => {
-          if (styles[key] !== undefined && styles[key] !== null) {
-            element.style[key] = styles[key];
-          } else {
-            element.style[key] = '';
-          }
-        });
-      });
-  
-      // 下載圖片
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          const timestamp = new Date().toISOString().split('T')[0];
-          link.href = url;
-          link.download = `心情足跡圖_${timestamp}.png`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
+          required: result.required_count || 30});
         }
-      }, "image/png");
+      } catch (err) {
+        console.error("載入分析失敗:", err);
+        setError({
+          message: "載入失敗,請檢查網路連線後重試",
+          current: 0,
+          required: 30
+        });
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    };
   
-    } catch (error) {
-      console.error("下載圖片時發生錯誤:", error);
-      alert("下載圖片失敗,請稍後再試");
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
-  // ============================================================================
-  // 準備圖表數據
-  // ============================================================================
-
-  const emotionFreqData = analysisData?.emotion_frequency 
-    ? Object.entries(analysisData.emotion_frequency)
-        .sort((a, b) => b[1] - a[1])
-        .map(([name, value], index) => {
-          const colors = ['#5A8CF2', '#6B9AED', '#7BA8E8', '#8BB6E3', '#9BC4DE', '#ABC2D9', '#BBD0D4'];
-          return {
-            name, 
-            次數: value,
-            color: colors[index % colors.length]
-          };
-        })
-    : [];
-
-  const emotionIntensityData = analysisData?.emotion_intensity
-    ? Object.entries(analysisData.emotion_intensity)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 6)
-        .map(([name, value]) => ({
-          name,
-          強度: Math.round(value),
-          color: analysisData.emotion_colors?.[name] || '#FF8FB1'
+    const handleRefresh = () => {
+      setRefreshing(true);
+      loadAnalysis();
+    };
+  
+    const handleDownload = async () => {
+      if (!panelRef.current || isDownloading || !analysisData) return;
+  
+      try {
+        setIsDownloading(true);
+  
+        // 準備圖表數據
+        const emotionFreqData = analysisData?.emotion_frequency 
+          ? Object.entries(analysisData.emotion_frequency)
+              .sort((a, b) => b[1] - a[1])
+              .map(([name, value], index) => {
+                const colors = ['#5A8CF2', '#6B9AED', '#7BA8E8', '#8BB6E3', '#9BC4DE', '#ABC2D9', '#BBD0D4'];
+                return {
+                  name, 
+                  次數: value,
+                  color: colors[index % colors.length]
+                };
+              })
+          : [];
+  
+        const emotionIntensityData = analysisData?.emotion_intensity
+          ? Object.entries(analysisData.emotion_intensity)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 6)
+              .map(([name, value]) => ({
+                name,
+                強度: Math.round(value),
+                color: analysisData.emotion_colors?.[name] || '#FF8FB1'
+              }))
+          : [];
+  
+        const topicRadarData = analysisData?.topic_radar
+          ? Object.entries(analysisData.topic_radar).map(([subject, value]) => ({
+              subject,
+              分數: Math.round(value),
+              fullMark: 100
+            }))
+          : [];
+  
+        // 創建臨時容器
+        const downloadContainer = document.createElement('div');
+        downloadContainer.style.position = 'fixed';
+        downloadContainer.style.left = '-9999px';
+        downloadContainer.style.top = '0';
+        document.body.appendChild(downloadContainer);
+  
+        // 使用 React 渲染下載內容
+        const root = ReactDOM.createRoot(downloadContainer);
+        
+        await new Promise((resolve) => {
+          root.render(
+            <DownloadContainer>
+              {/* 標題 */}
+              <DownloadCard>
+                <DownloadTitle>心情足跡 · MoodTrail</DownloadTitle>
+                <DownloadSubtitle>
+                  分析時間: {new Date().toLocaleDateString('zh-TW', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })} | 對話次數: {analysisData.message_count} 次
+                </DownloadSubtitle>
+              </DownloadCard>
+  
+              {/* 情緒頻率圖 */}
+              <DownloadCard>
+                <DownloadSectionTitle>📊 情緒頻率圖</DownloadSectionTitle>
+                <DownloadChartWrapper>
+                  {emotionFreqData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart 
+                        data={emotionFreqData} 
+                        margin={{ top: 10, right: 20, left: -10, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" strokeOpacity={0.5} />
+                        <XAxis 
+                          dataKey="name" 
+                          style={{ fontSize: '12px', fontWeight: '600' }}
+                          tick={{ fill: '#666' }}
+                        />
+                        <YAxis 
+                          style={{ fontSize: '12px', fontWeight: '600' }}
+                          tick={{ fill: '#666' }}
+                          allowDecimals={false}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar dataKey="次數" radius={[10, 10, 0, 0]} maxBarSize={50}>
+                          {emotionFreqData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div>尚無情緒數據</div>
+                  )}
+                </DownloadChartWrapper>
+              </DownloadCard>
+  
+              {/* 情緒強度圖 */}
+              <DownloadCard>
+                <DownloadSectionTitle>📈 情緒強度圖</DownloadSectionTitle>
+                <DownloadChartWrapper>
+                  {emotionIntensityData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart 
+                        data={emotionIntensityData} 
+                        margin={{ top: 10, right: 20, left: -10, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" strokeOpacity={0.5} />
+                        <XAxis 
+                          dataKey="name" 
+                          style={{ fontSize: '12px', fontWeight: '600' }}
+                          tick={{ fill: '#666' }}
+                        />
+                        <YAxis 
+                          domain={[0, 100]}
+                          style={{ fontSize: '12px', fontWeight: '600' }}
+                          tick={{ fill: '#666' }}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Line 
+                          type="monotone" 
+                          dataKey="強度" 
+                          stroke="#FF8FB1" 
+                          strokeWidth={3} 
+                          dot={{ r: 5, fill: '#FF8FB1' }}
+                          activeDot={{ r: 7 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div>尚無強度數據</div>
+                  )}
+                </DownloadChartWrapper>
+              </DownloadCard>
+  
+              {/* 議題雷達圖 */}
+              <DownloadCard>
+                <DownloadSectionTitle>🎯 議題雷達圖</DownloadSectionTitle>
+                <div style={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {topicRadarData.length > 0 ? (
+                    <RadarChartSVG data={topicRadarData} />
+                  ) : (
+                    <div>尚無議題數據</div>
+                  )}
+                </div>
+              </DownloadCard>
+  
+              {/* 溫馨小提醒 */}
+              <DownloadCard>
+                <DownloadSectionTitle>💝 溫馨小提醒</DownloadSectionTitle>
+                <DownloadSummaryContent
+                  dangerouslySetInnerHTML={{
+                    __html: (analysisData.summary || "持續對話可以幫助我更了解你的心理狀態。")
+                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                      .replace(/\n\n/g, '<br/><br/>')
+                      .replace(/\n/g, '<br/>')
+                  }}
+                />
+              </DownloadCard>
+            </DownloadContainer>
+          );
+  
+          // 等待渲染完成
+          setTimeout(resolve, 800);
+        });
+  
+        // 獲取渲染好的容器
+        const element = downloadContainer.firstChild;
+  
+        // 使用 html2canvas 截圖
+        const canvas = await html2canvas(element, {
+          backgroundColor: "#f6f7fb",
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          width: 880,
+          height: element.scrollHeight + 80
+        });
+  
+        // 清理臨時容器
+        root.unmount();
+        document.body.removeChild(downloadContainer);
+  
+        // 下載圖片
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            const timestamp = new Date().toISOString().split('T')[0];
+            link.href = url;
+            link.download = `心情足跡報告_${timestamp}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }
+        }, "image/png");
+  
+      } catch (error) {
+        console.error("下載圖片時發生錯誤:", error);
+        alert("下載圖片失敗,請稍後再試");
+      } finally {
+        setIsDownloading(false);
+      }
+    };
+  
+    // 準備圖表數據
+    const emotionFreqData = analysisData?.emotion_frequency 
+      ? Object.entries(analysisData.emotion_frequency)
+          .sort((a, b) => b[1] - a[1])
+          .map(([name, value], index) => {
+            const colors = ['#5A8CF2', '#6B9AED', '#7BA8E8', '#8BB6E3', '#9BC4DE', '#ABC2D9', '#BBD0D4'];
+            return {
+              name, 
+              次數: value,
+              color: colors[index % colors.length]
+            };
+          })
+      : [];
+  
+    const emotionIntensityData = analysisData?.emotion_intensity
+      ? Object.entries(analysisData.emotion_intensity)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 6)
+          .map(([name, value]) => ({
+            name,
+            強度: Math.round(value),
+            color: analysisData.emotion_colors?.[name] || '#FF8FB1'
+          }))
+      : [];
+  
+    const topicRadarData = analysisData?.topic_radar
+      ? Object.entries(analysisData.topic_radar).map(([subject, value]) => ({
+          subject,
+          分數: Math.round(value),
+          fullMark: 100
         }))
-    : [];
-
-  const topicRadarData = analysisData?.topic_radar
-    ? Object.entries(analysisData.topic_radar).map(([subject, value]) => ({
-        subject,
-        分數: Math.round(value),
-        fullMark: 100
-      }))
-    : [];
-
-  // ============================================================================
-  // 渲染：載入中
-  // ============================================================================
-
-  if (loading) {
+      : [];
+  
+    // 渲染:載入中
+    if (loading) {
+      return (
+        <Wrap>
+          <Header>
+            <BtnGroup>
+              <BackBtn onClick={() => nav(-1)}>
+                <FiArrowLeft size={18} /> 返回
+              </BackBtn>
+            </BtnGroup>
+            <PageTitle>心情足跡·MoodTrail</PageTitle>
+            <BtnGroup />
+          </Header>
+          <Content>
+            <CenteredWrapper>
+              <LoadingSpinner />
+              <LoadingText>正在分析你的對話內容...</LoadingText>
+            </CenteredWrapper>
+          </Content>
+        </Wrap>
+      );
+    }
+  
+    // 渲染:錯誤或數據不足
+    if (error || !analysisData) {
+      return (
+        <Wrap>
+          <Header>
+            <BtnGroup>
+              <BackBtn onClick={() => nav(-1)}>
+                <FiArrowLeft size={18} /> 返回
+              </BackBtn>
+            </BtnGroup>
+            <PageTitle>心情足跡·MoodTrail</PageTitle>
+            <BtnGroup />
+          </Header>
+          <Content>
+            <CenteredWrapper>
+              <RobotGif src={robotGif} alt="robot" />
+              <ErrorText>{error?.message || "尚無足夠的對話數據進行分析"}</ErrorText>
+              {error?.current !== undefined && (
+                <ErrorHint>
+                  目前對話次數: <strong>{error.current}</strong> / <strong>{error.required}</strong>
+                  <br />
+                  還需要 <strong>{error.required - error.current}</strong> 次對話才能進行完整分析
+                </ErrorHint>
+              )}
+            </CenteredWrapper>
+          </Content>
+          <FloatingRefreshBtn onClick={handleRefresh} disabled={refreshing}>
+            <FiRefreshCw size={14} /> {refreshing ? "更新中" : "重新整理"}
+          </FloatingRefreshBtn>
+        </Wrap>
+      );
+    }
+  
+    // 渲染:完整分析結果
     return (
       <Wrap>
         <Header>
@@ -1100,183 +1280,121 @@ export default function MoodTrail() {
               <FiArrowLeft size={18} /> 返回
             </BackBtn>
           </BtnGroup>
+  
           <PageTitle>心情足跡·MoodTrail</PageTitle>
-          <BtnGroup />
-        </Header>
-        <Content>
-          <CenteredWrapper>
-            <LoadingSpinner />
-            <LoadingText>正在分析你的對話內容...</LoadingText>
-          </CenteredWrapper>
-        </Content>
-      </Wrap>
-    );
-  }
-
-  // ============================================================================
-  // 渲染：錯誤或數據不足
-  // ============================================================================
-
-  if (error || !analysisData) {
-    return (
-      <Wrap>
-        <Header>
+  
           <BtnGroup>
-            <BackBtn onClick={() => nav(-1)}>
-              <FiArrowLeft size={18} /> 返回
-            </BackBtn>
+            <DownloadBtn onClick={handleDownload} disabled={isDownloading}>
+              <FiDownload size={18} /> {isDownloading ? "下載中" : "下載圖片"}
+            </DownloadBtn>
           </BtnGroup>
-          <PageTitle>心情足跡·MoodTrail</PageTitle>
-          <BtnGroup />
         </Header>
+  
         <Content>
-          <CenteredWrapper>
-            <RobotGif src={robotGif} alt="robot" />
-            <ErrorText>{error?.message || "尚無足夠的對話數據進行分析"}</ErrorText>
-            {error?.current !== undefined && (
-              <ErrorHint>
-                目前對話次數: <strong>{error.current}</strong> / <strong>{error.required}</strong>
-                <br />
-                還需要 <strong>{error.required - error.current}</strong> 次對話才能進行完整分析
-              </ErrorHint>
-            )}
-          </CenteredWrapper>
+          <GridPanel ref={panelRef}>
+            {/* 左上:情緒頻率圖 */}
+            <LeftTop>
+              <SectionTitle>情緒頻率圖</SectionTitle>
+              <ChartWrapper>
+                {emotionFreqData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart 
+                      data={emotionFreqData} 
+                      margin={{ top: 10, right: 20, left: -10, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" strokeOpacity={0.5} />
+                      <XAxis 
+                        dataKey="name" 
+                        style={{ fontSize: '12px', fontWeight: '600' }}
+                        tick={{ fill: '#666' }}
+                      />
+                      <YAxis 
+                        style={{ fontSize: '12px', fontWeight: '600' }}
+                        tick={{ fill: '#666' }}
+                        allowDecimals={false}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar dataKey="次數" radius={[10, 10, 0, 0]} maxBarSize={50}>
+                        {emotionFreqData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Placeholder>尚無情緒數據</Placeholder>
+                )}
+              </ChartWrapper>
+            </LeftTop>
+  
+            {/* 左下:情緒強度圖 */}
+            <LeftBottom>
+              <SectionTitle>情緒強度圖</SectionTitle>
+              <ChartWrapper>
+                {emotionIntensityData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart 
+                      data={emotionIntensityData} 
+                      margin={{ top: 10, right: 20, left: -10, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" strokeOpacity={0.5} />
+                      <XAxis 
+                        dataKey="name" 
+                        style={{ fontSize: '12px', fontWeight: '600' }}
+                        tick={{ fill: '#666' }}
+                      />
+                      <YAxis 
+                        domain={[0, 100]}
+                        style={{ fontSize: '12px', fontWeight: '600' }}
+                        tick={{ fill: '#666' }}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Line 
+                        type="monotone" 
+                        dataKey="強度" 
+                        stroke="#FF8FB1" 
+                        strokeWidth={3} 
+                        dot={{ r: 5, fill: '#FF8FB1' }}
+                        activeDot={{ r: 7 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Placeholder>尚無強度數據</Placeholder>
+                )}
+              </ChartWrapper>
+            </LeftBottom>
+  
+            {/* 右上:議題雷達圖 */}
+            <RightTop>
+              <SectionTitle>議題雷達圖</SectionTitle>
+              <RadarChartWrapper>
+                {topicRadarData.length > 0 ? (
+                  <RadarChartSVG data={topicRadarData} />
+                ) : (
+                  <Placeholder>尚無議題數據</Placeholder>
+                )}
+              </RadarChartWrapper>
+            </RightTop>
+  
+            {/* 右下:溫馨小提醒 */}
+            <RightBottom>
+              <SectionTitle>溫馨小提醒</SectionTitle>
+              <SummaryContent
+                dangerouslySetInnerHTML={{
+                  __html: (analysisData.summary || "持續對話可以幫助我更了解你的心理狀態。")
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n\n/g, '<br/><br/>')
+                    .replace(/\n/g, '<br/>')
+                }}
+              />
+            </RightBottom>
+          </GridPanel>
         </Content>
+  
         <FloatingRefreshBtn onClick={handleRefresh} disabled={refreshing}>
-          <FiRefreshCw size={14} /> {refreshing ? "更新中" : "重新整理"}
+          <FiRefreshCw size={14} /> {refreshing ? "更新中" : "重新分析"}
         </FloatingRefreshBtn>
       </Wrap>
     );
   }
-
-  // ============================================================================
-  // 渲染：完整分析結果
-  // ============================================================================
-
-  return (
-    <Wrap>
-      <Header>
-        <BtnGroup>
-          <BackBtn onClick={() => nav(-1)}>
-            <FiArrowLeft size={18} /> 返回
-          </BackBtn>
-        </BtnGroup>
-
-        <PageTitle>心情足跡·MoodTrail</PageTitle>
-
-        <BtnGroup>
-          <DownloadBtn onClick={handleDownload} disabled={isDownloading}>
-            <FiDownload size={18} /> {isDownloading ? "下載中" : "下載圖片"}
-          </DownloadBtn>
-        </BtnGroup>
-      </Header>
-
-      <Content>
-        <GridPanel ref={panelRef}>
-          {/* 左上：情緒頻率圖 */}
-          <LeftTop>
-            <SectionTitle>情緒頻率圖</SectionTitle>
-            <ChartWrapper>
-              {emotionFreqData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart 
-                    data={emotionFreqData} 
-                    margin={{ top: 10, right: 20, left: -10, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" strokeOpacity={0.5} />
-                    <XAxis 
-                      dataKey="name" 
-                      style={{ fontSize: '12px', fontWeight: '600' }}
-                      tick={{ fill: '#666' }}
-                    />
-                    <YAxis 
-                      style={{ fontSize: '12px', fontWeight: '600' }}
-                      tick={{ fill: '#666' }}
-                      allowDecimals={false}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="次數" radius={[10, 10, 0, 0]} maxBarSize={50}>
-                      {emotionFreqData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <Placeholder>尚無情緒數據</Placeholder>
-              )}
-            </ChartWrapper>
-          </LeftTop>
-
-          {/* 左下：情緒強度圖 */}
-          <LeftBottom>
-            <SectionTitle>情緒強度圖</SectionTitle>
-            <ChartWrapper>
-              {emotionIntensityData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart 
-                    data={emotionIntensityData} 
-                    margin={{ top: 10, right: 20, left: -10, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" strokeOpacity={0.5} />
-                    <XAxis 
-                      dataKey="name" 
-                      style={{ fontSize: '12px', fontWeight: '600' }}
-                      tick={{ fill: '#666' }}
-                    />
-                    <YAxis 
-                      domain={[0, 100]}
-                      style={{ fontSize: '12px', fontWeight: '600' }}
-                      tick={{ fill: '#666' }}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line 
-                      type="monotone" 
-                      dataKey="強度" 
-                      stroke="#FF8FB1" 
-                      strokeWidth={3} 
-                      dot={{ r: 5, fill: '#FF8FB1' }}
-                      activeDot={{ r: 7 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <Placeholder>尚無強度數據</Placeholder>
-              )}
-            </ChartWrapper>
-          </LeftBottom>
-
-          {/* 右上：議題雷達圖（互動式 SVG 版本） */}
-          <RightTop>
-            <SectionTitle>議題雷達圖</SectionTitle>
-            <RadarChartWrapper>
-              {topicRadarData.length > 0 ? (
-                <RadarChartSVG data={topicRadarData} />
-              ) : (
-                <Placeholder>尚無議題數據</Placeholder>
-              )}
-            </RadarChartWrapper>
-          </RightTop>
-
-          {/* 右下:溫馨小提醒 */}
-          <RightBottom $isDownloading={isDownloading}>
-            <SectionTitle>溫馨小提醒</SectionTitle>
-            <SummaryContent 
-              $isDownloading={isDownloading}
-              dangerouslySetInnerHTML={{
-                __html: (analysisData.summary || "持續對話可以幫助我更了解你的心理狀態。")
-                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                  .replace(/\n\n/g, '<br/><br/>')
-                  .replace(/\n/g, '<br/>')
-              }}
-            />
-          </RightBottom>
-        </GridPanel>
-      </Content>
-
-      <FloatingRefreshBtn onClick={handleRefresh} disabled={refreshing}>
-        <FiRefreshCw size={14} /> {refreshing ? "更新中" : "重新分析"}
-      </FloatingRefreshBtn>
-    </Wrap>
-  );
-}
