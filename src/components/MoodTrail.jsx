@@ -162,7 +162,7 @@ const GridPanel = styled.div`
   width: min(1300px, 90vw);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: minmax(280px, 1.6fr) minmax(180px, 0.6fr);
+  grid-template-rows: minmax(280px, 1.3fr) minmax(200px, 0.9fr);
   gap: 32px;
 
   @media (max-width: 1024px) {
@@ -286,10 +286,11 @@ const LeftBottom = styled(Card)`
 
 const RightTop = styled(Card)`
   grid-column: 2;
-  grid-row: 1 / 3;
+  grid-row: 1 / 2;  /* 改為只佔第 1 列,不跨到第 2 列 */
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 350px;  /* 設定固定的最小高度 */
 
   @media (max-width: 900px) {
     grid-column: 1;
@@ -300,9 +301,9 @@ const RightTop = styled(Card)`
 
 const RightBottom = styled(Card)`
   grid-column: 2;
-  grid-row: 3;
-  min-height: ${props => props.$isDownloading ? 'auto' : '130px'};
-  height: ${props => props.$isDownloading ? 'auto' : '130px'};
+  grid-row: 2;  /* 改為第 2 列 */
+  min-height: ${props => props.$isDownloading ? 'auto' : '220px'};  /* 增加最小高度 */
+  height: ${props => props.$isDownloading ? 'auto' : 'auto'};  /* 改為 auto 讓它自適應 */
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
@@ -313,8 +314,8 @@ const RightBottom = styled(Card)`
   @media (max-width: 900px) {
     grid-column: 1;
     grid-row: auto;
-    min-height: ${props => props.$isDownloading ? 'auto' : '160px'};
-    height: ${props => props.$isDownloading ? 'auto' : '160px'};
+    min-height: ${props => props.$isDownloading ? 'auto' : '200px'};
+    height: ${props => props.$isDownloading ? 'auto' : 'auto'};
   }
 `;
 
