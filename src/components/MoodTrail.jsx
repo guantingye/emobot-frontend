@@ -4,6 +4,12 @@ import ReactDOM from "react-dom/client";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { FiArrowLeft, FiDownload, FiRefreshCw } from "react-icons/fi";
+import { BsClipboard2Data, BsClipboard2Pulse } from "react-icons/bs";
+import { GiSpellBook } from "react-icons/gi";
+import { TiLightbulb } from "react-icons/ti";
+import { TbMichelinStarGreen, TbTargetArrow } from "react-icons/tb";
+import { IoColorPaletteOutline } from "react-icons/io5";
+import { PiHandHeartDuotone } from "react-icons/pi";
 import html2canvas from "html2canvas";
 import { apiGetMoodAnalysis } from "../api/client";
 import robotGif from "../assets/robot.gif";
@@ -623,6 +629,13 @@ const DownloadSectionTitle = styled.div`
   background: rgba(43, 57, 147, 0.05);
   border-left: 4px solid #2b3993;
   border-radius: 4px;
+  display: flex;          // 新增
+  align-items: center;    // 新增
+  
+  svg {                   // 新增
+    font-size: 20px;      // 新增
+    margin-right: 8px;    // 新增
+  }
 `;
 
 const DownloadChartWrapper = styled.div`
@@ -1040,7 +1053,10 @@ export default function MoodTrail() {
   
               {/* 情緒頻率圖 */}
               <DownloadCard>
-                <DownloadSectionTitle>📊 情緒頻率圖</DownloadSectionTitle>
+                <DownloadSectionTitle>
+                  <BsClipboard2Data style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
+                  情緒頻率圖
+                </DownloadSectionTitle>
                 <DownloadChartWrapper>
                   {emotionFreqData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
@@ -1075,7 +1091,10 @@ export default function MoodTrail() {
   
               {/* 情緒強度圖 */}
               <DownloadCard>
-                <DownloadSectionTitle>📈 情緒強度圖</DownloadSectionTitle>
+                <DownloadSectionTitle>
+                  <BsClipboard2Pulse style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
+                  情緒強度圖
+                </DownloadSectionTitle>
                 <DownloadChartWrapper>
                   {emotionIntensityData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
@@ -1113,7 +1132,10 @@ export default function MoodTrail() {
   
               {/* 議題雷達圖 */}
               <DownloadCard>
-                <DownloadSectionTitle>🎯 議題雷達圖</DownloadSectionTitle>
+                <DownloadSectionTitle>
+                  <TbTargetArrow style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
+                  議題雷達圖
+                </DownloadSectionTitle>
                 <div style={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {topicRadarData.length > 0 ? (
                     <RadarChartSVG data={topicRadarData} />
@@ -1125,7 +1147,10 @@ export default function MoodTrail() {
   
               {/* 溫馨小提醒 */}
               <DownloadCard>
-                <DownloadSectionTitle>💝 溫馨小提醒</DownloadSectionTitle>
+                <DownloadSectionTitle>
+                  <PiHandHeartDuotone style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
+                  溫馨小提醒
+                </DownloadSectionTitle>
                 <DownloadSummaryContent
                   dangerouslySetInnerHTML={{
                     __html: (analysisData.summary || "持續對話可以幫助我更了解你的心理狀態。")
