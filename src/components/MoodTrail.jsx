@@ -162,7 +162,7 @@ const GridPanel = styled.div`
   width: min(1300px, 90vw);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: minmax(220px, 1.2fr) minmax(280px, 1.2fr);
+  grid-template-rows: minmax(280px, 1.8fr) minmax(160px, 0.5fr);  /* 微調比例 */
   gap: 32px;
 
   @media (max-width: 1024px) {
@@ -262,6 +262,7 @@ const Placeholder = styled.div`
   }
 `;
 
+
 const LeftTop = styled(Card)`
   grid-column: 1;
   grid-row: 1;
@@ -274,8 +275,8 @@ const LeftTop = styled(Card)`
 
 const LeftBottom = styled(Card)`
   grid-column: 1;
-  grid-row: 2;
-  min-height: 280px;
+  grid-row: 2 / 4;  /* 左下跨第2和第3列 */
+  min-height: 180px;
 
   @media (max-width: 900px) {
     grid-column: 1;
@@ -286,23 +287,24 @@ const LeftBottom = styled(Card)`
 
 const RightTop = styled(Card)`
   grid-column: 2;
-  grid-row: 1;
+  grid-row: 1 / 3;  /* 右上跨第1和第2列 */
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 380px;  /* 增加最小高度讓雷達圖更大 */
 
   @media (max-width: 900px) {
     grid-column: 1;
     grid-row: auto;
-    min-height: 300px;
+    min-height: 320px;
   }
 `;
 
 const RightBottom = styled(Card)`
   grid-column: 2;
-  grid-row: 2;
-  min-height: ${props => props.$isDownloading ? 'auto' : '280px'};
-  height: ${props => props.$isDownloading ? 'auto' : 'auto'};
+  grid-row: 3;  /* 右下在第3列 */
+  min-height: ${props => props.$isDownloading ? 'auto' : '160px'};
+  height: ${props => props.$isDownloading ? 'auto' : '160px'};
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
@@ -313,8 +315,8 @@ const RightBottom = styled(Card)`
   @media (max-width: 900px) {
     grid-column: 1;
     grid-row: auto;
-    min-height: ${props => props.$isDownloading ? 'auto' : '200px'};
-    height: ${props => props.$isDownloading ? 'auto' : 'auto'};
+    min-height: ${props => props.$isDownloading ? 'auto' : '180px'};
+    height: ${props => props.$isDownloading ? 'auto' : '180px'};
   }
 `;
 
