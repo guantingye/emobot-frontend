@@ -918,13 +918,13 @@ export default function MoodTrail() {
       // 等待狀態更新
       await new Promise(resolve => setTimeout(resolve, 50));
   
-      // 只修改 RightBottom 和 SummaryContent 的樣式,不影響其他卡片
+      // 只針對 RightBottom 和 SummaryContent 進行調整
       const rightBottomElements = element.querySelectorAll('[class*="RightBottom"]');
       const summaryContentElements = element.querySelectorAll('[class*="SummaryContent"]');
       
       const originalStyles = [];
       
-      // 保存並修改 RightBottom 樣式
+      // 保存並修改 RightBottom 樣式(只修改高度相關屬性)
       rightBottomElements.forEach((el) => {
         originalStyles.push({
           element: el,
@@ -939,7 +939,7 @@ export default function MoodTrail() {
         el.style.overflow = 'visible';
       });
       
-      // 保存並修改 SummaryContent 樣式
+      // 保存並修改 SummaryContent 樣式(讓內容完全展開)
       summaryContentElements.forEach((el) => {
         originalStyles.push({
           element: el,
@@ -952,32 +952,62 @@ export default function MoodTrail() {
         el.style.overflowY = 'visible';
       });
   
-      // 等待 DOM 更新
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // 等待 DOM 更新完成
+      await new Promise(resolve => setTimeout(resolve, 300));
   
-      // 使用 scrollHeight 來捕捉完整內容
+      // 計算實際需要的高度
+      const actualHeight = element.scrollHeight;
+  
+      // 使用 html2canvas 截圖
       const canvas = await html2canvas(element, {
         backgroundColor: "#f6f7fb",
         scale: 2,
         useCORS: true,
         logging: false,
-        scrollY: -window.scrollY,
-        scrollX: -window.scrollX,
+        scrollY: 0,
+        scrollX: 0,
         width: element.offsetWidth + padding * 2,
-        height: element.scrollHeight + padding * 2,
+        height: actualHeight + padding * 2,
         x: -padding,
         y: -padding,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
+        windowWidth: element.offsetWidth + padding * 2,
+        windowHeight: actualHeight + padding * 2,
+        onclone: (clonedDoc) => {
+          // 在複製的文檔中,確保只有 RightBottom 被拉高
+          const clonedElement = clonedDoc.querySelector('[class*="GridPanel"]');
+          if (clonedElement) {
+            // 強制設定 Grid 為固定高度,避免其他元素被拉伸
+            const leftBottomInClone = clonedElement.querySelector('[class*="LeftBottom"]');
+            if (leftBottomInClone) {
+              leftBottomInClone.style.height = leftBottomInClone.offsetHeight + 'px';
+              leftBottomInClone.style.minHeight = leftBottomInClone.offsetHeight + 'px';
+            }
+            
+            const leftTopInClone = clonedElement.querySelector('[class*="LeftTop"]');
+            if (leftTopInClone) {
+              leftTopInClone.style.height = leftTopInClone.offsetHeight + 'px';
+              leftTopInClone.style.minHeight = leftTopInClone.offsetHeight + 'px';
+            }
+            
+            const rightTopInClone = clonedElement.querySelector('[class*="RightTop"]');
+            if (rightTopInClone) {
+              rightTopInClone.style.height = rightTopInClone.offsetHeight + 'px';
+              rightTopInClone.style.minHeight = rightTopInClone.offsetHeight + 'px';
+            }
+          }
+        }
       });
   
       // 恢復所有原始樣式
       originalStyles.forEach(({ element, ...styles }) => {
         Object.keys(styles).forEach(key => {
-          element.style[key] = styles[key];
+          if (styles[key] !== undefined && styles[key] !== null) {
+            element.style[key] = styles[key];
+          }
         });
       });
   
+      // 下載圖片
       canvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
