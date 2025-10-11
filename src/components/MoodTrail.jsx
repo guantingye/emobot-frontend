@@ -918,13 +918,56 @@ export default function MoodTrail() {
       // 等待狀態更新
       await new Promise(resolve => setTimeout(resolve, 50));
   
-      // 只針對 RightBottom 和 SummaryContent 進行調整
+      // 先獲取所有需要操作的元素
+      const leftTopElements = element.querySelectorAll('[class*="LeftTop"]');
+      const leftBottomElements = element.querySelectorAll('[class*="LeftBottom"]');
+      const rightTopElements = element.querySelectorAll('[class*="RightTop"]');
       const rightBottomElements = element.querySelectorAll('[class*="RightBottom"]');
       const summaryContentElements = element.querySelectorAll('[class*="SummaryContent"]');
       
       const originalStyles = [];
       
-      // 保存並修改 RightBottom 樣式(只修改高度相關屬性)
+      // 1. 先鎖定左上、左下、右上的高度(防止被拉伸)
+      leftTopElements.forEach((el) => {
+        const currentHeight = el.offsetHeight;
+        originalStyles.push({
+          element: el,
+          height: el.style.height,
+          minHeight: el.style.minHeight,
+          maxHeight: el.style.maxHeight
+        });
+        el.style.height = `${currentHeight}px`;
+        el.style.minHeight = `${currentHeight}px`;
+        el.style.maxHeight = `${currentHeight}px`;
+      });
+  
+      leftBottomElements.forEach((el) => {
+        const currentHeight = el.offsetHeight;
+        originalStyles.push({
+          element: el,
+          height: el.style.height,
+          minHeight: el.style.minHeight,
+          maxHeight: el.style.maxHeight
+        });
+        el.style.height = `${currentHeight}px`;
+        el.style.minHeight = `${currentHeight}px`;
+        el.style.maxHeight = `${currentHeight}px`;
+      });
+  
+      rightTopElements.forEach((el) => {
+        const currentHeight = el.offsetHeight;
+        originalStyles.push({
+          element: el,
+          height: el.style.height,
+          minHeight: el.style.minHeight,
+          maxHeight: el.style.maxHeight
+        });
+        el.style.height = `${currentHeight}px`;
+        el.style.minHeight = `${currentHeight}px`;
+        el.style.maxHeight = `${currentHeight}px`;
+      });
+      
+      // 2. 然後才釋放右下角的高度限制
       rightBottomElements.forEach((el) => {
         originalStyles.push({
           element: el,
@@ -939,7 +982,7 @@ export default function MoodTrail() {
         el.style.overflow = 'visible';
       });
       
-      // 保存並修改 SummaryContent 樣式(讓內容完全展開)
+      // 3. 釋放 SummaryContent 的滾動限制
       summaryContentElements.forEach((el) => {
         originalStyles.push({
           element: el,
@@ -952,10 +995,10 @@ export default function MoodTrail() {
         el.style.overflowY = 'visible';
       });
   
-      // 等待 DOM 更新完成
+      // 等待 DOM 完全更新
       await new Promise(resolve => setTimeout(resolve, 300));
   
-      // 計算實際需要的高度
+      // 計算實際高度
       const actualHeight = element.scrollHeight;
   
       // 使用 html2canvas 截圖
@@ -971,31 +1014,7 @@ export default function MoodTrail() {
         x: -padding,
         y: -padding,
         windowWidth: element.offsetWidth + padding * 2,
-        windowHeight: actualHeight + padding * 2,
-        onclone: (clonedDoc) => {
-          // 在複製的文檔中,確保只有 RightBottom 被拉高
-          const clonedElement = clonedDoc.querySelector('[class*="GridPanel"]');
-          if (clonedElement) {
-            // 強制設定 Grid 為固定高度,避免其他元素被拉伸
-            const leftBottomInClone = clonedElement.querySelector('[class*="LeftBottom"]');
-            if (leftBottomInClone) {
-              leftBottomInClone.style.height = leftBottomInClone.offsetHeight + 'px';
-              leftBottomInClone.style.minHeight = leftBottomInClone.offsetHeight + 'px';
-            }
-            
-            const leftTopInClone = clonedElement.querySelector('[class*="LeftTop"]');
-            if (leftTopInClone) {
-              leftTopInClone.style.height = leftTopInClone.offsetHeight + 'px';
-              leftTopInClone.style.minHeight = leftTopInClone.offsetHeight + 'px';
-            }
-            
-            const rightTopInClone = clonedElement.querySelector('[class*="RightTop"]');
-            if (rightTopInClone) {
-              rightTopInClone.style.height = rightTopInClone.offsetHeight + 'px';
-              rightTopInClone.style.minHeight = rightTopInClone.offsetHeight + 'px';
-            }
-          }
-        }
+        windowHeight: actualHeight + padding * 2
       });
   
       // 恢復所有原始樣式
@@ -1003,6 +1022,8 @@ export default function MoodTrail() {
         Object.keys(styles).forEach(key => {
           if (styles[key] !== undefined && styles[key] !== null) {
             element.style[key] = styles[key];
+          } else {
+            element.style[key] = '';
           }
         });
       });
