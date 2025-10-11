@@ -162,7 +162,7 @@ const GridPanel = styled.div`
   width: min(1300px, 90vw);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: minmax(280px, 1.3fr) minmax(200px, 0.9fr);
+  grid-template-rows: minmax(220px, 1.2fr) minmax(280px, 1.2fr);
   gap: 32px;
 
   @media (max-width: 1024px) {
@@ -274,8 +274,8 @@ const LeftTop = styled(Card)`
 
 const LeftBottom = styled(Card)`
   grid-column: 1;
-  grid-row: 2 / 4;
-  min-height: 180px;
+  grid-row: 2;
+  min-height: 280px;
 
   @media (max-width: 900px) {
     grid-column: 1;
@@ -286,11 +286,10 @@ const LeftBottom = styled(Card)`
 
 const RightTop = styled(Card)`
   grid-column: 2;
-  grid-row: 1 / 2;  /* 改為只佔第 1 列,不跨到第 2 列 */
+  grid-row: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 350px;  /* 設定固定的最小高度 */
 
   @media (max-width: 900px) {
     grid-column: 1;
@@ -301,9 +300,9 @@ const RightTop = styled(Card)`
 
 const RightBottom = styled(Card)`
   grid-column: 2;
-  grid-row: 2;  /* 改為第 2 列 */
-  min-height: ${props => props.$isDownloading ? 'auto' : '220px'};  /* 增加最小高度 */
-  height: ${props => props.$isDownloading ? 'auto' : 'auto'};  /* 改為 auto 讓它自適應 */
+  grid-row: 2;
+  min-height: ${props => props.$isDownloading ? 'auto' : '280px'};
+  height: ${props => props.$isDownloading ? 'auto' : 'auto'};
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
