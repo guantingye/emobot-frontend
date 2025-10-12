@@ -1,9 +1,9 @@
-// src/components/MoodTrail.jsx - 完整版
+// src/components/MoodTrail.jsx - 完整版(含彈窗功能)
 import React, { useRef, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
-import { FiArrowLeft, FiDownload, FiRefreshCw } from "react-icons/fi";
+import { FiArrowLeft, FiDownload, FiRefreshCw, FiX } from "react-icons/fi";
 import { BsClipboard2Data, BsClipboard2Pulse } from "react-icons/bs";
 import { GiSpellBook } from "react-icons/gi";
 import { TiLightbulb } from "react-icons/ti";
@@ -30,6 +30,22 @@ const fadeIn = keyframes`
 const float = keyframes`
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
+`;
+
+const modalFadeIn = keyframes`
+  from { 
+    opacity: 0; 
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to { 
+    opacity: 1; 
+    transform: translate(-50%, -50%) scale(1);
+  }
+`;
+
+const overlayFadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
 `;
 
 // ============================================================================
@@ -317,6 +333,14 @@ const RightBottom = styled(Card)`
   flex-direction: column;
   padding: 20px;
   overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 12px 32px rgba(43, 57, 147, 0.12);
+    transform: translateY(-2px);
+    border-color: #2b3993;
+  }
 
   @media (max-width: 900px) {
     grid-column: 1;
@@ -582,6 +606,156 @@ const FloatingRefreshBtn = styled.button`
 `;
 
 // ============================================================================
+// 彈窗相關 Styled Components
+// ============================================================================
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: ${overlayFadeIn} 0.3s ease-out;
+`;
+
+const ModalContainer = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(900px, 90vw);
+  max-height: 85vh;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  z-index: 1001;
+  animation: ${modalFadeIn} 0.3s ease-out;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    width: 95vw;
+    max-height: 90vh;
+    border-radius: 20px;
+  }
+`;
+
+const ModalHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 1px solid #e7e7ef;
+  background: linear-gradient(135deg, rgba(43, 57, 147, 0.03) 0%, rgba(248, 250, 252, 0.8) 100%);
+
+  @media (max-width: 768px) {
+    padding: 20px 24px;
+  }
+`;
+
+const ModalTitle = styled.div`
+  font-size: 20px;
+  font-weight: 800;
+  color: #2b3993;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  svg {
+    font-size: 24px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+    
+    svg {
+      font-size: 22px;
+    }
+  }
+`;
+
+const CloseButton = styled.button`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(43, 57, 147, 0.1);
+  color: #2b3993;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(43, 57, 147, 0.2);
+    transform: rotate(90deg);
+  }
+
+  svg {
+    font-size: 20px;
+  }
+`;
+
+const ModalContent = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 32px;
+  font-size: 14.5px;
+  line-height: 2;
+  color: #444;
+  white-space: pre-line;
+  word-wrap: break-word;
+  word-break: break-word;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
+
+  p {
+    margin: 0 0 16px 0;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  strong {
+    color: #2b3993;
+    font-weight: 700;
+  }
+
+  @media (max-width: 768px) {
+    padding: 24px;
+    font-size: 14px;
+    line-height: 1.9;
+  }
+`;
+
+// ============================================================================
 // 下載專用的 Styled Components
 // ============================================================================
 
@@ -629,12 +803,12 @@ const DownloadSectionTitle = styled.div`
   background: rgba(43, 57, 147, 0.05);
   border-left: 4px solid #2b3993;
   border-radius: 4px;
-  display: flex;          // 新增
-  align-items: center;    // 新增
+  display: flex;
+  align-items: center;
   
-  svg {                   // 新增
-    font-size: 20px;      // 新增
-    margin-right: 8px;    // 新增
+  svg {
+    font-size: 20px;
+    margin-right: 8px;
   }
 `;
 
@@ -948,10 +1122,23 @@ export default function MoodTrail() {
   const [analysisData, setAnalysisData] = useState(null);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     loadAnalysis();
   }, []);
+
+  // 防止背景滾動
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showModal]);
 
   const loadAnalysis = async () => {
     try {
@@ -967,360 +1154,106 @@ export default function MoodTrail() {
         setError({
           message: result.message || "對話次數不足",
           current: result.message_count || 0,
-          required: result.required_count || 30});
-        }
-      } catch (err) {
-        console.error("載入分析失敗:", err);
-        setError({
-          message: "載入失敗,請檢查網路連線後重試",
-          current: 0,
-          required: 30
+          required: result.required_count || 30
         });
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
       }
-    };
-  
-    const handleRefresh = () => {
-      setRefreshing(true);
-      loadAnalysis();
-    };
-  
-    const handleDownload = async () => {
-      if (!panelRef.current || isDownloading || !analysisData) return;
-  
-      try {
-        setIsDownloading(true);
-  
-        // 準備圖表數據
-        const emotionFreqData = analysisData?.emotion_frequency 
-          ? Object.entries(analysisData.emotion_frequency)
-              .sort((a, b) => b[1] - a[1])
-              .map(([name, value], index) => {
-                const colors = ['#5A8CF2', '#6B9AED', '#7BA8E8', '#8BB6E3', '#9BC4DE', '#ABC2D9', '#BBD0D4'];
-                return {
-                  name, 
-                  次數: value,
-                  color: colors[index % colors.length]
-                };
-              })
-          : [];
-  
-        const emotionIntensityData = analysisData?.emotion_intensity
-          ? Object.entries(analysisData.emotion_intensity)
-              .sort((a, b) => b[1] - a[1])
-              .slice(0, 6)
-              .map(([name, value]) => ({
-                name,
-                強度: Math.round(value),
-                color: analysisData.emotion_colors?.[name] || '#FF8FB1'
-              }))
-          : [];
-  
-        const topicRadarData = analysisData?.topic_radar
-          ? Object.entries(analysisData.topic_radar).map(([subject, value]) => ({
-              subject,
-              分數: Math.round(value),
-              fullMark: 100
+    } catch (err) {
+      console.error("載入分析失敗:", err);
+      setError({
+        message: "載入失敗,請檢查網路連線後重試",
+        current: 0,
+        required: 30
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadAnalysis();
+  };
+
+  const handleOpenModal = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
+  const handleDownload = async () => {
+    if (!panelRef.current || isDownloading || !analysisData) return;
+
+    try {
+      setIsDownloading(true);
+
+      // 準備圖表數據
+      const emotionFreqData = analysisData?.emotion_frequency 
+        ? Object.entries(analysisData.emotion_frequency)
+            .sort((a, b) => b[1] - a[1])
+            .map(([name, value], index) => {
+              const colors = ['#5A8CF2', '#6B9AED', '#7BA8E8', '#8BB6E3', '#9BC4DE', '#ABC2D9', '#BBD0D4'];
+              return {
+                name, 
+                次數: value,
+                color: colors[index % colors.length]
+              };
+            })
+        : [];
+
+      const emotionIntensityData = analysisData?.emotion_intensity
+        ? Object.entries(analysisData.emotion_intensity)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 6)
+            .map(([name, value]) => ({
+              name,
+              強度: Math.round(value),
+              color: analysisData.emotion_colors?.[name] || '#FF8FB1'
             }))
-          : [];
-  
-        // 創建臨時容器
-        const downloadContainer = document.createElement('div');
-        downloadContainer.style.position = 'fixed';
-        downloadContainer.style.left = '-9999px';
-        downloadContainer.style.top = '0';
-        document.body.appendChild(downloadContainer);
-  
-        // 使用 React 渲染下載內容
-        const root = ReactDOM.createRoot(downloadContainer);
-        
-        await new Promise((resolve) => {
-          root.render(
-            <DownloadContainer>
-              {/* 標題 */}
-              <DownloadCard>
-                <DownloadTitle>心情足跡 · MoodTrail</DownloadTitle>
-                <DownloadSubtitle>
-                  分析時間: {new Date().toLocaleDateString('zh-TW', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })} | 對話次數: {analysisData.message_count} 次
-                </DownloadSubtitle>
-              </DownloadCard>
-  
-              {/* 情緒頻率圖 */}
-              <DownloadCard>
-                <DownloadSectionTitle>
-                  <BsClipboard2Data style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
-                  情緒頻率圖
-                </DownloadSectionTitle>
-                <DownloadChartWrapper>
-                  {emotionFreqData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart 
-                        data={emotionFreqData} 
-                        margin={{ top: 10, right: 20, left: -10, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" strokeOpacity={0.5} />
-                        <XAxis 
-                          dataKey="name" 
-                          style={{ fontSize: '12px', fontWeight: '600' }}
-                          tick={{ fill: '#666' }}
-                        />
-                        <YAxis 
-                          style={{ fontSize: '12px', fontWeight: '600' }}
-                          tick={{ fill: '#666' }}
-                          allowDecimals={false}
-                        />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Bar dataKey="次數" radius={[10, 10, 0, 0]} maxBarSize={50}>
-                          {emotionFreqData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div>尚無情緒數據</div>
-                  )}
-                </DownloadChartWrapper>
-              </DownloadCard>
-  
-              {/* 情緒強度圖 */}
-              <DownloadCard>
-                <DownloadSectionTitle>
-                  <BsClipboard2Pulse style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
-                  情緒強度圖
-                </DownloadSectionTitle>
-                <DownloadChartWrapper>
-                  {emotionIntensityData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart 
-                        data={emotionIntensityData} 
-                        margin={{ top: 10, right: 20, left: -10, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" strokeOpacity={0.5} />
-                        <XAxis 
-                          dataKey="name" 
-                          style={{ fontSize: '12px', fontWeight: '600' }}
-                          tick={{ fill: '#666' }}
-                        />
-                        <YAxis 
-                          domain={[0, 100]}
-                          style={{ fontSize: '12px', fontWeight: '600' }}
-                          tick={{ fill: '#666' }}
-                        />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Line 
-                          type="monotone" 
-                          dataKey="強度" 
-                          stroke="#FF8FB1" 
-                          strokeWidth={3} 
-                          dot={{ r: 5, fill: '#FF8FB1' }}
-                          activeDot={{ r: 7 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div>尚無強度數據</div>
-                  )}
-                </DownloadChartWrapper>
-              </DownloadCard>
-  
-              {/* 議題雷達圖 */}
-              <DownloadCard>
-                <DownloadSectionTitle>
-                  <TbTargetArrow style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
-                  議題雷達圖
-                </DownloadSectionTitle>
-                <div style={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {topicRadarData.length > 0 ? (
-                    <RadarChartSVG data={topicRadarData} />
-                  ) : (
-                    <div>尚無議題數據</div>
-                  )}
-                </div>
-              </DownloadCard>
-  
-              {/* 溫馨小提醒 */}
-              <DownloadCard>
-                <DownloadSectionTitle>
-                  <PiHandHeartDuotone style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
-                  溫馨小提醒
-                </DownloadSectionTitle>
-                <DownloadSummaryContent
-                  dangerouslySetInnerHTML={{
-                    __html: (analysisData.summary || "持續對話可以幫助我更了解你的心理狀態。")
-                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                      .replace(/\n\n/g, '<br/><br/>')
-                      .replace(/\n/g, '<br/>')
-                  }}
-                />
-              </DownloadCard>
-            </DownloadContainer>
-          );
-  
-          // 等待渲染完成
-          setTimeout(resolve, 800);
-        });
-  
-        // 獲取渲染好的容器
-        const element = downloadContainer.firstChild;
-  
-        // 使用 html2canvas 截圖
-        const canvas = await html2canvas(element, {
-          backgroundColor: "#f6f7fb",
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          width: 880,
-          height: element.scrollHeight + 80
-        });
-  
-        // 清理臨時容器
-        root.unmount();
-        document.body.removeChild(downloadContainer);
-  
-        // 下載圖片
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            const timestamp = new Date().toISOString().split('T')[0];
-            link.href = url;
-            link.download = `心情足跡報告_${timestamp}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-          }
-        }, "image/png");
-  
-      } catch (error) {
-        console.error("下載圖片時發生錯誤:", error);
-        alert("下載圖片失敗,請稍後再試");
-      } finally {
-        setIsDownloading(false);
-      }
-    };
-  
-    // 準備圖表數據
-    const emotionFreqData = analysisData?.emotion_frequency 
-      ? Object.entries(analysisData.emotion_frequency)
-          .sort((a, b) => b[1] - a[1])
-          .map(([name, value], index) => {
-            const colors = ['#5A8CF2', '#6B9AED', '#7BA8E8', '#8BB6E3', '#9BC4DE', '#ABC2D9', '#BBD0D4'];
-            return {
-              name, 
-              次數: value,
-              color: colors[index % colors.length]
-            };
-          })
-      : [];
-  
-    const emotionIntensityData = analysisData?.emotion_intensity
-      ? Object.entries(analysisData.emotion_intensity)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 6)
-          .map(([name, value]) => ({
-            name,
-            強度: Math.round(value),
-            color: analysisData.emotion_colors?.[name] || '#FF8FB1'
+        : [];
+
+      const topicRadarData = analysisData?.topic_radar
+        ? Object.entries(analysisData.topic_radar).map(([subject, value]) => ({
+            subject,
+            分數: Math.round(value),
+            fullMark: 100
           }))
-      : [];
-  
-    const topicRadarData = analysisData?.topic_radar
-      ? Object.entries(analysisData.topic_radar).map(([subject, value]) => ({
-          subject,
-          分數: Math.round(value),
-          fullMark: 100
-        }))
-      : [];
-  
-    // 渲染:載入中
-    if (loading) {
-      return (
-        <Wrap>
-          <Header>
-            <BtnGroup>
-              <BackBtn onClick={() => nav(-1)}>
-                <FiArrowLeft size={18} /> 返回
-              </BackBtn>
-            </BtnGroup>
-            <PageTitle>心情足跡·MoodTrail</PageTitle>
-            <BtnGroup />
-          </Header>
-          <Content>
-            <CenteredWrapper>
-              <LoadingSpinner />
-              <LoadingText>正在分析你的對話內容...</LoadingText>
-            </CenteredWrapper>
-          </Content>
-        </Wrap>
-      );
-    }
-  
-    // 渲染:錯誤或數據不足
-    if (error || !analysisData) {
-      return (
-        <Wrap>
-          <Header>
-            <BtnGroup>
-              <BackBtn onClick={() => nav(-1)}>
-                <FiArrowLeft size={18} /> 返回
-              </BackBtn>
-            </BtnGroup>
-            <PageTitle>心情足跡·MoodTrail</PageTitle>
-            <BtnGroup />
-          </Header>
-          <Content>
-            <CenteredWrapper>
-              <RobotGif src={robotGif} alt="robot" />
-              <ErrorText>{error?.message || "尚無足夠的對話數據進行分析"}</ErrorText>
-              {error?.current !== undefined && (
-                <ErrorHint>
-                  目前對話次數: <strong>{error.current}</strong> / <strong>{error.required}</strong>
-                  <br />
-                  還需要 <strong>{error.required - error.current}</strong> 次對話才能進行完整分析
-                </ErrorHint>
-              )}
-            </CenteredWrapper>
-          </Content>
-          <FloatingRefreshBtn onClick={handleRefresh} disabled={refreshing}>
-            <FiRefreshCw size={14} /> {refreshing ? "更新中" : "重新整理"}
-          </FloatingRefreshBtn>
-        </Wrap>
-      );
-    }
-  
-    // 渲染:完整分析結果
-    return (
-      <Wrap>
-        <Header>
-          <BtnGroup>
-            <BackBtn onClick={() => nav(-1)}>
-              <FiArrowLeft size={18} /> 返回
-            </BackBtn>
-          </BtnGroup>
-  
-          <PageTitle>心情足跡·MoodTrail</PageTitle>
-  
-          <BtnGroup>
-            <DownloadBtn onClick={handleDownload} disabled={isDownloading}>
-              <FiDownload size={18} /> {isDownloading ? "下載中" : "下載圖片"}
-            </DownloadBtn>
-          </BtnGroup>
-        </Header>
-  
-        <Content>
-          <GridPanel ref={panelRef}>
-            {/* 左上:情緒頻率圖 */}
-            <LeftTop>
-              <SectionTitle>情緒頻率圖</SectionTitle>
-              <ChartWrapper>
+        : [];
+
+      // 創建臨時容器
+      const downloadContainer = document.createElement('div');
+      downloadContainer.style.position = 'fixed';
+      downloadContainer.style.left = '-9999px';
+      downloadContainer.style.top = '0';
+      document.body.appendChild(downloadContainer);
+
+      // 使用 React 渲染下載內容
+      const root = ReactDOM.createRoot(downloadContainer);
+      
+      await new Promise((resolve) => {
+        root.render(
+          <DownloadContainer>
+            {/* 標題 */}
+            <DownloadCard>
+              <DownloadTitle>心情足跡 · MoodTrail</DownloadTitle>
+              <DownloadSubtitle>
+                分析時間: {new Date().toLocaleDateString('zh-TW', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })} | 對話次數: {analysisData.message_count} 次
+              </DownloadSubtitle>
+            </DownloadCard>
+
+            {/* 情緒頻率圖 */}
+            <DownloadCard>
+              <DownloadSectionTitle>
+                <BsClipboard2Data />
+                情緒頻率圖
+              </DownloadSectionTitle>
+              <DownloadChartWrapper>
                 {emotionFreqData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart 
@@ -1347,15 +1280,18 @@ export default function MoodTrail() {
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <Placeholder>尚無情緒數據</Placeholder>
+                  <div>尚無情緒數據</div>
                 )}
-              </ChartWrapper>
-            </LeftTop>
-  
-            {/* 左下:情緒強度圖 */}
-            <LeftBottom>
-              <SectionTitle>情緒強度圖</SectionTitle>
-              <ChartWrapper>
+              </DownloadChartWrapper>
+            </DownloadCard>
+
+            {/* 情緒強度圖 */}
+            <DownloadCard>
+              <DownloadSectionTitle>
+                <BsClipboard2Pulse />
+                情緒強度圖
+              </DownloadSectionTitle>
+              <DownloadChartWrapper>
                 {emotionIntensityData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart 
@@ -1385,27 +1321,33 @@ export default function MoodTrail() {
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <Placeholder>尚無強度數據</Placeholder>
+                  <div>尚無強度數據</div>
                 )}
-              </ChartWrapper>
-            </LeftBottom>
-  
-            {/* 右上:議題雷達圖 */}
-            <RightTop>
-              <SectionTitle>議題雷達圖</SectionTitle>
-              <RadarChartWrapper>
+              </DownloadChartWrapper>
+            </DownloadCard>
+
+            {/* 議題雷達圖 */}
+            <DownloadCard>
+              <DownloadSectionTitle>
+                <TbTargetArrow />
+                議題雷達圖
+              </DownloadSectionTitle>
+              <div style={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {topicRadarData.length > 0 ? (
                   <RadarChartSVG data={topicRadarData} />
                 ) : (
-                  <Placeholder>尚無議題數據</Placeholder>
+                  <div>尚無議題數據</div>
                 )}
-              </RadarChartWrapper>
-            </RightTop>
-  
-            {/* 右下:溫馨小提醒 */}
-            <RightBottom>
-              <SectionTitle>溫馨小提醒</SectionTitle>
-              <SummaryContent
+              </div>
+            </DownloadCard>
+
+            {/* 溫馨小提醒 */}
+            <DownloadCard>
+              <DownloadSectionTitle>
+                <PiHandHeartDuotone />
+                溫馨小提醒
+              </DownloadSectionTitle>
+              <DownloadSummaryContent
                 dangerouslySetInnerHTML={{
                   __html: (analysisData.summary || "持續對話可以幫助我更了解你的心理狀態。")
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -1413,13 +1355,292 @@ export default function MoodTrail() {
                     .replace(/\n/g, '<br/>')
                 }}
               />
-            </RightBottom>
-          </GridPanel>
+            </DownloadCard>
+          </DownloadContainer>
+        );
+
+        // 等待渲染完成
+        setTimeout(resolve, 800);
+      });
+
+      // 獲取渲染好的容器
+      const element = downloadContainer.firstChild;
+
+      // 使用 html2canvas 截圖
+      const canvas = await html2canvas(element, {
+        backgroundColor: "#f6f7fb",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        width: 880,
+        height: element.scrollHeight + 80
+      });
+
+      // 清理臨時容器
+      root.unmount();
+      document.body.removeChild(downloadContainer);
+
+      // 下載圖片
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          const timestamp = new Date().toISOString().split('T')[0];
+          link.href = url;
+          link.download = `心情足跡報告_${timestamp}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }
+      }, "image/png");
+
+    } catch (error) {
+      console.error("下載圖片時發生錯誤:", error);
+      alert("下載圖片失敗,請稍後再試");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  // 準備圖表數據
+  const emotionFreqData = analysisData?.emotion_frequency 
+    ? Object.entries(analysisData.emotion_frequency)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, value], index) => {
+          const colors = ['#5A8CF2', '#6B9AED', '#7BA8E8', '#8BB6E3', '#9BC4DE', '#ABC2D9', '#BBD0D4'];
+          return {
+            name, 
+            次數: value,
+            color: colors[index % colors.length]
+          };
+        })
+    : [];
+
+  const emotionIntensityData = analysisData?.emotion_intensity
+    ? Object.entries(analysisData.emotion_intensity)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([name, value]) => ({
+          name,
+          強度: Math.round(value),
+          color: analysisData.emotion_colors?.[name] || '#FF8FB1'
+        }))
+    : [];
+
+  const topicRadarData = analysisData?.topic_radar
+    ? Object.entries(analysisData.topic_radar).map(([subject, value]) => ({
+        subject,
+        分數: Math.round(value),
+        fullMark: 100
+      }))
+    : [];
+
+  // 渲染:載入中
+  if (loading) {
+    return (
+      <Wrap>
+        <Header>
+          <BtnGroup>
+            <BackBtn onClick={() => nav(-1)}>
+              <FiArrowLeft size={18} /> 返回
+            </BackBtn>
+          </BtnGroup>
+          <PageTitle>心情足跡·MoodTrail</PageTitle>
+          <BtnGroup />
+        </Header>
+        <Content>
+          <CenteredWrapper>
+            <LoadingSpinner />
+            <LoadingText>正在分析你的對話內容...</LoadingText>
+          </CenteredWrapper>
         </Content>
-  
+      </Wrap>
+    );
+  }
+
+  // 渲染:錯誤或數據不足
+  if (error || !analysisData) {
+    return (
+      <Wrap>
+        <Header>
+          <BtnGroup>
+            <BackBtn onClick={() => nav(-1)}>
+              <FiArrowLeft size={18} /> 返回
+            </BackBtn>
+          </BtnGroup>
+          <PageTitle>心情足跡·MoodTrail</PageTitle>
+          <BtnGroup />
+        </Header>
+        <Content>
+          <CenteredWrapper>
+            <RobotGif src={robotGif} alt="robot" />
+            <ErrorText>{error?.message || "尚無足夠的對話數據進行分析"}</ErrorText>
+            {error?.current !== undefined && (
+              <ErrorHint>
+                目前對話次數: <strong>{error.current}</strong> / <strong>{error.required}</strong>
+                <br />
+                還需要 <strong>{error.required - error.current}</strong> 次對話才能進行完整分析
+              </ErrorHint>
+            )}
+          </CenteredWrapper>
+        </Content>
         <FloatingRefreshBtn onClick={handleRefresh} disabled={refreshing}>
-          <FiRefreshCw size={14} /> {refreshing ? "更新中" : "重新分析"}
+          <FiRefreshCw size={14} /> {refreshing ? "更新中" : "重新整理"}
         </FloatingRefreshBtn>
       </Wrap>
     );
   }
+
+  // 渲染:完整分析結果
+  return (
+    <Wrap>
+      <Header>
+        <BtnGroup>
+          <BackBtn onClick={() => nav(-1)}>
+            <FiArrowLeft size={18} /> 返回
+          </BackBtn>
+        </BtnGroup>
+
+        <PageTitle>心情足跡·MoodTrail</PageTitle>
+
+        <BtnGroup>
+          <DownloadBtn onClick={handleDownload} disabled={isDownloading}>
+            <FiDownload size={18} /> {isDownloading ? "下載中" : "下載圖片"}
+          </DownloadBtn>
+        </BtnGroup>
+      </Header>
+
+      <Content>
+        <GridPanel ref={panelRef}>
+          {/* 左上:情緒頻率圖 */}
+          <LeftTop>
+            <SectionTitle>情緒頻率圖</SectionTitle>
+            <ChartWrapper>
+              {emotionFreqData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart 
+                    data={emotionFreqData} 
+                    margin={{ top: 10, right: 20, left: -10, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" strokeOpacity={0.5} />
+                    <XAxis 
+                      dataKey="name" 
+                      style={{ fontSize: '12px', fontWeight: '600' }}
+                      tick={{ fill: '#666' }}
+                    />
+                    <YAxis 
+                      style={{ fontSize: '12px', fontWeight: '600' }}
+                      tick={{ fill: '#666' }}
+                      allowDecimals={false}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="次數" radius={[10, 10, 0, 0]} maxBarSize={50}>
+                      {emotionFreqData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <Placeholder>尚無情緒數據</Placeholder>
+              )}
+            </ChartWrapper>
+          </LeftTop>
+
+          {/* 左下:情緒強度圖 */}
+          <LeftBottom>
+            <SectionTitle>情緒強度圖</SectionTitle>
+            <ChartWrapper>
+              {emotionIntensityData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart 
+                    data={emotionIntensityData} 
+                    margin={{ top: 10, right: 20, left: -10, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" strokeOpacity={0.5} />
+                    <XAxis 
+                      dataKey="name" 
+                      style={{ fontSize: '12px', fontWeight: '600' }}
+                      tick={{ fill: '#666' }}
+                    />
+                    <YAxis 
+                      domain={[0, 100]}
+                      style={{ fontSize: '12px', fontWeight: '600' }}
+                      tick={{ fill: '#666' }}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line 
+                      type="monotone" 
+                      dataKey="強度" 
+                      stroke="#FF8FB1" 
+                      strokeWidth={3} 
+                      dot={{ r: 5, fill: '#FF8FB1' }}
+                      activeDot={{ r: 7 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <Placeholder>尚無強度數據</Placeholder>
+              )}
+            </ChartWrapper>
+          </LeftBottom>
+
+          {/* 右上:議題雷達圖 */}
+          <RightTop>
+            <SectionTitle>議題雷達圖</SectionTitle>
+            <RadarChartWrapper>
+              {topicRadarData.length > 0 ? (
+                <RadarChartSVG data={topicRadarData} />
+              ) : (
+                <Placeholder>尚無議題數據</Placeholder>
+              )}
+            </RadarChartWrapper>
+          </RightTop>
+
+          {/* 右下:溫馨小提醒 - 可點擊 */}
+          <RightBottom onClick={handleOpenModal}>
+            <SectionTitle>溫馨小提醒</SectionTitle>
+            <SummaryContent
+              dangerouslySetInnerHTML={{
+                __html: (analysisData.summary || "持續對話可以幫助我更了解你的心理狀態。")
+                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/\n\n/g, '<br/><br/>')
+                  .replace(/\n/g, '<br/>')
+              }}
+            />
+          </RightBottom>
+        </GridPanel>
+      </Content>
+
+      {/* 彈窗 */}
+      {showModal && (
+        <ModalOverlay onClick={handleCloseModal}>
+          <ModalContainer onClick={(e) => e.stopPropagation()}>
+            <ModalHeader>
+              <ModalTitle>
+                <PiHandHeartDuotone />
+                溫馨小提醒
+              </ModalTitle>
+              <CloseButton onClick={handleCloseModal}>
+                <FiX />
+              </CloseButton>
+            </ModalHeader>
+            <ModalContent
+              dangerouslySetInnerHTML={{
+                __html: (analysisData.summary || "持續對話可以幫助我更了解你的心理狀態。")
+                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/\n\n/g, '<br/><br/>')
+                  .replace(/\n/g, '<br/>')
+              }}
+            />
+          </ModalContainer>
+        </ModalOverlay>
+      )}
+
+      <FloatingRefreshBtn onClick={handleRefresh} disabled={refreshing}>
+        <FiRefreshCw size={14} /> {refreshing ? "更新中" : "重新分析"}
+      </FloatingRefreshBtn>
+    </Wrap>
+  );
+}
