@@ -1267,7 +1267,7 @@ export default function MatchResult() {
             <ModalHeader>
               <ModalTitle>
                 <BsClipboard2Data />
-                心理測驗結果儀表板
+                心理測驗結果 - 嘗試更了解自己！
               </ModalTitle>
               <CloseButton onClick={handleCloseModal}>
                 <FiX />
