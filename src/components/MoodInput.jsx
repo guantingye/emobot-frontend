@@ -6,6 +6,7 @@ import botTemp from "../assets/bot_temp.png";
 import { IoSend } from "react-icons/io5";
 import { FiChevronLeft, FiMic, FiInfo, FiVolume2, FiVolumeX } from "react-icons/fi";
 import { sendChatMessage, checkFirstTimeChat } from "../api/client";
+import { apiGetSessionHistory } from "../api/client";
 import AvatarAnimation from "./AvatarAnimation";
 
 const VIDEO_MAP = {
@@ -1427,11 +1428,15 @@ export default function MoodInput() {
 
   const [avatarText, setAvatarText] = useState("");
   const [currentSpeakingIndex, setCurrentSpeakingIndex] = useState(-1);
+  // 🆕 Session管理
+  const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const selectedBotType = (localStorage.getItem("selectedBotType") || "solution");
   const bot = BOT_MAP[selectedBotType] || BOT_MAP.solution;
   const selectedBotImage = localStorage.getItem("selectedBotImage") || botTemp;
   const nickname = (JSON.parse(localStorage.getItem("user") || "{}").nickname) || "你";
+  const userPid = (JSON.parse(localStorage.getItem("user") || "{}").pid) || "unknown";
 
   const showStatus = (message, duration = 3000) => {
     setStatusMessage(message);
@@ -1439,20 +1444,63 @@ export default function MoodInput() {
   };
 
   useEffect(() => {
-    const checkFirstTime = async () => {
+    const initChat = async () => {
       try {
+        // 1. 檢查首次對話
         const result = await checkFirstTimeChat(selectedBotType);
         if (result?.ok) {
           setIsFirstTimeChat(result.is_first_time);
           console.log(`首次對話檢測: ${result.is_first_time ? '是' : '否'}`);
         }
-      } catch (error) {
-        console.error("檢查首次對話失敗:", error);
-        setIsFirstTimeChat(false);
+        
+        // 2. 🆕 生成或取得 session ID
+        const sessionKey = `session_${userPid}_${selectedBotType}`;
+        let sessionId = localStorage.getItem(sessionKey);
+        
+        if (!sessionId) {
+          sessionId = `${userPid}_${selectedBotType}_${Date.now()}`;
+          localStorage.setItem(sessionKey, sessionId);
+          console.log(`🆕 Created new session: ${sessionId}`);
+        } else {
+          console.log(`📂 Found existing session: ${sessionId}`);
+        }
+        
+        setCurrentSessionId(sessionId);
+        
+        // 3. 🆕 載入歷史訊息
+        setIsLoadingHistory(true);
+        const historyResult = await apiGetSessionHistory(sessionId);
+        
+        if (historyResult?.ok && historyResult.messages.length > 0) {
+          console.log(`✅ Loaded ${historyResult.messages.length} historical messages`);
+          
+          const formattedMessages = historyResult.messages.map(msg => ({
+            sender: msg.sender,
+            content: msg.content,
+            timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }));
+          
+          setMessages(formattedMessages);
+          setChatStarted(true);
+          setAvatarAppear(true);
+          
+          const lastAiMsg = formattedMessages.filter(m => m.sender === "ai").pop();
+          if (lastAiMsg) {
+            setAvatarText(lastAiMsg.content);
+            setCurrentSpeakingIndex(formattedMessages.filter(m => m.sender === "ai").length - 1);
+          }
+        }
+        
+        setIsLoadingHistory(false);
+        
+      } catch (e) {
+        console.error("初始化失敗:", e);
+        setIsLoadingHistory(false);
       }
     };
-    checkFirstTime();
-  }, [selectedBotType]);
+    
+    initChat();
+  }, [selectedBotType, userPid]);
 
   useEffect(() => {
     const welcomeTimer = setTimeout(() => {
@@ -1531,7 +1579,7 @@ export default function MoodInput() {
       setAvatarText(firstText);
       setCurrentSpeakingIndex(0);
       
-      await sendChatMessage(firstText, selectedBotType, mode, [{ role: "assistant", content: firstText }], true);
+      await sendChatMessage(firstText, selectedBotType, mode, [{ role: "assistant", content: firstText }], true, currentSessionId);
     }, 1000);
   };
 
@@ -1620,7 +1668,7 @@ export default function MoodInput() {
       .map(m => ({ role: m.sender === "user" ? "user" : "assistant", content: m.content }));
 
     try {
-      const result = await sendChatMessage(userMsgText, selectedBotType, mode, history);
+      const result = await sendChatMessage(userMsgText, selectedBotType, mode, history, false, currentSessionId);
       
       if (result?.ok && result.reply) {
         const replyTime =
@@ -1714,6 +1762,16 @@ export default function MoodInput() {
 
   const today = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
   const aiMessages = messages.filter(m => m.sender === "ai");
+
+  if (isLoadingHistory) {
+    return (
+      <Container>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',flexDirection:'column',gap:'20px'}}>
+          <div style={{fontSize:'18px',color:'#677eb8',fontWeight:600}}>載入對話中...</div>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container>

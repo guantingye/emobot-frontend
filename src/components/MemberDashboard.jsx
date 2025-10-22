@@ -1090,6 +1090,7 @@ const MemberDashboard = () => {
     
     localStorage.setItem("isRetest", "true");
     
+    // 清除測驗資料
     localStorage.removeItem("step1MBTI");
     localStorage.removeItem("step2Answers");
     localStorage.removeItem("step3Answers");
@@ -1099,6 +1100,17 @@ const MemberDashboard = () => {
     localStorage.removeItem("selectedBotImage");
     localStorage.removeItem("selectedBotName");
     localStorage.removeItem("selectedBotType");
+    
+    // 🆕 清除所有 bot 的 session ID
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const userPid = user.pid || "unknown";
+    
+    const botTypes = ["empathy", "insight", "solution", "cognitive"];
+    botTypes.forEach(botType => {
+      const sessionKey = `session_${userPid}_${botType}`;
+      localStorage.removeItem(sessionKey);
+      console.log(`🗑️ Cleared session: ${sessionKey}`);
+    });
     
     setScores(null);
     setChosenBotName("—");

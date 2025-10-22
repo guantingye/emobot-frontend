@@ -313,6 +313,23 @@ export async function checkFirstTimeChat(botType) {
   }
 }
 
+/**
+ * 🆕 新增：取得特定 session 的對話歷史
+ * @param {string} sessionId - Session ID
+ */
+export async function apiGetSessionHistory(sessionId) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/chat/session-history?session_id=${sessionId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Get session history error:', error);
+    return { ok: false, messages: [], count: 0 };
+  }
+}
+
 // ============================================================================
 // HeyGen 視訊相關 API
 // ============================================================================
@@ -542,6 +559,7 @@ export default {
   apiSaveMood,
   apiGetMyMoods,
   apiGetMoodAnalysis,
+  apiGetSessionHistory,
   
   // 管理員
   getAllowedPids,
